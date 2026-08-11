@@ -30,7 +30,7 @@ Task IDs use `P##-T##`.
 - [x] P02-T07 Complete Phase 2 integration tests and persistence hardening
 
 ## Phase 3 — Runtime Placement Editor
-- [ ] P03-T01 Implement runtime entity scene bridge and single-selection foundation
+- [x] P03-T01 Implement runtime entity scene bridge and single-selection foundation
 - [ ] P03-T02 Implement command-backed object placement and ghost preview
 - [ ] P03-T03 Implement command-backed move/rotate/scale editing and gizmo state
 - [ ] P03-T04 Implement command-backed duplicate and delete operations

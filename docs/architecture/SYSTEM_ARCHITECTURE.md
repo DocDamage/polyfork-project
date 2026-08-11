@@ -43,6 +43,17 @@ Commands may be grouped into a transaction. Each transaction receives a stable U
 
 The command history owns bounded undo and redo stacks. A successful new edit after an undo clears the redo stack. Failed execution, undo, or redo attempts do not advance the corresponding history stacks. Command history is in-memory editor infrastructure; persistence observes authored state rather than becoming an authoring mutation.
 
+## Runtime entity scene bridge and selection
+`src/editor/runtime_entity_node.gd` is the generic runtime `Node3D` wrapper for a persisted `WorldEntity`. It copies the stable entity UUID into runtime metadata and applies persisted position, rotation, and scale. The wrapper is an anchor for later asset/prefab scene content; P03-T01 does not invent asset loading before the asset-library phase exists.
+
+`src/editor/runtime_entity_bridge.gd` rebuilds the runtime entity hierarchy from validated entity records. Runtime node names and tree locations are disposable implementation details; lookup and parent relationships are resolved only through stable entity IDs. The bridge rejects duplicate IDs, unresolved parents, self-parenting, and parent cycles. A rejected rebuild leaves the previous known-good runtime mapping intact.
+
+The bridge can resolve any descendant runtime node back to the owning stable entity ID by walking runtime metadata. This gives future raycast/picking code a stable boundary without persisting scene-tree paths.
+
+`src/editor/single_selection.gd` owns exactly one editor selection at a time. Selection may be requested by stable entity ID or by a descendant runtime node resolved through the bridge. Switching selection clears the prior runtime selected state; invalid selection attempts preserve the current selection. Selection state is editor-only and does not mutate persistent project data, enter command history, or mark the project dirty.
+
+The workspace binds this selection model to the existing right inspector. Selecting a bridged entity shows its display name, stable identity, ownership cell, parent reference, and persisted transform values. Closing the inspector clears entity selection. P03-T01 intentionally does not implement placement, ghost preview, transform authoring, duplicate/delete, multi-select, snapping, or gameplay-specific semantics.
+
 ## Streaming
 Large worlds use partition cells. World objects declare owning cell and optional cross-cell references through stable IDs. Streaming must never depend on parent node being currently loaded.
 

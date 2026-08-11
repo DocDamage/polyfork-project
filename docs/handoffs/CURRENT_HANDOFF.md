@@ -1,122 +1,123 @@
 # Current Handoff
 
 ## Status
-OPEN — P02-T07 implementation is complete and verified on its task branch; merge is still required before `master` reflects Phase 2 completion.
+OPEN — P03-T01 implementation is complete and verified on its task branch; merge is required before `master` advances beyond completed Phase 2.
 
 ## Project state
-Phase 0 and Phase 1 are complete on authoritative `master`.
+Phase 0, Phase 1, and Phase 2 are complete on authoritative `master`.
 
-PR #5 merged P02-T06 into `master` at merge commit `c6af112ef6044ef2bef1b4325206e6693fabb694`. P02-T07 was then implemented from that exact baseline on `dev/p02-t07-phase2-closeout`.
-
-All Phase 2 tasks are complete on the P02-T07 branch. Phase 3 has not started. `master` becomes the completed Phase 2 baseline only after the P02-T07 PR is reviewed and merged.
+PR #6 merged P02-T07 into `master` at merge commit `20ee082ee242a06e80364df57fda0e2f8aebe678`. P03-T01 was implemented from that exact merged baseline on `dev/p03-t01-runtime-selection`.
 
 The repository default branch remains the obsolete starter branch `main`; do not develop from it. The authoritative project branch remains `master`.
 
-## Completed task
-`P02-T07 — Complete Phase 2 integration tests and persistence hardening`
+## Completed task on the implementation branch
+`P03-T01 — Implement runtime entity scene bridge and single-selection foundation`
 
-## Persistence hardening added
-- `WorldProject` now persists an additive optional schema-v1 `entities` collection so the existing `WorldEntity`/`EntityRegistry` foundation actually survives save and reopen.
-- Persisted entity records are validated for stable UUID identity, duplicate entity IDs, owning project cell membership, resolvable parent references, and self-parenting.
-- `EntityRegistry` can serialize its stable-ID-sorted records and reconstruct itself from persisted dictionaries while rejecting duplicate and unresolved/self parent identities.
-- A P02-T07 integration run exposed a real nullable-ID defect in `WorldEntity`: JSON `null` optional UUID fields were previously converted through `str(null)` during load, creating bogus non-empty runtime references. `WorldEntity` now maps persisted null optional IDs back to empty runtime references.
-- Legacy schema-v1 project manifests without additive `entities` or millisecond timestamp fields remain supported.
-- Unsupported future world-project schemas still fail explicitly and do not receive a hidden fallback.
+## Runtime editor architecture added
+- `src/editor/runtime_entity_node.gd` defines the generic `Node3D` wrapper for one persisted `WorldEntity`. The wrapper copies the stable entity UUID into runtime metadata and applies persisted position, rotation, and scale.
+- `src/editor/runtime_entity_bridge.gd` builds the runtime node hierarchy from validated entity dictionaries and resolves runtime nodes back to stable entity IDs.
+- Runtime parent relationships are reconstructed from `parent_entity_id`; no persistent relationship depends on node names or scene-tree paths.
+- Bridge rebuild rejects invalid records, duplicate stable IDs, unresolved parents, self-parenting, and parent cycles.
+- Bridge rebuild is failure-safe: invalid replacement data is staged and rejected before the prior known-good runtime mapping is destroyed.
+- `src/editor/single_selection.gd` owns exactly one selected entity at a time and accepts either a stable entity ID or a descendant runtime node resolved through the bridge.
+- Invalid selection attempts preserve the previous selection; selecting a new entity clears the prior wrapper's selected state.
+- Selection is editor-only state. It does not change project persistence, enter command history, or mark the project dirty.
 
-## Integrated lifecycle verification
-`tests/integration/phase2_lifecycle_contracts.gd` verifies realistic Phase 2 flows:
-- create project -> create/register stable entities -> persist -> reopen -> reconstruct registry -> verify stable IDs, parent references, and authored transform state;
-- execute a generic project mutation through command history -> save -> reopen;
-- undo -> save -> reopen and verify the undone state;
-- redo -> save -> reopen and verify the redone state;
-- transaction with a later injected command failure -> rollback prior successful command -> verify failed transaction never enters history -> save/reopen known-good state;
-- command-authored dirty state -> autosave checkpoint -> simulated repository restart -> recovery -> verify recovered command state and stable project identity;
-- bounded history during realistic project mutation and persistence.
+## Workspace integration
+`src/app/workspace/workspace_screen.gd` now:
+- creates and owns the runtime entity bridge when the workspace initializes;
+- rebuilds bridged entities from the persisted `entities` collection supplied by the active project configuration;
+- exposes stable-ID and runtime-node selection entry points for later picking/placement systems;
+- drives the existing right inspector from selected entity records;
+- displays persisted position, rotation, scale, stable entity ID, owning cell ID, and parent ID;
+- clears entity selection when the inspector is closed;
+- preserves existing generic inspector behavior, mode controls, bottom dock, and canonical UI shell.
 
-`tests/integration/phase2_persistence_hardening_contracts.gd` verifies:
-- supported legacy schema-v1 manifests load through documented optional-field fallback;
-- unsupported future world-project schema versions fail explicitly;
-- unresolved `parent_entity_id` persistence is rejected while preserving the prior canonical manifest;
-- duplicate persisted entity identities are rejected with actionable errors.
+No new permanent UI chrome or visual redesign was introduced.
 
-The existing P02-T06 contracts remain active and continue to cover corrupted checkpoints, unsupported checkpoint schema, interrupted temporary writes, failed canonical writes, failed checkpoint promotion, failed recovery promotion, bounded checkpoint retention, stable checkpoint/project identity, and scene-tree-path relationship regression.
+## P03-T01 scope boundaries
+Not implemented in this task:
+- object placement;
+- ghost preview;
+- viewport raycast/picking geometry;
+- move/rotate/scale authoring;
+- transform commands or gizmo state;
+- duplicate/delete;
+- multi-select/grouping;
+- snapping;
+- controller tool wheel;
+- asset loading or asset-registry behavior.
 
-## Real Home -> Continue verification
-`tests/runtime/continue_reopen_smoke.gd` creates a project through the real app shell, constructs a fresh app instance against the same on-disk storage root, emits the Home `continue` route, and verifies that the persisted project reopens into the workspace with the expected title.
+The bridge intentionally provides generic `Node3D` anchors rather than inventing asset loading before the asset-library phase exists. Later selectable geometry can resolve to the owning entity through bridge metadata.
 
-This closes the previous runtime evidence gap where New World creation was exercised but the actual restart/Continue path was not.
+## Automated tests added
+`tests/unit/runtime_entity_bridge_contracts.gd` verifies:
+- one runtime node per persisted entity;
+- stable-ID lookup;
+- persisted position/rotation/scale application;
+- stable-ID parent hierarchy reconstruction;
+- descendant runtime-node resolution back to owning entity ID;
+- selecting by stable ID;
+- replacing a previous single selection;
+- selecting through a descendant runtime node;
+- rejected unknown-ID selection preserving prior state;
+- selection clearing runtime selected state;
+- parent-cycle rejection;
+- failed bridge rebuild preserving the previous known-good mapping.
+
+`tests/runtime/entity_selection_smoke.gd` verifies the actual workspace integration:
+- valid project entity records rebuild into runtime wrappers;
+- entity selection opens the existing inspector;
+- inspector content comes from the persisted entity record;
+- selecting a second entity leaves exactly one runtime wrapper selected;
+- descendant runtime-node selection resolves through stable identity;
+- selection does not mutate workspace project configuration;
+- closing the inspector clears the selection and runtime selected state.
+
+`tests/test_runner.gd` runs the new bridge contracts together with all existing Phase 0–2 contracts.
+
+`tests/runtime/runtime_smoke.gd` now exercises the entity-selection smoke inside the real application workspace while retaining all existing shell, mode, inspector, dock, cancel, persistence, and Continue-path verification.
 
 ## Verification evidence
-Initial P02-T07 implementation commit:
-`722a530fba36e34a89ca70e43e35b5db72017897`
+Implementation commit:
+`16a581704fc0f1b85f1c31504a0f88254aa070a8`
 
-Workflow run `31506840432` correctly FAILED `runtime-smoke` while visual capture passed. The log exposed:
-- typed-array fixture assignment errors; and
-- the real nullable optional-UUID load defect described above.
-
-The tests were not weakened.
-
-Hardening fix commit:
-`7e89d4a9d1323c1cd303433ca1cf7c83184a7dbd`
-
-Workflow run `31507033430` then passed both:
+GitHub Actions run `31515688225` used Godot `4.7.1.stable.official.a13da4feb` and passed:
 - `runtime-smoke` — SUCCESS
 - `phase1-visual-capture` — SUCCESS
 
-Continue/restart verification commit:
-`a70d016aff4050dcc73c369390d2263fea07b4da`
+The runtime raw log contains `PASS: PlayWorld Studio test harness completed.` and contains no `SCRIPT ERROR:` or engine `ERROR:` output.
 
-Workflow run `31507218527` used Godot `4.7.1.stable.official.a13da4feb` and passed both:
-- `runtime-smoke` — SUCCESS
-- `phase1-visual-capture` — SUCCESS
+The visual-capture raw log retains `--audio-driver Dummy` and `--disable-vsync`, contains `PASS: Phase 1 rendered screenshots captured.`, and contains no `SCRIPT ERROR:` or engine `ERROR:` output. The existing five canonical Phase 1 evidence images remain generated.
 
-The runtime log contains `PASS: PlayWorld Studio test harness completed.` and contains no `SCRIPT ERROR:` or engine `ERROR:` output. The real Home -> Continue restart flow executed during that harness run.
-
-The visual-capture workflow remains unchanged, including `--audio-driver Dummy`, `--disable-vsync`, strict script/engine error rejection, and the existing Phase 1 screenshot evidence path.
-
-After this documentation closeout commit, require one final branch workflow run and record that run in the P02-T07 PR/completion report before treating the PR as ready to merge.
+After this documentation closeout commit, require one final Godot 4.7.1 branch workflow run and record that final run in the PR/completion report before treating P03-T01 as ready to merge.
 
 ## Changed files
-- `src/world/world_project.gd`
-- `src/world/world_entity.gd`
-- `src/world/entity_registry.gd`
-- `tests/unit/fixtures/project_title_command.gd`
-- `tests/integration/phase2_lifecycle_contracts.gd`
-- `tests/integration/phase2_persistence_hardening_contracts.gd`
-- `tests/runtime/continue_reopen_smoke.gd`
+- `src/editor/runtime_entity_node.gd`
+- `src/editor/runtime_entity_bridge.gd`
+- `src/editor/single_selection.gd`
+- `src/app/workspace/workspace_screen.gd`
+- `tests/unit/runtime_entity_bridge_contracts.gd`
+- `tests/runtime/entity_selection_smoke.gd`
+- `tests/runtime/runtime_smoke.gd`
 - `tests/test_runner.gd`
-- `docs/architecture/DATA_MODEL.md`
+- `docs/architecture/SYSTEM_ARCHITECTURE.md`
 - `docs/implementation/TASK_BACKLOG.md`
 - `docs/handoffs/CURRENT_HANDOFF.md`
 
-## Phase 2 acceptance state
-The P02-T07 branch now demonstrates:
-- stable project/world UUIDs and Small/Medium/Large profiles;
-- project create/open/crash-safe save;
-- persistent New World and real Continue/reopen;
-- stable world entities and registry reconstruction across persistence;
-- generic commands, grouped transactions, rollback, bounded undo/redo;
-- save after commands, undo then save, redo then save;
-- crash-safe autosave, checkpoints, recovery, retention and corruption handling;
-- explicit supported/unsupported schema behavior;
-- known-good canonical preservation across tested failure paths;
-- strict real-Godot 4.7.1 execution with the existing UI visual capture intact.
-
-## Known residual limitations
-- Recovery detection/operation exists, but a dedicated user recovery-choice UI is still deferred; Phase 2 does not redesign the canonical UI.
-- Dirty state remains explicit infrastructure. Future successful authoring commands must mark the active project dirty.
-- Entity records are embedded in the Phase 2 project manifest. Later world-partition/streaming work may move large entity sets into cell-owned storage through a documented migration; no current identity depends on file location.
+## Known limitations and residual risks
+- P03-T01 selection is programmatic/editor-model selection. Real viewport picking requires selectable geometry and belongs to later placement/editor work rather than being fabricated against the current placeholder viewport.
+- Runtime wrappers currently contain no asset scene content because the universal asset registry/import pipeline has not been implemented yet.
+- Wrapper selected state is a generic selection flag; a rendered bright outline requires actual rendered selectable content and remains a later visual/editor integration responsibility.
+- Selection is intentionally not persisted across sessions.
 - The obsolete `main` versus authoritative `master` branch mismatch remains intentionally unresolved.
 
-## Phase 3 decomposition
-Phase 3 is decomposed in `docs/implementation/TASK_BACKLOG.md` as P03-T01 through P03-T09. Do not implement multiple tasks at once.
-
 ## Next authorized task
-Only after the P02-T07 PR is merged into `master`, authorize only:
+Only after the P03-T01 PR is reviewed and merged into authoritative `master`, authorize only:
 
-`P03-T01 — Implement runtime entity scene bridge and single-selection foundation`
+`P03-T02 — Implement command-backed object placement and ghost preview`
 
-Do not begin P03-T02 or any broader Phase 3 work in the same authorization step.
+Do not begin P03-T03 or broader Phase 3 work in the same authorization step.
 
 ## New-thread start prompt
-Verify the P02-T07 PR has been merged into authoritative `master`; never develop from stale default `main`. Read the standard project/architecture/implementation documents and this handoff. If Phase 2 completion is present on `master`, implement only `P03-T01 — Implement runtime entity scene bridge and single-selection foundation`. All authoring mutations must use the command/transaction framework, successful mutations must integrate dirty-state signaling, persisted relationships remain stable-ID based, and UI changes must preserve the canonical dark/playful Nintendo-forward visual direction. Do not begin P03-T02 until P03-T01 is verified, documented, and merged.
+Verify the P03-T01 PR has been merged into authoritative `master`; never develop from stale default `main`. Read the standard project/architecture/implementation documents and this handoff. If P03-T01 is present on `master`, implement only `P03-T02 — Implement command-backed object placement and ghost preview`. All authoring mutations must go through the command/transaction framework, successful mutations must mark the active project dirty, persistent identity remains stable-ID based, and UI/visual work must preserve the canonical dark/playful Nintendo-forward direction. Do not begin P03-T03 until P03-T02 is verified, documented, and merged.
