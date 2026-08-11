@@ -14,38 +14,38 @@ func _init(storage_root: String = "user://projects") -> void:
 
 
 func create_project(title: String, profile_id: StringName, template_id: String) -> Dictionary:
-    var project := WorldProject.create_new(title, profile_id, template_id)
-    var errors := project.validate()
+    var project = WorldProject.create_new(title, profile_id, template_id)
+    var errors: Array[String] = project.validate()
     if not errors.is_empty():
         return {"ok": false, "errors": errors, "project": null, "manifest_path": ""}
 
-    var project_dir := get_project_directory(project.project_id)
+    var project_dir: String = get_project_directory(project.project_id)
     var make_error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(project_dir))
     if make_error != OK:
         return _failure("Unable to create project directory: %s" % make_error)
 
-    var save_result := save_project(project)
+    var save_result: Dictionary = save_project(project)
     if not save_result.get("ok", false):
         return save_result
     save_result["project"] = project
     return save_result
 
 
-func save_project(project: PlayWorldProject) -> Dictionary:
+func save_project(project) -> Dictionary:
     if project == null:
         return _failure("Project is required.")
 
-    var errors := project.validate()
+    var errors: Array[String] = project.validate()
     if not errors.is_empty():
         return {"ok": false, "errors": errors, "project": project, "manifest_path": ""}
 
-    var project_dir := get_project_directory(project.project_id)
+    var project_dir: String = get_project_directory(project.project_id)
     var make_error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(project_dir))
     if make_error != OK:
         return _failure("Unable to create project directory: %s" % make_error)
 
     project.touch_updated()
-    var final_path := get_manifest_path(project.project_id)
+    var final_path: String = get_manifest_path(project.project_id)
     var temp_path := "%s.tmp-%s" % [final_path, StableId.generate()]
     var json_text := JSON.stringify(project.to_dictionary(), "  ") + "\n"
 
@@ -65,7 +65,7 @@ func save_project(project: PlayWorldProject) -> Dictionary:
         DirAccess.remove_absolute(ProjectSettings.globalize_path(temp_path))
         return _failure("Temporary project manifest failed JSON verification.")
 
-    var verify_errors := WorldProject.validate_dictionary(parsed)
+    var verify_errors: Array[String] = WorldProject.validate_dictionary(parsed)
     if not verify_errors.is_empty():
         DirAccess.remove_absolute(ProjectSettings.globalize_path(temp_path))
         return {"ok": false, "errors": verify_errors, "project": project, "manifest_path": final_path}
@@ -85,7 +85,7 @@ func open_project(project_id: String) -> Dictionary:
     if not StableId.is_valid(project_id):
         return _failure("Project ID is invalid.")
 
-    var manifest_path := get_manifest_path(project_id)
+    var manifest_path: String = get_manifest_path(project_id)
     if not FileAccess.file_exists(manifest_path):
         return _failure("Project manifest does not exist.")
 
@@ -94,7 +94,7 @@ func open_project(project_id: String) -> Dictionary:
     if not parsed is Dictionary:
         return _failure("Project manifest is not valid JSON.")
 
-    var decoded := WorldProject.from_dictionary(parsed)
+    var decoded: Dictionary = WorldProject.from_dictionary(parsed)
     if not decoded.get("ok", false):
         return {
             "ok": false,
@@ -103,7 +103,7 @@ func open_project(project_id: String) -> Dictionary:
             "manifest_path": manifest_path
         }
 
-    var project: PlayWorldProject = decoded["project"]
+    var project = decoded["project"]
     if project.project_id != project_id:
         return _failure("Project manifest ID does not match its directory.")
 
