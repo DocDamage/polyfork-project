@@ -4,33 +4,33 @@
 OPEN
 
 ## Project state
-Phase 0 and P01-T01 through P01-T05 are complete. The runtime workspace now includes a prominent top-center Build | Play segmented control with deterministic UI state and mode-change signaling. No gameplay transition behavior is implemented.
+Phase 0 and P01-T01 through P01-T06 are complete. The workspace now has the dominant viewport, Build | Play UI state, and a generic hidden-by-default right inspector with Basic-first and collapsed Advanced content. Object-selection semantics remain deferred.
 
 ## Canonical UI
 `assets/reference/CANONICAL_UI_REFERENCE.png`
 
 ## Completed task
-`P01-T05 — Implement Build|Play switch UI`
+`P01-T06 — Implement right inspector shell`
 
-## P01-T05 implementation evidence
-- Added `src/app/workspace/ModeSwitch.tscn` and `src/app/workspace/mode_switch.gd`.
-- The switch defaults to Build, uses a mutually exclusive button group, exposes `set_mode`, `get_mode`, and `mode_changed`, and provides focus entry for later gamepad navigation.
-- Mounted the switch in the workspace's reserved top-center `ModeSlot`.
-- Updated workspace UI state so the viewport badge reflects BUILD MODE / PLAY MODE without triggering gameplay behavior.
-- Runtime smoke behavior now checks the segmented control exists, defaults to Build, and deterministically changes the UI state to Play.
+## P01-T06 implementation evidence
+- Added `src/app/workspace/InspectorPanel.tscn` and `src/app/workspace/inspector_panel.gd`.
+- Inspector is hidden by default, mounted on the right side, driven by a generic context dictionary, and exposes Basic content before Advanced.
+- Advanced content starts collapsed and expands only when requested.
+- Workspace exposes neutral `show_inspector`, `hide_inspector`, and `is_inspector_open` methods without any object-selection or gameplay semantics.
+- Runtime smoke behavior checks hidden-default behavior, generic context display, Advanced disclosure, and clear/hide behavior.
 
 ## Tests/commands run
 - Static scene/script/reference review only; Godot runtime execution remains unavailable in the current environment.
 
 ## Known limitations
-- Play is UI state only. Actual Build ↔ Play runtime transition belongs to Phase 7.
-- Visual tuning still requires running-app screenshot comparison.
+- Selection wiring and real property editors belong to later runtime-editor/component phases.
+- Slide animation and final visual tuning remain pending screenshot parity work.
 
 ## Next authorized task
-`P01-T06 — Implement right inspector shell`
+`P01-T07 — Implement bottom category dock and asset drawer shell`
 
-## P01-T06 boundary
-Implement a right-side inspector panel shell with hidden-by-default behavior, Basic-first information, an Advanced disclosure area, close behavior, and a generic context API. Do not implement object selection or gameplay-specific properties.
+## P01-T07 boundary
+Implement the bottom contextual category dock with Terrain, Assets, Foliage, Roads, Water, Gameplay, AI, and More. Implement an Asset drawer/sheet shell with search, large-card default density, density toggle, and an empty state. Do not implement asset indexing/import behavior.
 
 ## New-thread start prompt
-Read `docs/design/UI_UX_CANONICAL_SPEC.md`, `src/app/workspace/`, `src/app/theme/`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P01-T06 as a generic right inspector shell with Basic-first and hidden Advanced content. Mount it in the reserved inspector layer without adding object-selection semantics. Then update the handoff and authorize only P01-T07.
+Read `docs/design/UI_UX_CANONICAL_SPEC.md`, `docs/systems/ASSET_LIBRARY_SYSTEM.md`, `src/app/workspace/`, `src/app/theme/`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P01-T07: the bottom category dock and Asset drawer shell, mounted in the reserved workspace layer. Keep asset data/indexing out of scope. Then update the handoff and authorize only P01-T08.
