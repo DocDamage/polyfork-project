@@ -98,7 +98,7 @@ static func _configure_panels(theme: Theme) -> void:
     theme.set_stylebox("panel", "DrawerPanel", _outline_panel(Tokens.SURFACE_0.lightened(0.02), Tokens.BORDER_SOFT, Tokens.RADIUS_XL))
 
     theme.set_type_variation("AccentPanel", "PanelContainer")
-    theme.set_stylebox("panel", "AccentPanel", _outline_panel(Tokens.FOCUS.darkened(0.48), Tokens.FOCUS.darkened(0.1), Tokens.RADIUS_LARGE))
+    theme.set_stylebox("panel", "AccentPanel", _outline_panel(Tokens.SURFACE_1, Tokens.FOCUS.darkened(0.12), Tokens.RADIUS_LARGE, 1))
 
 
 static func _configure_inputs(theme: Theme) -> void:
