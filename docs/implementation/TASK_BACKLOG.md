@@ -4,7 +4,7 @@ Task IDs use `P##-T##`.
 
 ## Phase 0
 - [x] P00-T01 Create Godot 4.7.x project and repository structure
-- [ ] P00-T02 Add coding/documentation rules
+- [x] P00-T02 Add coding/documentation rules
 - [ ] P00-T03 Define persistent ID and schema-version conventions
 - [ ] P00-T04 Implement test harness and runtime smoke-test scene
 - [ ] P00-T05 Add canonical UI visual reference and comparison checklist
