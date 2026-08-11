@@ -98,3 +98,52 @@ jobs:
           path: artifacts/phase1/*.png
           if-no-files-found: error
           retention-days: 14
+
+  phase4-visual-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+
+      - name: Capture rendered Phase 4 Asset Library
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          xvfb-run -a ./Godot_v4.7.1-stable_linux.x86_64 \
+            --path . \
+            --rendering-method gl_compatibility \
+            --audio-driver Dummy \
+            --disable-vsync \
+            --script res://tests/runtime/capture_phase4.gd 2>&1 | tee godot-phase4-visual.log
+          godot_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$godot_status" -ne 0 ]; then
+            exit "$godot_status"
+          fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' godot-phase4-visual.log; then
+            echo "Godot emitted script/engine errors during Phase 4 visual capture."
+            exit 1
+          fi
+          grep -F 'PASS: Phase 4 rendered screenshots captured.' godot-phase4-visual.log
+          cp assets/reference/CANONICAL_UI_REFERENCE.png artifacts/phase4/00-canonical-reference.png
+          file artifacts/phase4/*.png
+
+      - name: Upload Phase 4 visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase4-visual-evidence
+          path: artifacts/phase4/*.png
+          if-no-files-found: error
+          retention-days: 14
