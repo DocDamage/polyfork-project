@@ -1,149 +1,125 @@
-# POLYFORK PROJECT — PHASE 5 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 6 HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
-## Status
-Phase 5 — Terrain + Streaming — is implemented and verified on its single milestone branch.
+Use the GitHub connector for repository work.
 
-Completion PR:
-**PR #10 — Phase 5 — Terrain + Streaming**
+## Authoritative branch
+The real project lives on:
 
-Target: `master`
+`master`
 
-PR #10 must be reviewed and explicitly merged before Phase 6 begins.
+Current authoritative `master` after merged PR #10:
 
-## Authoritative baseline
-Authoritative project branch: `master`
+`6007a68bf98996d8f4b7619249506c91a8a54f75`
 
-Phase 5 started from merged authoritative `master` commit:
-`a7788d6806375bea415cc835be71754e951229c0`
+The repository default branch `main` remains obsolete starter code.
 
-The repository default branch `main` remains obsolete starter code. Never develop from it.
+**Never develop from `main`.**
 
-Phase 5 branch:
-`dev/phase5-terrain-streaming-milestone`
+## Current project state
+Phases 0 through 5 are complete and merged.
 
-Verified implementation/documentation closeout commit before the PR-number-only handoff update:
-`901216cf8ed69588b129bebe5f57edb5d3546c4f`
+Phase 5 delivered runtime terrain sculpting, stable terrain/cell persistence, Small/Medium/Large partition topology, deterministic Large-world streaming, incremental dirty-cell saves and recovery, data-driven biomes, stable cross-cell entity references, command-backed terrain undo/redo, keyboard/mouse/gamepad authoring, and rendered terrain evidence.
 
-## Completed task range
-- P05-T01 versioned terrain/biome/cell persistence and stable cell identity
-- P05-T02 deterministic runtime terrain chunks and editor viewport integration
-- P05-T03 command-backed raise/lower/smooth/flatten sculpting with shared undo/redo
-- P05-T04 deterministic Small/Medium/Large world partition topology
-- P05-T05 incremental crash-safe dirty-cell persistence and recovery/failure paths
-- P05-T06 deterministic terrain + runtime-entity streaming with stable cross-cell references
-- P05-T07 data-driven biome registry/material hooks and command-backed assignment
-- P05-T08 real workspace integration, scale/performance proxy, keyboard/mouse/gamepad, failure paths, raw logs, and rendered visual evidence
+## Development workflow
+The project uses milestone-based development, not one PR per small task.
 
-## Terrain architecture delivered
-Per-project terrain storage:
-`<project-directory>/terrain`
+For Phase 6:
+1. Start from authoritative `master` commit `6007a68bf98996d8f4b7619249506c91a8a54f75`.
+2. Use the already-created milestone branch `dev/phase6-components-prefabs-milestone`.
+3. Work continuously through P06-T01 through P06-T08.
+4. Use intermediate commits and CI runs as needed.
+5. Fix failures without weakening tests.
+6. Update architecture, backlog, and handoff docs during closeout.
+7. Open exactly one Phase 6 completion PR targeting `master` after the milestone is complete and verified.
+8. Do not merge that PR without explicit user authorization.
 
-Canonical files:
-- `manifest.json`
-- `biomes.json`
-- `cells/<cell-id>.json`
+# NEXT AUTHORIZED MILESTONE
 
-Known-good fallback files:
-- `recovery/<cell-id>.json`
+## Phase 6 — Components, Archetypes, Prefabs
 
-World topology:
-- Small — 1×1 cell, non-streaming, ~1 km²
-- Medium — 3×3 cells, non-streaming, ~9 km²
-- Large — 5×5 cells, streamed, ~25 km²
+Milestone branch:
 
-All cells use stable UUIDs. The origin retains an existing valid project cell ID when available.
+`dev/phase6-components-prefabs-milestone`
 
-## Authoring behavior
-Terrain uses its own versioned height-cell records rather than pretending chunks are placed entities.
+Complete continuously:
 
-Raise, lower, smooth, flatten, and biome assignment execute through the same editor command history used by Phase 3. Undo/Redo restores authored terrain and runtime meshes together.
+- **P06-T01** — versioned component-definition, component-instance, archetype, prefab, socket, and attachment persistence contracts
+- **P06-T02** — initial reusable component registry with defaults, dependencies, conflicts, and validation
+- **P06-T03** — command-backed add/remove/configure component workflows for existing world entities
+- **P06-T04** — data-driven archetype registry and reversible archetype conversion/application flow
+- **P06-T05** — prefab save/snapshot, managed prefab repository, and stable-ID prefab instantiation through existing placement/runtime systems
+- **P06-T06** — prefab inheritance, derived prefabs, meaningful per-instance overrides, and deterministic effective-value resolution
+- **P06-T07** — named typed sockets, socket editing, command-backed attachments, and runtime attachment resolution without path-based identity
+- **P06-T08** — workspace, persistence/restart, scale, keyboard/mouse, gamepad, failure-path, inheritance, attachment, and rendered visual verification
 
-Placement ghosts and moved entities resolve their owning terrain cell by world position. Cross-cell transform commands update transform plus `cell_id` atomically; Undo/Redo restores both.
+Use one Phase 6 branch and one completion PR. Do not stop at individual task boundaries.
 
-## Streaming behavior
-Small and Medium keep every terrain cell loaded.
+## Product requirements
+Phase 6 must preserve the project gameplay-object model:
+- Any placed object can remain scenery or be promoted into a gameplay object.
+- Components are composable reusable behavior/data modules.
+- Archetypes bundle expected components and defaults without replacing stable entity identity.
+- Prefabs save reusable configured objects back into project-managed content storage.
+- Prefab inheritance supports base/derived relationships and meaningful per-instance overrides.
+- Named typed sockets support Grip, Seat, Mount, DoorHandle, Light, LootSpawn, Wheel, Muzzle, Camera, InteractionPoint, and custom extension points.
 
-Large uses a deterministic radius-one active set. Dirty terrain cells outside that radius remain loaded and report blocked unload until safe persistence succeeds.
+The initial component library is defined by `docs/systems/ENTITY_COMPONENT_PREFAB_SYSTEM.md` and must include:
+TransformMetadata, Collision, Interactable, Health, Damageable, PhysicsProp, InventoryContainer, Pickup, AudioEmitter, LightSource, Door, Seat, VehicleBody, CharacterController, NPCBrain, SpawnPoint, DialogueParticipant, QuestParticipant, TriggerVolume, SaveState, NetworkIdentityStub.
 
-Runtime world entities are filtered by their stable owning `cell_id`. The complete persisted record set is validated even when some cells/entities are unloaded. A loaded child with a valid unloaded parent temporarily attaches at the runtime bridge root without changing its persistent parent ID.
+Phase 6 establishes valid data, editing, composition, prefab, inheritance, and attachment foundations. It must not prematurely implement the broad gameplay behavior systems reserved for Phase 10.
 
-## Crash safety
-Dirty-cell saves are incremental. Tests prove editing one cell does not rewrite an unchanged neighbor.
+## Architecture constraints
+- Persistent component, archetype, prefab, socket, attachment, and instance references use stable UUIDs only.
+- Scene-tree paths, node names, array indexes, asset source paths, or runtime node pointers may not become persistent identity.
+- Component definitions explicitly declare property schema/defaults, dependencies, conflicts, editor category, and future runtime hook metadata.
+- Dependency application must be deterministic and visible; conflicts must reject or require explicit resolution rather than silently removing authored data.
+- Component edits, archetype application, prefab assignment/instantiation, socket edits, and attachment edits are authored mutations and must be reversible through the existing command history.
+- Archetype application may add/configure required components, but must not replace the entity UUID or silently discard unrelated components.
+- Prefabs are project-managed canonical authored data, not Asset Library source mutations. Phase 4 external source folders remain read-only.
+- Prefab inheritance must reject cycles and missing base references.
+- Derived prefabs store their own stable identity and only authored differences where practical; effective resolution must be deterministic and independently testable.
+- Prefab instances retain stable entity IDs separate from prefab IDs. Instantiating a prefab more than once allocates new entity UUIDs while preserving the prefab reference.
+- Editing a prefab definition must never silently rewrite unrelated world entity identity.
+- Instance overrides remain explicit data; base prefab updates must not overwrite a valid explicit override.
+- Sockets are named typed stable-ID records with local transforms. Attachments persist by entity ID + socket ID, not node paths.
+- Runtime attachment resolution must fail safely when parent/socket/child is unavailable and recover when references become loadable again.
+- Cross-cell streaming from Phase 5 must remain valid for prefab instances and attachments.
+- Preserve the Phase 3 command/undo/redo system, Phase 4 Asset Library placement/read-only guarantees, and Phase 5 terrain/streaming behavior.
+- Core workflows support keyboard/mouse and gamepad.
+- Preserve the canonical dark playful Nintendo-forward / Apple-clean UI direction; extend contextual editor surfaces instead of creating an enterprise dashboard.
+- Keep production files around 300 LOC where practical and split by responsibility.
+- Never weaken tests to make broken behavior pass.
+- Continue using Godot 4.7.1 and the strict CI error-output gate.
 
-Before replacement, the previous validated canonical cell is saved to its recovery path. Failed promotion leaves canonical data untouched and retains dirty state. Corrupt canonical terrain can reopen from a valid prior recovery record without silently overwriting the corrupt file. Missing terrain with no valid recovery fails closed.
+## Verification expectations
+The Phase 6 completion gate must behaviorally verify at least:
+- schema validation and unsupported/future versions
+- stable IDs and duplicate-ID rejection
+- all initial component definitions load and validate
+- property default/type/range/enum validation where declared
+- deterministic dependency resolution
+- explicit conflict rejection
+- add/remove/configure component undo/redo and persistence
+- save/reopen component instances without identity drift
+- archetype application retaining entity identity and unrelated components
+- archetype dependency/conflict behavior and undo/redo
+- prefab save/reopen/instantiate and duplicate instance identity
+- prefab inheritance resolution, override preservation, cycle/missing-base failure paths
+- prefab instance save/reopen with stable prefab references
+- socket add/edit/remove validation and undo/redo
+- attachment creation/reparent/unattach using stable IDs and local socket transforms
+- missing/unloaded socket/parent/child safe failure and recovery
+- streamed cross-cell attachment/reference behavior
+- Asset Library source folders remain read-only
+- representative component/prefab scale tests
+- real keyboard/mouse workflows
+- real gamepad workflows
+- rendered Phase 6 visual evidence
+- strict raw Godot log inspection
 
-Biome IDs and height edits survive terrain restart.
+## Completion gate
+Phase 6 is complete only when P06-T01 through P06-T08 are implemented and verified together. Then update backlog/architecture/handoff docs and open one Phase 6 completion PR targeting authoritative `master`.
 
-## Workspace/input
-The existing Terrain dock button opens a compact contextual sculpt strip inside the canonical workspace.
-
-Controls include:
-- Raise / Lower / Smooth / Flatten
-- radius and strength adjustments
-- biome selector
-- active cell display
-- Sculpt action
-
-Mouse terrain clicks sculpt directly. Keyboard arrows/D-pad move the brush cursor. Enter/A applies. Right shoulder cycles brush mode. The Phase 3 left-shoulder tool wheel remains intact. Phase 4 Asset Library behavior remains accessible after terrain editing.
-
-## Verification
-Final pre-PR closeout run:
-`31544495810`
-
-Godot version:
-`4.7.1.stable.official.a13da4feb`
-
-Jobs:
-- `runtime-smoke` — SUCCESS
-- `phase1-visual-capture` — SUCCESS
-- `phase4-visual-capture` — SUCCESS
-- `phase5-visual-capture` — SUCCESS
-
-Behavioral verification covers:
-- stable terrain schemas/IDs and future-version rejection
-- deterministic 1/9/25 cell topology
-- deterministic 17×17 mesh generation and triangle counts
-- raise/lower/smooth/flatten brush behavior
-- shared sculpt undo/redo
-- command-backed biome assignment/undo
-- biome restart persistence
-- one-cell-only incremental save behavior
-- failed atomic promotion
-- corrupt canonical recovery
-- missing canonical + missing recovery failure
-- Large 3×3 active stream set and no-churn repeat focus
-- dirty-cell unload blocking and post-save unload
-- stable cross-cell entity reference behavior
-- entity placement/movement cell ownership with undo/redo
-- real workspace keyboard/mouse/gamepad authoring
-- preservation of Phase 3 controller tool wheel and Phase 4 Asset Library
-- Medium/Large deterministic scale workload and repeated brush regression proxy
-
-The automated performance workload is a CI regression proxy, not an RTX 3060 hardware benchmark. The documented RTX 3060-class 1080p/60 FPS goal remains a release hardware target and has not been falsely claimed as measured by GitHub Actions.
-
-## Raw log inspection
-The raw closeout `runtime-smoke` log was inspected and contains `PASS: PlayWorld Studio test harness completed.` with no `SCRIPT ERROR:` or engine `ERROR:` output.
-
-The raw closeout Phase 5 visual log was inspected and contains `PASS: Phase 5 rendered screenshots captured.` with no `SCRIPT ERROR:` or engine `ERROR:` output. Expected runner/graphics warnings do not bypass the strict error gate.
-
-## Visual evidence
-Run `31544495810` uploaded Phase 5 artifact ID `9121952251` (`phase5-visual-evidence`).
-
-Files:
-- `00-canonical-reference.png`
-- `01-terrain-sculpt.png`
-- `02-terrain-biome.png`
-
-Visual inspection was performed manually. Initial screenshots were rejected because opaque viewport clearing and stale empty-state copy obscured terrain. The implementation was corrected, then the camera/evidence sculpt was reframed. The accepted evidence visibly shows sculpted 3D relief, brush footprint, contextual Terrain controls, and a distinct biome material state while preserving the dark/playful Nintendo-forward / Apple-clean direction.
-
-## Scope boundary
-Phase 5 does not implement foliage/scatter, roads/splines, full weather/environment, prefab/component authoring, visual scripting, gameplay frameworks, AI creation, or export. Those remain later phases.
-
-## Merge gate
-PR #10 is the only Phase 5 completion PR.
-
-Do not merge without explicit user authorization.
-
-Do not begin Phase 6 until PR #10 is merged into authoritative `master` and the new authoritative `master` commit is verified.
+Do not begin Phase 7 until the Phase 6 completion PR is explicitly merged.
