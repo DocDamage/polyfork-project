@@ -334,7 +334,7 @@ func _runtime_snap_candidates(socket: bool) -> Array[Dictionary]:
             continue
         result.append({
             "id": "%s:origin" % entity_id if socket else entity_id,
-            "position": node.global_position
+            "position": node.position
         })
     return result
 
