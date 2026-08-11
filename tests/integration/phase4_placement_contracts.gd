@@ -62,11 +62,11 @@ static func run_checks() -> Array[String]:
         errors.append("Asset placement must commit exactly once through PlaceEntityCommand and dirty-state signaling.")
         session.free()
         return errors
-    var entity_id := str(commit.get("entity_id", ""))
-    var placed := _entity(project.entity_records, entity_id)
+    var entity_id: String = str(commit.get("entity_id", ""))
+    var placed: Dictionary = _entity(project.entity_records, entity_id)
     if str(placed.get("asset_id", "")) != str(crate.get("asset_id", "")):
         errors.append("Committed world entities must persist their catalog asset ID without introducing prefab data.")
-    var runtime_node = session.get_bridge().get_entity_node(entity_id)
+    var runtime_node: Variant = session.get_bridge().get_entity_node(entity_id)
     if runtime_node == null or not runtime_node.has_asset_visual():
         errors.append("Committed asset entities must resolve to the real managed scene visual at runtime.")
 
@@ -78,7 +78,7 @@ static func run_checks() -> Array[String]:
         if str(_entity(project.entity_records, duplicate_id).get("asset_id", "")) != str(crate.get("asset_id", "")):
             errors.append("Duplicating an asset-backed entity must preserve asset identity while allocating a new entity ID.")
 
-    var entity_count_before_bad := project.entity_records.size()
+    var entity_count_before_bad: int = project.entity_records.size()
     var bad_begin: Dictionary = handoff.begin(session, library, broken)
     if bad_begin.get("ok", false) or session.is_placement_active() or project.entity_records.size() != entity_count_before_bad:
         errors.append("Corrupt catalog assets must fail placement before engine loading or project mutation.")
@@ -88,21 +88,21 @@ static func run_checks() -> Array[String]:
     if not save_result.get("ok", false) or not reopen_result.get("ok", false):
         errors.append("Asset-backed world entities must survive canonical project persistence and reopen.")
     else:
-        var reopened = reopen_result.get("project")
-        var reopened_record := _entity(reopened.entity_records, entity_id)
+        var reopened: Variant = reopen_result.get("project")
+        var reopened_record: Dictionary = _entity(reopened.entity_records, entity_id)
         if str(reopened_record.get("asset_id", "")) != str(crate.get("asset_id", "")):
             errors.append("Reopened projects must retain stable catalog asset references on world entities.")
 
     var reloaded_library = AssetLibraryService.new(project_dir)
     reloaded_library.load_library()
-    var reloaded_crate := _record_by_relative(reloaded_library.get_records(), "crate.tscn")
+    var reloaded_crate: Dictionary = _record_by_relative(reloaded_library.get_records(), "crate.tscn")
     if str(reloaded_crate.get("asset_id", "")) != str(crate.get("asset_id", "")):
         errors.append("Catalog restart must preserve the asset ID used by already-authored world entities.")
 
     var offline_root := source_root + "_offline"
     DirAccess.rename_absolute(ProjectSettings.globalize_path(source_root), ProjectSettings.globalize_path(offline_root))
     var refresh: Dictionary = session.refresh_runtime(false)
-    var fallback_node = session.get_bridge().get_entity_node(entity_id)
+    var fallback_node: Variant = session.get_bridge().get_entity_node(entity_id)
     if not refresh.get("ok", false) or fallback_node == null or fallback_node.has_asset_visual():
         errors.append("Missing source assets must leave authored entities reopenable with a safe proxy fallback.")
 
