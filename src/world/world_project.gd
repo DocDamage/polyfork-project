@@ -3,6 +3,7 @@ extends RefCounted
 
 const StableId = preload("res://src/world/stable_id.gd")
 const WorldProfile = preload("res://src/world/world_profile.gd")
+const WorldEntity = preload("res://src/world/world_entity.gd")
 
 const DOCUMENT_TYPE := "world_project"
 const SCHEMA_VERSION := 1
@@ -12,6 +13,7 @@ var title: String = ""
 var world_profile: StringName = &"medium"
 var template_id: String = "blank_sandbox"
 var cell_ids: Array[String] = []
+var entity_records: Array[Dictionary] = []
 var environment: Dictionary = {"time_of_day": 12.75, "weather_profile_id": null}
 var registries: Dictionary = {
     "prefab_ids": [],
@@ -50,6 +52,7 @@ func load_dictionary(data: Dictionary) -> Array[String]:
     world_profile = StringName(str(data["world_profile"]))
     template_id = str(data["template_id"])
     cell_ids = _string_array(data.get("cell_ids", []))
+    entity_records = _dictionary_array(data.get("entities", []))
     environment = data.get("environment", {}).duplicate(true)
     registries = data.get("registries", {}).duplicate(true)
     editor = data.get("editor", {}).duplicate(true)
@@ -83,7 +86,10 @@ static func validate_dictionary(data: Dictionary) -> Array[String]:
     if str(data.get("template_id", "")).strip_edges().is_empty():
         errors.append("World project template_id is required.")
 
-    _validate_id_array(data.get("cell_ids", []), "cell_ids", errors)
+    var cells = data.get("cell_ids", [])
+    _validate_id_array(cells, "cell_ids", errors)
+    _validate_entity_records(data.get("entities", []), cells, errors)
+
     var registry_data = data.get("registries", {})
     if not registry_data is Dictionary:
         errors.append("World project registries must be a dictionary.")
@@ -119,6 +125,7 @@ func to_dictionary() -> Dictionary:
         "world_profile": str(world_profile),
         "template_id": template_id,
         "cell_ids": cell_ids.duplicate(),
+        "entities": entity_records.duplicate(true),
         "environment": environment.duplicate(true),
         "registries": registries.duplicate(true),
         "editor": editor.duplicate(true),
@@ -140,8 +147,61 @@ static func _validate_id_array(value: Variant, field_name: String, errors: Array
             errors.append("World project %s contains an invalid stable ID." % field_name)
 
 
+static func _validate_entity_records(
+    value: Variant,
+    cells_value: Variant,
+    errors: Array[String]
+) -> void:
+    if not value is Array:
+        errors.append("World project entities must be an array.")
+        return
+
+    var known_cells: Dictionary = {}
+    if cells_value is Array:
+        for cell_id in cells_value:
+            if StableId.is_valid(str(cell_id)):
+                known_cells[str(cell_id)] = true
+
+    var known_entities: Dictionary = {}
+    for item in value:
+        if not item is Dictionary:
+            errors.append("World project entities must contain only dictionaries.")
+            continue
+        var record: Dictionary = item
+        errors.append_array(WorldEntity.validate_dictionary(record))
+        var entity_id := str(record.get("entity_id", ""))
+        if StableId.is_valid(entity_id):
+            if known_entities.has(entity_id):
+                errors.append("World project entities contain a duplicate entity_id.")
+            known_entities[entity_id] = true
+        var cell_id := str(record.get("cell_id", ""))
+        if StableId.is_valid(cell_id) and not known_cells.has(cell_id):
+            errors.append("World entity references a cell_id not owned by the project.")
+
+    for item in value:
+        if not item is Dictionary:
+            continue
+        var record: Dictionary = item
+        var entity_id := str(record.get("entity_id", ""))
+        var parent = record.get("parent_entity_id")
+        if parent == null or str(parent).is_empty():
+            continue
+        var parent_id := str(parent)
+        if parent_id == entity_id:
+            errors.append("World entity cannot reference itself as parent_entity_id.")
+        elif StableId.is_valid(parent_id) and not known_entities.has(parent_id):
+            errors.append("World entity parent_entity_id does not resolve within the project.")
+
+
 static func _string_array(value: Array) -> Array[String]:
     var result: Array[String] = []
     for item in value:
         result.append(str(item))
+    return result
+
+
+static func _dictionary_array(value: Array) -> Array[Dictionary]:
+    var result: Array[Dictionary] = []
+    for item in value:
+        result.append(item.duplicate(true))
     return result
