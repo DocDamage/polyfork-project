@@ -4,31 +4,31 @@
 OPEN
 
 ## Project state
-Phase 0 is complete: repository structure, engineering/documentation rules, persistent ID/schema contracts, a Godot-native runtime smoke harness, and a strict canonical UI comparison workflow are all in place. Phase 1 UI foundation is now authorized.
+Phase 0 is complete and P01-T01 is complete. The application now has reusable semantic UI tokens and a Godot theme factory, but no Phase 1 screen has been implemented yet.
 
 ## Canonical UI
 `assets/reference/CANONICAL_UI_REFERENCE.png`
 
 ## Completed task
-`P00-T05 — Add canonical UI visual reference and comparison checklist`
-
-## P00-T05 implementation evidence
-- Confirmed the canonical reference path remains `assets/reference/CANONICAL_UI_REFERENCE.png`.
-- Expanded `docs/qa/UI_VISUAL_ACCEPTANCE.md` into a repeatable 16:9 capture protocol and scored checklist covering composition, surfaces/depth, typography, home cards, workspace shell, semantic tool accents, controller focus, advanced disclosure, and touch-friendly targets.
-- Added automatic defect triggers for generic/dark-slate Godot/editor styling, dense enterprise layouts, tiny default cards, inconsistent rounding/colors, and hidden Build|Play state.
-- Added a hard Phase 1 exit rule: P01-T09 cannot be marked complete without running-app screenshot comparison.
-
-## Phase 0 status
-P00-T01 through P00-T05 are complete.
-
-## Known limitations
-- Godot runtime execution and screenshot capture are still unavailable in the current agent environment unless a compatible Godot 4.7.x runtime can be provisioned later.
-
-## Next authorized task
 `P01-T01 — Implement theme/tokens`
 
-## P01-T01 boundary
-Implement reusable Godot theme/style/token resources only. Do not implement the Home screen or later Phase 1 screens in this task. Theme values must follow `docs/design/DESIGN_TOKENS.md` and the canonical UI direction.
+## P01-T01 implementation evidence
+- Added `src/app/theme/ui_tokens.gd` with surface hierarchy, text/state colors, semantic tool accents, spacing, target sizes, radii, typography roles, and motion durations.
+- Added `src/app/theme/theme_factory.gd` producing reusable Godot `Theme` styles for labels, buttons, primary buttons, large card buttons, tool buttons, panels, elevated/drawer panels, line edits, and option buttons.
+- Theme focus styles use visible outlines and semantic state colors rather than relying on color-only communication.
+- No Home/workspace screen logic was introduced in P01-T01.
+
+## Tests/commands run
+- Static repository/resource review only; Godot runtime execution remains unavailable in the current environment.
+
+## Known limitations
+- Final theme constants still require screenshot tuning against the running canonical comparison workflow.
+
+## Next authorized task
+`P01-T02 — Implement Home screen`
+
+## P01-T02 boundary
+Implement only the Home screen and the minimum app-shell routing needed to display it. Home must expose the documented large-card actions: Create New World, Continue, My Worlds, Templates, Asset Library. Do not implement the New World form or workspace yet.
 
 ## New-thread start prompt
-Read `docs/design/DESIGN_TOKENS.md`, `docs/design/UI_UX_CANONICAL_SPEC.md`, `docs/qa/UI_VISUAL_ACCEPTANCE.md`, `docs/implementation/CODING_STANDARDS.md`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P01-T01 as reusable Godot theme/token resources suitable for the upcoming runtime UI. Then update the handoff and authorize only P01-T02.
+Read `docs/design/UI_UX_CANONICAL_SPEC.md`, `docs/design/UI_SCREEN_INVENTORY.md`, `src/app/theme/ui_tokens.gd`, `src/app/theme/theme_factory.gd`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P01-T02 as the themed runtime Home screen with large friendly cards and minimal routing hooks. Then update the handoff and authorize only P01-T03.
