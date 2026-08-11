@@ -1,30 +1,37 @@
 class_name PlayWorldCommandHistory
 extends RefCounted
 
+const Command = preload("res://src/commands/command.gd")
+const CommandTransaction = preload("res://src/commands/command_transaction.gd")
 const DEFAULT_HISTORY_LIMIT := 100
 
 var _history_limit: int
-var _undo_stack: Array[PlayWorldCommandTransaction] = []
-var _redo_stack: Array[PlayWorldCommandTransaction] = []
+var _undo_stack: Array[RefCounted] = []
+var _redo_stack: Array[RefCounted] = []
 
 
 func _init(history_limit: int = DEFAULT_HISTORY_LIMIT) -> void:
     _history_limit = max(1, history_limit)
 
 
-func execute_command(command: PlayWorldCommand, label: String = "Edit") -> Dictionary:
-    var transaction := PlayWorldCommandTransaction.new(label)
-    var add_result := transaction.add_command(command)
+func execute_command(command: RefCounted, label: String = "Edit") -> Dictionary:
+    if command == null or not command is Command:
+        return _failure("History entries must implement the PlayWorldCommand contract.")
+
+    var transaction = CommandTransaction.new(label)
+    var add_result: Dictionary = transaction.add_command(command)
     if not add_result.get("ok", false):
         return add_result
     return execute_transaction(transaction)
 
 
-func execute_transaction(transaction: PlayWorldCommandTransaction) -> Dictionary:
+func execute_transaction(transaction: RefCounted) -> Dictionary:
     if transaction == null:
         return _failure("Cannot execute a null transaction.")
+    if not transaction is CommandTransaction:
+        return _failure("History entries must be PlayWorldCommandTransaction instances.")
 
-    var result := transaction.execute()
+    var result: Dictionary = transaction.execute()
     if not result.get("ok", false):
         return result
 
@@ -42,8 +49,8 @@ func undo() -> Dictionary:
     if _undo_stack.is_empty():
         return _failure("Nothing to undo.")
 
-    var transaction := _undo_stack.back()
-    var result := transaction.undo()
+    var transaction = _undo_stack.back()
+    var result: Dictionary = transaction.undo()
     if not result.get("ok", false):
         return result
 
@@ -60,8 +67,8 @@ func redo() -> Dictionary:
     if _redo_stack.is_empty():
         return _failure("Nothing to redo.")
 
-    var transaction := _redo_stack.back()
-    var result := transaction.execute()
+    var transaction = _redo_stack.back()
+    var result: Dictionary = transaction.execute()
     if not result.get("ok", false):
         return result
 
