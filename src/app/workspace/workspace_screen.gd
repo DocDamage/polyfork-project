@@ -21,6 +21,7 @@ func _ready() -> void:
     home_button.pressed.connect(_request_home)
     mode_switch.mode_changed.connect(_on_mode_changed)
     bottom_dock.tool_selected.connect(_on_tool_selected)
+    _configure_focus_navigation()
     _apply_mode_label()
 
 
@@ -61,12 +62,57 @@ func close_asset_drawer() -> void:
     bottom_dock.close_asset_drawer()
 
 
+func handle_cancel() -> bool:
+    if is_asset_drawer_open():
+        close_asset_drawer()
+        call_deferred("focus_bottom_dock")
+        return true
+
+    if is_inspector_open():
+        hide_inspector()
+        call_deferred("focus_primary")
+        return true
+
+    return false
+
+
 func focus_primary() -> void:
     mode_switch.focus_primary()
 
 
 func focus_bottom_dock() -> void:
     bottom_dock.focus_primary()
+
+
+func _configure_focus_navigation() -> void:
+    var build_button := find_child("BuildButton", true, false) as Button
+    var play_button := find_child("PlayButton", true, false) as Button
+    var assets_button := find_child("AssetsButton", true, false) as Button
+
+    if build_button == null or play_button == null or assets_button == null:
+        return
+
+    home_button.focus_neighbor_right = home_button.get_path_to(build_button)
+    home_button.focus_neighbor_bottom = home_button.get_path_to(assets_button)
+    build_button.focus_neighbor_left = build_button.get_path_to(home_button)
+    build_button.focus_neighbor_bottom = build_button.get_path_to(assets_button)
+    play_button.focus_neighbor_bottom = play_button.get_path_to(assets_button)
+    assets_button.focus_neighbor_top = assets_button.get_path_to(build_button)
+
+    var tool_names := [
+        "TerrainButton",
+        "AssetsButton",
+        "FoliageButton",
+        "RoadsButton",
+        "WaterButton",
+        "GameplayButton",
+        "AIButton",
+        "MoreButton"
+    ]
+    for node_name in tool_names:
+        var tool_button := find_child(node_name, true, false) as Button
+        if tool_button != null:
+            tool_button.focus_neighbor_top = tool_button.get_path_to(build_button)
 
 
 func _on_mode_changed(mode: StringName) -> void:
