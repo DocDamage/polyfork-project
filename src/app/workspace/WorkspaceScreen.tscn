@@ -1,0 +1,165 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://src/app/workspace/workspace_screen.gd" type="Script" id="1"]
+
+[node name="WorkspaceScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.043, 0.051, 0.078, 1)
+
+[node name="TopBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 18.0
+offset_right = -20.0
+offset_bottom = 82.0
+grow_horizontal = 2
+theme_type_variation = &"ElevatedPanel"
+
+[node name="TopMargin" type="MarginContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 8
+
+[node name="TopRow" type="HBoxContainer" parent="TopBar/TopMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="HomeButton" type="Button" parent="TopBar/TopMargin/TopRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "⌂"
+
+[node name="WorldStack" type="VBoxContainer" parent="TopBar/TopMargin/TopRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(300, 0)
+theme_override_constants/separation = 2
+
+[node name="WorldTitle" type="Label" parent="TopBar/TopMargin/TopRow/WorldStack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Untitled World"
+
+[node name="WorldContext" type="Label" parent="TopBar/TopMargin/TopRow/WorldStack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Medium world  •  Blank Sandbox"
+
+[node name="TopSpacerLeft" type="Control" parent="TopBar/TopMargin/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ModeSlot" type="CenterContainer" parent="TopBar/TopMargin/TopRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 48)
+layout_mode = 2
+
+[node name="TopSpacerRight" type="Control" parent="TopBar/TopMargin/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="UtilityHint" type="Label" parent="TopBar/TopMargin/TopRow"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Runtime workspace"
+vertical_alignment = 1
+
+[node name="ViewportFrame" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 96.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ElevatedPanel"
+
+[node name="ViewportBackdrop" type="ColorRect" parent="ViewportFrame"]
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.075, 0.098, 0.135, 1)
+
+[node name="ViewportCenter" type="CenterContainer" parent="ViewportFrame/ViewportBackdrop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ViewportStack" type="VBoxContainer" parent="ViewportFrame/ViewportBackdrop/ViewportCenter"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ViewportTitle" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportCenter/ViewportStack"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "World Viewport"
+horizontal_alignment = 1
+
+[node name="ViewportHint" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportCenter/ViewportStack"]
+layout_mode = 2
+theme_type_variation = &"SecondaryLabel"
+text = "World rendering and authoring tools attach here."
+horizontal_alignment = 1
+
+[node name="ViewportBadge" type="PanelContainer" parent="ViewportFrame/ViewportBackdrop"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 180.0
+offset_bottom = 58.0
+theme_type_variation = &"ElevatedPanel"
+
+[node name="BadgeText" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportBadge"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "VIEWPORT READY"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InspectorLayer" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BottomDockLayer" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
