@@ -27,9 +27,8 @@ func ensure_thumbnail(record: Dictionary) -> Dictionary:
     image.fill(_color_from_hash(content_hash))
     var stripe := _color_from_hash(content_hash.reverse()).lightened(0.18)
     for y in range(HEIGHT):
-        if (y / 20) % 2 == 0:
-            for x in range(WIDTH):
-                if x > WIDTH - 26: image.set_pixel(x, y, stripe)
+        if int(y / 20) % 2 == 0:
+            for x in range(WIDTH - 25, WIDTH): image.set_pixel(x, y, stripe)
     var save_error := image.save_png(path)
     if save_error != OK: return _failure("Unable to save generated thumbnail: %s" % save_error)
     return {"ok": true, "errors": [], "thumbnail": {"cache_key": cache_key, "source_hash": content_hash, "path": path}, "reused": false}
@@ -50,8 +49,8 @@ func _invalidate_asset(asset_id: String) -> void:
 static func _color_from_hash(value: String) -> Color:
     var seed := abs(value.hash())
     var r := 0.16 + float(seed % 47) / 160.0
-    var g := 0.20 + float((seed / 47) % 53) / 150.0
-    var b := 0.24 + float((seed / 2491) % 59) / 145.0
+    var g := 0.20 + float((seed / 47) as int % 53) / 150.0
+    var b := 0.24 + float((seed / 2491) as int % 59) / 145.0
     return Color(clamp(r, 0.12, 0.58), clamp(g, 0.16, 0.62), clamp(b, 0.20, 0.68), 1.0)
 
 

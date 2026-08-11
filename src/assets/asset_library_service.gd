@@ -28,23 +28,23 @@ func _init(project_dir: String) -> void:
 
 
 func load_library() -> Dictionary:
-    var source_result := _registry.load_registry()
+    var source_result: Dictionary = _registry.load_registry()
     if not source_result.get("ok", false): return source_result
-    var catalog_result := _catalog.load_catalog()
+    var catalog_result: Dictionary = _catalog.load_catalog()
     if not catalog_result.get("ok", false): return catalog_result
     return {"ok": true, "errors": [], "sources": get_sources(), "records": get_records(true)}
 
 
 func register_source(root_path: String, display_name: String = "") -> Dictionary:
-    var result := _registry.register_source(root_path, display_name)
+    var result: Dictionary = _registry.register_source(root_path, display_name)
     if not result.get("ok", false): return result
-    var scan_result := scan_all()
+    var scan_result: Dictionary = scan_all()
     scan_result["source"] = result.get("source", {})
     return scan_result
 
 
 func remove_source(source_id: String) -> Dictionary:
-    var result := _registry.remove_source(source_id)
+    var result: Dictionary = _registry.remove_source(source_id)
     if not result.get("ok", false): return result
     return scan_all()
 
@@ -56,7 +56,7 @@ func scan_all() -> Dictionary:
     for source in _registry.get_sources(true):
         totals["sources"] += 1
         var source_id := str(source.get("source_id", ""))
-        var scan_result := _scanner.scan_source(source, _catalog.previous_by_path(source_id))
+        var scan_result: Dictionary = _scanner.scan_source(source, _catalog.previous_by_path(source_id))
         for key in ["files", "hashed", "reused"]:
             totals[key] += int(scan_result.get("stats", {}).get(key, 0))
         for error in scan_result.get("errors", []): scan_errors.append(str(error))
@@ -64,16 +64,16 @@ func scan_all() -> Dictionary:
             var analyzed: Dictionary = observation.duplicate(true)
             analyzed["analysis"] = _analyzer.analyze(observation)
             observations.append(analyzed)
-    var reconcile := _catalog.reconcile(observations, false)
+    var reconcile: Dictionary = _catalog.reconcile(observations, false)
     if not reconcile.get("ok", false): return reconcile
     var thumbnail_errors: Array[String] = []
     for record in _catalog.get_records(false):
-        var thumbnail_result := _thumbnails.ensure_thumbnail(record)
+        var thumbnail_result: Dictionary = _thumbnails.ensure_thumbnail(record)
         if thumbnail_result.get("ok", false):
             _catalog.update_thumbnail(str(record.get("asset_id", "")), thumbnail_result["thumbnail"], false)
         else:
             for error in thumbnail_result.get("errors", []): thumbnail_errors.append(str(error))
-    var save_result := _catalog.save_catalog()
+    var save_result: Dictionary = _catalog.save_catalog()
     if not save_result.get("ok", false): return save_result
     var all_errors: Array[String] = []
     all_errors.append_array(scan_errors)
@@ -82,22 +82,22 @@ func scan_all() -> Dictionary:
 
 
 func instantiate_asset_scene(asset_id: String) -> Dictionary:
-    var record := _catalog.get_record(asset_id)
+    var record: Dictionary = _catalog.get_record(asset_id)
     if record.is_empty(): return _failure("Asset ID was not found in the catalog.")
-    var source := _registry.get_source(str(record.get("source_id", "")))
+    var source: Dictionary = _registry.get_source(str(record.get("source_id", "")))
     if source.is_empty(): return _failure("Asset source registration is missing.")
-    var result := _importer.instantiate(record, str(source.get("root_path", "")))
+    var result: Dictionary = _importer.instantiate(record, str(source.get("root_path", "")))
     if result.get("ok", false):
         _catalog.update_derived(asset_id, result.get("derived", {}), true)
     return result
 
 
 func ensure_import(asset_id: String) -> Dictionary:
-    var record := _catalog.get_record(asset_id)
+    var record: Dictionary = _catalog.get_record(asset_id)
     if record.is_empty(): return _failure("Asset ID was not found in the catalog.")
-    var source := _registry.get_source(str(record.get("source_id", "")))
+    var source: Dictionary = _registry.get_source(str(record.get("source_id", "")))
     if source.is_empty(): return _failure("Asset source registration is missing.")
-    var result := _importer.ensure_import(record, str(source.get("root_path", "")))
+    var result: Dictionary = _importer.ensure_import(record, str(source.get("root_path", "")))
     if result.get("ok", false): _catalog.update_derived(asset_id, result.get("derived", {}), true)
     return result
 
@@ -118,9 +118,9 @@ func remove_from_collection(asset_id: String, collection: String) -> Dictionary:
 
 
 func source_details(asset_id: String) -> Dictionary:
-    var record := _catalog.get_record(asset_id)
+    var record: Dictionary = _catalog.get_record(asset_id)
     if record.is_empty(): return {}
-    var source := _registry.get_source(str(record.get("source_id", "")))
+    var source: Dictionary = _registry.get_source(str(record.get("source_id", "")))
     return {"asset": record, "source": source, "license": record.get("license", {}).duplicate(true)}
 
 
