@@ -1,6 +1,6 @@
 # Task Backlog
 
-Task IDs use `P##-T##`.
+Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are milestone gates, not task gates, unless a handoff explicitly says otherwise.
 
 ## Phase 0
 - [x] P00-T01 Create Godot 4.7.x project and repository structure
@@ -30,6 +30,8 @@ Task IDs use `P##-T##`.
 - [x] P02-T07 Complete Phase 2 integration tests and persistence hardening
 
 ## Phase 3 — Runtime Placement Editor
+Milestone review gate: **complete P03-T02 through P03-T09 continuously on one milestone branch, then open one Phase 3 completion PR.** P03-T01 is already merged and is the baseline for this milestone.
+
 - [x] P03-T01 Implement runtime entity scene bridge and single-selection foundation
 - [ ] P03-T02 Implement command-backed object placement and ghost preview
 - [ ] P03-T03 Implement command-backed move/rotate/scale editing and gizmo state
@@ -41,4 +43,4 @@ Task IDs use `P##-T##`.
 - [ ] P03-T09 Complete Phase 3 integration, gamepad, failure-path, and visual verification
 
 ## Later phases
-Decompose each later phase in `MASTER_IMPLEMENTATION_PLAN.md` into implementation-sized tasks before beginning that phase. Do not broadly authorize an entire phase; the current handoff must authorize only the next task.
+Before beginning a later phase, decompose it into implementation-sized internal tasks. The handoff should authorize a meaningful milestone range—normally a full phase when dependencies permit—rather than forcing one PR per task. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
