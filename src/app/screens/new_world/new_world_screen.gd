@@ -21,6 +21,7 @@ const TEMPLATES := [
 @onready var large_button: Button = %LargeButton
 @onready var template_option: OptionButton = %TemplateOption
 @onready var create_button: Button = %CreateButton
+@onready var create_hint: Label = $SafeArea/Content/BottomRow/CreateHint
 
 var _selected_world_size: StringName = &"medium"
 
@@ -35,6 +36,16 @@ func _ready() -> void:
 
 func focus_primary() -> void:
     world_name_edit.grab_focus()
+
+
+func set_error_message(message: String) -> void:
+    create_hint.text = message
+    create_hint.add_theme_color_override("font_color", Color("ff665f"))
+
+
+func clear_error_message() -> void:
+    create_hint.text = "Ready with smart defaults."
+    create_hint.remove_theme_color_override("font_color")
 
 
 func _configure_world_size_buttons() -> void:
@@ -103,6 +114,7 @@ func _set_tab_order(controls: Array) -> void:
 
 func _select_world_size(world_size: StringName) -> void:
     _selected_world_size = world_size
+    clear_error_message()
 
 
 func _request_back() -> void:
@@ -110,8 +122,10 @@ func _request_back() -> void:
 
 
 func _request_create() -> void:
+    clear_error_message()
     var clean_name := world_name_edit.text.strip_edges()
     if clean_name.is_empty():
+        set_error_message("Enter a world name before creating the project.")
         world_name_edit.grab_focus()
         return
 
