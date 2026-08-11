@@ -17,7 +17,7 @@ func resolve(prefab_id: String) -> Dictionary:
 func resolve_instance(record: Dictionary) -> Dictionary:
     var errors := Contracts.validate_prefab_instance(record)
     if not errors.is_empty(): return {"ok": false, "errors": errors}
-    var base := resolve(str(record.get("prefab_id", "")))
+    var base: Dictionary = resolve(str(record.get("prefab_id", "")))
     if not base.get("ok", false): return base
     var nodes: Array[Dictionary] = _copy_array(base.get("nodes", []))
     var overrides: Dictionary = record.get("overrides", {})
@@ -42,7 +42,7 @@ func _resolve(prefab_id: String, visiting: Dictionary) -> Dictionary:
     var sockets: Array[Dictionary] = []
     var base = prefab.get("base_prefab_id")
     if base != null and not str(base).is_empty():
-        var resolved_base := _resolve(str(base), visiting)
+        var resolved_base: Dictionary = _resolve(str(base), visiting)
         if not resolved_base.get("ok", false): return resolved_base
         nodes = _copy_array(resolved_base.get("nodes", []))
         sockets = _copy_array(resolved_base.get("sockets", []))
@@ -58,7 +58,7 @@ func _resolve(prefab_id: String, visiting: Dictionary) -> Dictionary:
             sockets[socket_index] = _merge_dictionary(sockets[socket_index], prefab["socket_overrides"][socket_id])
     nodes.append_array(_copy_array(prefab.get("nodes", [])))
     for socket_id in prefab.get("socket_ids", []):
-        var socket := state.get_socket(str(socket_id))
+        var socket: Dictionary = state.get_socket(str(socket_id))
         if socket.is_empty(): return _failure("Prefab references an unknown socket record.")
         sockets.append(socket)
     visiting.erase(prefab_id)
