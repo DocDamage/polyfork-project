@@ -68,10 +68,13 @@ func _run() -> void:
 
     var biomes: Array = controller.get_biomes()
     if biomes.size() >= 2:
-        var biome_result: Dictionary = controller.assign_biome(str(biomes[1].get("biome_id", "")))
+        var target_biome_id: String = str(biomes[1].get("biome_id", ""))
+        var biome_result: Dictionary = controller.assign_biome(target_biome_id)
         if not biome_result.get("ok", false):
             push_error("Phase 5 visual biome assignment failed: %s" % biome_result.get("errors", []))
             quit(1); return
+        var panel = terrain_layer.call("get_panel")
+        if panel != null: panel.call("select_biome", target_biome_id)
     controller.set_mode(&"smooth")
     controller.set_radius(260.0)
     controller.set_strength(0.55)
