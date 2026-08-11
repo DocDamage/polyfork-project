@@ -1,6 +1,7 @@
 extends Node
 
 const MAIN_SCENE := "res://src/main/Main.tscn"
+const EntitySelectionSmoke = preload("res://tests/runtime/entity_selection_smoke.gd")
 
 
 func run_checks() -> Dictionary:
@@ -93,6 +94,8 @@ func _exercise_routes(
     _check_inspector(workspace, errors)
     _check_bottom_dock(workspace, errors)
     _check_cancel_priority(workspace, errors)
+    for error in EntitySelectionSmoke.run_checks(workspace):
+        errors.append(error)
 
     var cancel_event := InputEventAction.new()
     cancel_event.action = &"ui_cancel"
