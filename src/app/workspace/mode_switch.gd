@@ -20,6 +20,10 @@ func _ready() -> void:
     build_button.button_pressed = true
     build_button.pressed.connect(set_mode.bind(BUILD_MODE))
     play_button.pressed.connect(set_mode.bind(PLAY_MODE))
+    build_button.focus_neighbor_right = build_button.get_path_to(play_button)
+    play_button.focus_neighbor_left = play_button.get_path_to(build_button)
+    build_button.focus_next = build_button.get_path_to(play_button)
+    play_button.focus_previous = play_button.get_path_to(build_button)
 
 
 func set_mode(mode: StringName) -> void:
