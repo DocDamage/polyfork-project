@@ -7,6 +7,10 @@ const ENTITY_ID_META := &"playworld_entity_id"
 var entity_id: String = ""
 var entity_record: Dictionary = {}
 var _selected := false
+var _mesh: MeshInstance3D
+var _body: StaticBody3D
+var _normal_material: StandardMaterial3D
+var _selected_material: StandardMaterial3D
 
 
 func apply_record(record: Dictionary) -> Array[String]:
@@ -18,16 +22,20 @@ func apply_record(record: Dictionary) -> Array[String]:
     entity_record = record.duplicate(true)
     set_meta(ENTITY_ID_META, entity_id)
     name = "Entity_%s" % entity_id.substr(0, 8)
+    _ensure_proxy()
+    _sync_identity_meta()
 
     var transform_data: Dictionary = record.get("transform", {})
     position = _vector3(transform_data.get("position", [0.0, 0.0, 0.0]))
     rotation_degrees = _vector3(transform_data.get("rotation_degrees", [0.0, 0.0, 0.0]))
     scale = _vector3(transform_data.get("scale", [1.0, 1.0, 1.0]))
+    _apply_selection_material()
     return []
 
 
 func set_selected(value: bool) -> void:
     _selected = value
+    _apply_selection_material()
 
 
 func is_selected() -> bool:
@@ -36,6 +44,64 @@ func is_selected() -> bool:
 
 func get_record() -> Dictionary:
     return entity_record.duplicate(true)
+
+
+func get_proxy_mesh() -> MeshInstance3D:
+    _ensure_proxy()
+    return _mesh
+
+
+func get_pick_body() -> StaticBody3D:
+    _ensure_proxy()
+    return _body
+
+
+func _ensure_proxy() -> void:
+    if _mesh != null:
+        return
+
+    _normal_material = StandardMaterial3D.new()
+    _normal_material.albedo_color = Color(0.30, 0.58, 0.67, 1.0)
+    _normal_material.metallic = 0.12
+    _normal_material.roughness = 0.58
+
+    _selected_material = StandardMaterial3D.new()
+    _selected_material.albedo_color = Color(0.34, 0.92, 0.70, 1.0)
+    _selected_material.emission_enabled = true
+    _selected_material.emission = Color(0.12, 0.42, 0.28, 1.0)
+    _selected_material.emission_energy_multiplier = 1.5
+
+    _mesh = MeshInstance3D.new()
+    _mesh.name = "ProxyMesh"
+    var box := BoxMesh.new()
+    box.size = Vector3.ONE
+    _mesh.mesh = box
+    _mesh.material_override = _normal_material
+    add_child(_mesh)
+
+    _body = StaticBody3D.new()
+    _body.name = "PickBody"
+    var collision := CollisionShape3D.new()
+    collision.name = "CollisionShape3D"
+    var shape := BoxShape3D.new()
+    shape.size = Vector3.ONE
+    collision.shape = shape
+    _body.add_child(collision)
+    add_child(_body)
+
+
+func _sync_identity_meta() -> void:
+    if entity_id.is_empty():
+        return
+    set_meta(ENTITY_ID_META, entity_id)
+    _mesh.set_meta(ENTITY_ID_META, entity_id)
+    _body.set_meta(ENTITY_ID_META, entity_id)
+
+
+func _apply_selection_material() -> void:
+    if _mesh == null:
+        return
+    _mesh.material_override = _selected_material if _selected else _normal_material
 
 
 static func _vector3(value: Array) -> Vector3:

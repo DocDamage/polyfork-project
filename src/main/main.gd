@@ -111,6 +111,15 @@ func _activate_project(project) -> bool:
         push_warning("Unable to attach project autosave: %s" % attach_result.get("errors", []))
         return false
     _active_project = project
+    if workspace_screen.has_method("bind_project"):
+        var editor_result: Dictionary = workspace_screen.bind_project(
+            project,
+            Callable(self, "mark_project_dirty")
+        )
+        if not editor_result.get("ok", false):
+            push_warning("Unable to bind project editor session: %s" % editor_result.get("errors", []))
+            _active_project = null
+            return false
     return true
 
 
@@ -128,7 +137,7 @@ func _on_new_world_create_requested(configuration: Dictionary) -> void:
 
     var project = create_result["project"]
     if not _activate_project(project):
-        new_world_screen.set_error_message("Could not activate autosave for the new project.")
+        new_world_screen.set_error_message("Could not activate the new project editor session.")
         return
     var project_data: Dictionary = project.to_dictionary()
     new_world_requested.emit(project_data)

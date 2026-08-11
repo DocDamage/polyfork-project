@@ -1,0 +1,58 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource path="res://src/editor/editor_viewport_3d.gd" type="Script" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
+albedo_color = Color(0.105, 0.185, 0.155, 1)
+roughness = 0.92
+
+[sub_resource type="PlaneMesh" id="GroundMesh"]
+material = SubResource("GroundMaterial")
+size = Vector2(30, 30)
+
+[sub_resource type="BoxShape3D" id="GroundShape"]
+size = Vector3(30, 0.1, 30)
+
+[node name="EditorViewport3D" type="SubViewportContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+mouse_filter = 0
+script = ExtResource("1")
+
+[node name="WorldViewport" type="SubViewport" parent="."]
+size = Vector2i(800, 450)
+own_world_3d = true
+handle_input_locally = true
+render_target_update_mode = 4
+
+[node name="WorldRoot" type="Node3D" parent="WorldViewport"]
+
+[node name="Camera3D" type="Camera3D" parent="WorldViewport/WorldRoot"]
+position = Vector3(8, 7, 10)
+rotation_degrees = Vector3(-25, 38, 0)
+current = true
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldViewport/WorldRoot"]
+rotation_degrees = Vector3(-55, -35, 0)
+light_energy = 1.25
+shadow_enabled = true
+
+[node name="FillLight" type="OmniLight3D" parent="WorldViewport/WorldRoot"]
+position = Vector3(-4, 6, 2)
+light_color = Color(0.45, 0.68, 0.92, 1)
+light_energy = 2.0
+omni_range = 18.0
+
+[node name="Ground" type="MeshInstance3D" parent="WorldViewport/WorldRoot"]
+mesh = SubResource("GroundMesh")
+
+[node name="GroundBody" type="StaticBody3D" parent="WorldViewport/WorldRoot"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WorldViewport/WorldRoot/GroundBody"]
+position = Vector3(0, -0.05, 0)
+shape = SubResource("GroundShape")
