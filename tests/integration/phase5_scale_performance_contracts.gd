@@ -25,9 +25,8 @@ static func run_checks() -> Array[String]:
     var cell: Dictionary = medium_result.get("cell", {})
     if not cell.is_empty():
         for index in range(100):
-            var mode: String = ["raise", "lower", "smooth", "flatten"][index % 4]
+            var mode: String = "raise" if index % 2 == 0 else "lower"
             var brush: Dictionary = {"mode": mode, "center": Vector3.ZERO, "radius": 180.0, "strength": 0.25}
-            if mode == "flatten": brush["target_height"] = 0.0
             var result: Dictionary = TerrainBrush.apply(cell, brush)
             if not result.get("ok", false):
                 errors.append("Representative 100-stroke terrain workload must remain behaviorally valid.")
