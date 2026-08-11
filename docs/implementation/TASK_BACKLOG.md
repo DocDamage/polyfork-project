@@ -21,7 +21,7 @@ Task IDs use `P##-T##`.
 - [x] P01-T09 Screenshot parity review against canonical reference
 
 ## Phase 2 — World project + save foundation
-- [ ] P02-T01 Implement stable ID utility and Small/Medium/Large world-profile contracts
+- [x] P02-T01 Implement stable ID utility and Small/Medium/Large world-profile contracts
 - [ ] P02-T02 Implement world-project model and atomic create/open/save repository
 - [ ] P02-T03 Integrate New World creation with persistent projects and project reopening
 - [ ] P02-T04 Implement stable world-entity record and registry foundation
