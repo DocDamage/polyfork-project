@@ -55,18 +55,18 @@ Phase 4 is complete and merged on authoritative `master` by PR #9.
 - [x] P04-T08 Complete Phase 4 integration, scale, gamepad, failure-path, and visual verification
 
 ## Phase 5 — Terrain + Streaming
-Milestone review gate: complete P05-T01 through P05-T08 continuously on `dev/phase5-terrain-streaming-milestone`, then open one Phase 5 completion PR targeting authoritative `master`.
+Phase 5 is complete and verified on `dev/phase5-terrain-streaming-milestone`. The completion PR must merge before Phase 6 begins.
 
-- [ ] P05-T01 Implement versioned terrain/biome/cell persistence contracts and stable cell identity
-- [ ] P05-T02 Implement deterministic runtime terrain chunk mesh generation and editor viewport integration
-- [ ] P05-T03 Implement command-backed runtime terrain sculpt brushes with undo/redo and dirty-state integration
-- [ ] P05-T04 Implement world partition topology derived from Small/Medium/Large world profiles
-- [ ] P05-T05 Implement crash-safe dirty-cell persistence, reload, checkpoint, and corruption recovery behavior
-- [ ] P05-T06 Implement deterministic streaming manager load/unload policy with stable cross-cell references
-- [ ] P05-T07 Implement biome rule-set data, terrain material hooks, and biome assignment/editing foundations
-- [ ] P05-T08 Complete Phase 5 integration, scale/performance, gamepad, failure-path, persistence, streaming, and rendered visual verification
+- [x] P05-T01 Implement versioned terrain/biome/cell persistence contracts and stable cell identity
+- [x] P05-T02 Implement deterministic runtime terrain chunk mesh generation and editor viewport integration
+- [x] P05-T03 Implement command-backed runtime terrain sculpt brushes with undo/redo and dirty-state integration
+- [x] P05-T04 Implement world partition topology derived from Small/Medium/Large world profiles
+- [x] P05-T05 Implement crash-safe dirty-cell persistence, reload, checkpoint/recovery behavior, and corruption failure paths
+- [x] P05-T06 Implement deterministic streaming manager load/unload policy with stable cross-cell references
+- [x] P05-T07 Implement biome rule-set data, terrain material hooks, and biome assignment/editing foundations
+- [x] P05-T08 Complete Phase 5 integration, scale/performance, gamepad, failure-path, persistence, streaming, and rendered visual verification
 
 ## Later phases
-Before beginning a later phase, decompose it into implementation-sized internal tasks. The handoff should authorize a meaningful milestone range—normally a full phase when dependencies permit—rather than forcing one PR per task. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
+Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
 
 Do not begin Phase 6 until the Phase 5 completion PR is explicitly merged into authoritative `master`.

@@ -1,172 +1,139 @@
-# POLYFORK PROJECT — PHASE 5 HANDOFF
+# POLYFORK PROJECT — PHASE 5 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
-Use the GitHub connector for repository work.
+## Status
+Phase 5 — Terrain + Streaming — is implemented and verified on its single milestone branch. One Phase 5 completion PR must be reviewed and merged before Phase 6 begins.
 
-## Authoritative branch
+## Authoritative baseline
+Authoritative project branch: `master`
 
-The real project lives on:
-
-`master`
-
-Current authoritative `master`:
-
+Phase 5 started from merged authoritative `master` commit:
 `a7788d6806375bea415cc835be71754e951229c0`
 
-PR #9 — **Phase 4 — Universal Asset Library** — is merged into that commit.
+The repository default branch `main` remains obsolete starter code. Never develop from it.
 
-The repository default branch `main` remains obsolete starter code.
-
-**Never develop from `main`.**
-
-## Current project state
-
-Phases 0 through 4 are complete and merged.
-
-Phase 4 delivered:
-
-- strictly read-only external asset source folders
-- deterministic incremental scanning and SHA-256 indexing
-- stable asset-ID reconciliation across ordinary rescans and provable moves
-- GLTF, GLB, Godot `.tscn`, and Godot `.scn` analysis/import support
-- project-managed derived imports, thumbnails, and caches
-- source/license metadata persistence
-- favorites, collections, duplicate detection, search, and filters
-- large-card default browser plus compact density
-- keyboard/mouse and gamepad Asset Library workflows
-- real Asset Library → Phase 3 ghost → `PlaceEntityCommand` placement handoff
-- asset-backed runtime visuals with safe missing-source proxy fallback
-- 131-asset scale/incremental verification
-- rendered Phase 4 visual evidence
-
-## Development workflow
-
-The project uses **milestone-based development**, not one PR per small task.
-
-For an authorized milestone:
-
-1. Start from current authoritative `master`.
-2. Create one focused milestone branch.
-3. Work continuously through the entire authorized task range.
-4. Make internal commits and run CI whenever useful.
-5. Do **not** stop at individual task boundaries.
-6. Do **not** open per-task PRs.
-7. Fix failures without weakening tests.
-8. Update architecture, backlog, and handoff documentation during milestone closeout.
-9. Open **one PR only when the entire milestone is complete and verified**.
-10. Never merge the milestone PR without explicit user authorization.
-
-A genuine external blocker may justify an earlier review point, but ordinary implementation failures do not.
-
-# NEXT AUTHORIZED MILESTONE
-
-## Phase 5 — Terrain + Streaming
-
-Milestone branch already created from authoritative `master`:
-
+Phase 5 branch:
 `dev/phase5-terrain-streaming-milestone`
 
-Complete the entire Phase 5 range continuously:
+## Completed task range
+- P05-T01 versioned terrain/biome/cell persistence and stable cell identity
+- P05-T02 deterministic runtime terrain chunks and editor viewport integration
+- P05-T03 command-backed raise/lower/smooth/flatten sculpting with shared undo/redo
+- P05-T04 deterministic Small/Medium/Large world partition topology
+- P05-T05 incremental crash-safe dirty-cell persistence and recovery/failure paths
+- P05-T06 deterministic terrain + runtime-entity streaming with stable cross-cell references
+- P05-T07 data-driven biome registry/material hooks and command-backed assignment
+- P05-T08 real workspace integration, scale/performance proxy, keyboard/mouse/gamepad, failure paths, raw logs, and rendered visual evidence
 
-- **P05-T01** — Versioned terrain/biome/cell persistence contracts and stable cell identity
-- **P05-T02** — Deterministic runtime terrain chunk mesh generation and editor viewport integration
-- **P05-T03** — Command-backed runtime terrain sculpt brushes with undo/redo and dirty-state integration
-- **P05-T04** — World partition topology derived from Small/Medium/Large world profiles
-- **P05-T05** — Crash-safe dirty-cell persistence, reload, checkpoint, and corruption recovery behavior
-- **P05-T06** — Deterministic streaming manager load/unload policy with stable cross-cell references
-- **P05-T07** — Biome rule-set data, terrain material hooks, and biome assignment/editing foundations
-- **P05-T08** — Phase 5 integration, scale/performance, gamepad, failure-path, persistence, streaming, and rendered visual verification
+## Terrain architecture delivered
+Per-project terrain storage:
+`<project-directory>/terrain`
 
-Use **one Phase 5 milestone branch** and **one Phase 5 completion PR**.
+Canonical files:
+- `manifest.json`
+- `biomes.json`
+- `cells/<cell-id>.json`
 
-Do not stop for PR review between P05-T01 and P05-T08.
+Known-good fallback files:
+- `recovery/<cell-id>.json`
 
-## Phase 5 product requirements
+World topology:
+- Small — 1×1 cell, non-streaming, ~1 km²
+- Medium — 3×3 cells, non-streaming, ~9 km²
+- Large — 5×5 cells, streamed, ~25 km²
 
-Phase 5 must satisfy the existing product requirements:
+All cells use stable UUIDs. The origin retains an existing valid project cell ID when available.
 
-- Small worlds represent the existing 1–2 km² profile.
-- Medium worlds represent the existing 4–16 km² profile.
-- Large worlds start at 16+ km² and are streamed.
-- World size remains chosen before terrain creation.
-- Terrain must be sculptable at runtime.
-- Large worlds must be partitioned into streamable cells/chunks.
-- Biomes are rule sets, not baked art dependencies.
-- Biome presets may configure terrain material hooks and future foliage/environment defaults without prematurely implementing later foliage/environment phases.
-- Representative medium-world work must preserve the 60 FPS target on an RTX 3060-class desktop at 1080p using the standard preset.
+## Authoring behavior
+Terrain uses its own versioned height-cell records rather than pretending chunks are placed entities.
 
-## Phase 5 architecture constraints
+Raise, lower, smooth, flatten, and biome assignment execute through the same editor command history used by Phase 3. Undo/Redo restores authored terrain and runtime meshes together.
 
-- Terrain persistence must use stable IDs and versioned schemas; never use scene-tree paths, node names, or array positions as persistent identity.
-- Terrain/chunk/cell identity must remain deterministic across save/reopen and streaming unload/reload.
-- Do not represent terrain chunks as ordinary placed asset entities merely to reuse Phase 3 systems.
-- Existing world entities must keep their stable entity IDs and owning cell references while cells stream in and out.
-- Streaming must not assume a referenced parent/entity is currently loaded.
-- Large-world streaming must be bounded and deterministic; tests must prove which cells load/unload around a focus position.
-- Small and Medium profiles must remain usable without forcing Large-world streaming behavior.
-- Terrain sculpting is authored state and must run through reversible commands/transactions; preview-only brush state must not dirty persistence.
-- Undo/redo must restore terrain data and runtime mesh state together.
-- Dirty terrain/cell persistence must be incremental; unchanged cells must not be rewritten merely because another cell changed.
-- Terrain/cell writes must use the existing crash-safe persistence principles: write/flush/validate/promote, preserving previous known-good canonical data on failure.
-- Corrupt, missing, unsupported-version, or incomplete terrain/cell data must fail safely and must not silently replace known-good authored terrain.
-- Streaming unload must never discard unsaved dirty authored terrain.
-- Cross-cell references remain stable-ID references and may resolve lazily when the target cell is not loaded.
-- Biome records must be data-driven and versioned. Do not bake specific art packs, foliage systems, weather systems, or gameplay semantics into the terrain core.
-- Phase 5 may expose terrain material slots/hooks, but full foliage/procedural scatter belongs to Phase 9 and full environment/weather belongs to Phase 11.
-- Preserve Phase 4 external asset source-folder read-only guarantees.
-- Preserve Phase 4 Asset Library placement behavior and Phase 3 command-backed entity editing.
-- Core terrain workflows must support keyboard/mouse and gamepad.
-- Preserve the canonical dark, playful, Nintendo-forward / Apple-clean UI direction.
-- Keep production files around 300 LOC where practical and split by responsibility.
-- Never weaken tests to make broken behavior pass.
-- CI must continue rejecting `SCRIPT ERROR:` and engine `ERROR:` output even when Godot exits successfully.
-- Continue using Godot **4.7.1**.
+Placement ghosts and moved entities resolve their owning terrain cell by world position. Cross-cell transform commands update transform plus `cell_id` atomically; Undo/Redo restores both.
 
-## Phase 5 verification expectations
+## Streaming behavior
+Small and Medium keep every terrain cell loaded.
 
-The Phase 5 completion gate must include real behavioral verification for at least:
+Large uses a deterministic radius-one active set. Dirty terrain cells outside that radius remain loaded and report blocked unload until safe persistence succeeds.
 
-- terrain schema validation and stable IDs
-- deterministic height/mesh generation
-- runtime sculpt add/subtract/smooth/flatten behavior
-- brush preview versus committed authored state
-- command-backed sculpt undo/redo
-- project dirty/autosave integration
-- Small/Medium/Large partition topology
-- stable owning-cell relationships for existing world entities
-- dirty-cell incremental save behavior
-- save/reopen terrain persistence
-- checkpoint/recovery interaction where applicable
-- corrupt/missing/future-version terrain/cell failure paths
-- deterministic streaming load/unload sets
-- dirty-cell protection during unload
-- cross-cell stable-reference behavior when targets are unloaded
-- biome schema/preset/assignment persistence
-- representative scale/performance tests
-- keyboard/mouse terrain authoring
-- gamepad terrain authoring
-- rendered terrain/streaming UI evidence against the canonical visual direction
-- strict inspection of raw Godot CI logs
+Runtime world entities are filtered by their stable owning `cell_id`. The complete persisted record set is validated even when some cells/entities are unloaded. A loaded child with a valid unloaded parent temporarily attaches at the runtime bridge root without changing its persistent parent ID.
 
-## Completion gate
+## Crash safety
+Dirty-cell saves are incremental. Tests prove editing one cell does not rewrite an unchanged neighbor.
 
-Phase 5 is complete only when P05-T01 through P05-T08 are implemented together and verified through:
+Before replacement, the previous validated canonical cell is saved to its recovery path. Failed promotion leaves canonical data untouched and retains dirty state. Corrupt canonical terrain can reopen from a valid prior recovery record without silently overwriting the corrupt file. Missing terrain with no valid recovery fails closed.
 
-- behavioral unit tests
-- integration tests
-- real Godot runtime tests
-- persistence/restart tests
-- dirty-cell incremental persistence tests
-- corruption/recovery failure paths
-- deterministic streaming tests
-- stable identity/reference verification
-- keyboard/mouse verification
-- gamepad verification
-- representative performance/scale verification
-- rendered visual evidence
-- strict raw Godot log inspection
+Biome IDs and height edits survive terrain restart.
 
-Then update the backlog, architecture docs, and `CURRENT_HANDOFF.md`, and open **one Phase 5 completion PR targeting `master`**.
+## Workspace/input
+The existing Terrain dock button opens a compact contextual sculpt strip inside the canonical workspace.
 
-Do not begin Phase 6 until that Phase 5 milestone PR is merged.
+Controls include:
+- Raise / Lower / Smooth / Flatten
+- radius and strength adjustments
+- biome selector
+- active cell display
+- Sculpt action
+
+Mouse terrain clicks sculpt directly. Keyboard arrows/D-pad move the brush cursor. Enter/A applies. Right shoulder cycles brush mode. The Phase 3 left-shoulder tool wheel remains intact. Phase 4 Asset Library behavior remains accessible after terrain editing.
+
+## Verification
+Latest fully green implementation run before documentation closeout:
+`31544299439`
+
+Godot version:
+`4.7.1.stable.official.a13da4feb`
+
+Jobs:
+- `runtime-smoke` — SUCCESS
+- `phase1-visual-capture` — SUCCESS
+- `phase4-visual-capture` — SUCCESS
+- `phase5-visual-capture` — SUCCESS
+
+Behavioral verification covers:
+- stable terrain schemas/IDs and future-version rejection
+- deterministic 1/9/25 cell topology
+- deterministic 17×17 mesh generation and triangle counts
+- raise/lower/smooth/flatten brush behavior
+- shared sculpt undo/redo
+- command-backed biome assignment/undo
+- biome restart persistence
+- one-cell-only incremental save behavior
+- failed atomic promotion
+- corrupt canonical recovery
+- missing canonical + missing recovery failure
+- Large 3×3 active stream set and no-churn repeat focus
+- dirty-cell unload blocking and post-save unload
+- stable cross-cell entity reference behavior
+- entity placement/movement cell ownership with undo/redo
+- real workspace keyboard/mouse/gamepad authoring
+- preservation of Phase 3 controller tool wheel and Phase 4 Asset Library
+- Medium/ Large deterministic scale workload and repeated brush regression proxy
+
+The automated performance workload is a CI regression proxy, not an RTX 3060 hardware benchmark. The documented RTX 3060-class 1080p/60 FPS goal remains a release hardware target and has not been falsely claimed as measured by GitHub Actions.
+
+## Raw log inspection
+The raw `runtime-smoke` log was inspected and contains `PASS: PlayWorld Studio test harness completed.` with no `SCRIPT ERROR:` or engine `ERROR:` output.
+
+The raw Phase 5 visual log was inspected and contains `PASS: Phase 5 rendered screenshots captured.` with no `SCRIPT ERROR:` or engine `ERROR:` output. Expected runner/graphics warnings do not bypass the strict error gate.
+
+## Visual evidence
+Run `31544299439` uploaded Phase 5 artifact ID `9121883914` (`phase5-visual-evidence`).
+
+Files:
+- `00-canonical-reference.png`
+- `01-terrain-sculpt.png`
+- `02-terrain-biome.png`
+
+Visual inspection was performed manually. Initial screenshots were rejected because opaque viewport clearing and stale empty-state copy obscured terrain. The implementation was corrected, then the camera/evidence sculpt was reframed. The accepted evidence visibly shows sculpted 3D relief, brush footprint, contextual Terrain controls, and a distinct biome material state while preserving the dark/playful Nintendo-forward / Apple-clean direction.
+
+## Scope boundary
+Phase 5 does not implement foliage/scatter, roads/splines, full weather/environment, prefab/component authoring, visual scripting, gameplay frameworks, AI creation, or export. Those remain later phases.
+
+## Next action
+Open exactly one Phase 5 completion PR targeting authoritative `master`.
+
+Do not merge without explicit user authorization.
+
+Do not begin Phase 6 until the Phase 5 completion PR is merged and the new authoritative `master` commit is verified.
