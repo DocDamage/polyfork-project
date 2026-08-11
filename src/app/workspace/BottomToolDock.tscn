@@ -1,0 +1,169 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://src/app/workspace/bottom_tool_dock.gd" type="Script" id="1"]
+
+[node name="BottomToolDock" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="AssetDrawer" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 80.0
+offset_top = -438.0
+offset_right = -80.0
+offset_bottom = -112.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_type_variation = &"DrawerPanel"
+
+[node name="DrawerMargin" type="MarginContainer" parent="AssetDrawer"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="DrawerContent" type="VBoxContainer" parent="AssetDrawer/DrawerMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="DrawerHeader" type="HBoxContainer" parent="AssetDrawer/DrawerMargin/DrawerContent"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DrawerTitle" type="Label" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TitleLabel"
+text = "Assets"
+
+[node name="AssetSearch" type="LineEdit" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 46)
+layout_mode = 2
+placeholder_text = "Search your asset library"
+
+[node name="DensityButton" type="Button" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 46)
+layout_mode = 2
+text = "Large Cards"
+
+[node name="DrawerBody" type="PanelContainer" parent="AssetDrawer/DrawerMargin/DrawerContent"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"ElevatedPanel"
+
+[node name="EmptyCenter" type="CenterContainer" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody"]
+layout_mode = 2
+
+[node name="EmptyStack" type="VBoxContainer" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/EmptyCenter"]
+custom_minimum_size = Vector2(460, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EmptyTitle" type="Label" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/EmptyCenter/EmptyStack"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Your asset cards will live here"
+horizontal_alignment = 1
+
+[node name="EmptyBody" type="Label" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/EmptyCenter/EmptyStack"]
+layout_mode = 2
+theme_type_variation = &"SecondaryLabel"
+text = "External folders stay untouched. Once indexed, large visual cards appear here by default."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="DockPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -620.0
+offset_top = -94.0
+offset_right = 620.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_type_variation = &"ElevatedPanel"
+
+[node name="DockMargin" type="MarginContainer" parent="DockPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="Tools" type="HBoxContainer" parent="DockPanel/DockMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="TerrainButton" type="Button" parent="DockPanel/DockMargin/Tools"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 56)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "▲  Terrain"
+
+[node name="AssetsButton" type="Button" parent="DockPanel/DockMargin/Tools"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 56)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "◫  Assets"
+
+[node name="FoliageButton" type="Button" parent="DockPanel/DockMargin/Tools"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 56)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "✦  Foliage"
+
+[node name="RoadsButton" type="Button" parent="DockPanel/DockMargin/Tools"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 56)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "⌁  Roads"
+
+[node name="WaterButton" type="Button" parent="DockPanel/DockMargin/Tools"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 56)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "≈  Water"
+
+[node name="GameplayButton" type="Button" parent="DockPanel/DockMargin/Tools"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 56)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "◆  Gameplay"
+
+[node name="AIButton" type="Button" parent="DockPanel/DockMargin/Tools"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 56)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "✧  AI"
+
+[node name="MoreButton" type="Button" parent="DockPanel/DockMargin/Tools"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 56)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "•••  More"
