@@ -84,6 +84,7 @@ func _exercise_routes(
         "template_id": "third_person_adventure"
     })
     _check_workspace_route(home, new_world, workspace, errors)
+    _check_mode_switch(workspace, errors)
 
     workspace.emit_signal("home_requested")
     if not home.visible or workspace.visible:
@@ -112,9 +113,27 @@ func _check_workspace_route(
     if title == null or title.text != "Smoke World":
         errors.append("Workspace must receive the in-memory world title.")
 
-    if workspace.find_child("ModeSlot", true, false) == null:
-        errors.append("Workspace must reserve a mode-switch slot.")
     if workspace.find_child("InspectorLayer", true, false) == null:
         errors.append("Workspace must reserve an inspector layer.")
     if workspace.find_child("BottomDockLayer", true, false) == null:
         errors.append("Workspace must reserve a bottom-dock layer.")
+
+
+func _check_mode_switch(workspace: Control, errors: Array[String]) -> void:
+    var mode_switch := workspace.find_child("ModeSwitch", true, false) as Control
+    var build_button := workspace.find_child("BuildButton", true, false) as Button
+    var play_button := workspace.find_child("PlayButton", true, false) as Button
+    var badge := workspace.find_child("BadgeText", true, false) as Label
+
+    if mode_switch == null or build_button == null or play_button == null:
+        errors.append("Workspace must expose a Build | Play segmented control.")
+        return
+
+    if not build_button.button_pressed or play_button.button_pressed:
+        errors.append("Workspace mode switch must default to Build.")
+
+    play_button.emit_signal("pressed")
+    if not play_button.button_pressed or build_button.button_pressed:
+        errors.append("Play selection must update segmented-control state.")
+    if badge == null or badge.text != "PLAY MODE":
+        errors.append("Workspace must reflect Play selection in mode status.")
