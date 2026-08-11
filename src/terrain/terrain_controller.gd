@@ -44,6 +44,8 @@ func bind_project(project, project_directory: String, editor_session, dirty_call
     _state = open_result.get("state")
     var runtime_result: Dictionary = _runtime.bind_state(_state)
     if not runtime_result.get("ok", false): return runtime_result
+    var entity_stream_result: Dictionary = _sync_editor_streaming()
+    if not entity_stream_result.get("ok", false): return entity_stream_result
     if bool(open_result.get("project_changed", false)):
         var dirty_result: Variant = _dirty_callback.call()
         if dirty_result is Dictionary and not dirty_result.get("ok", false): return _failure("Terrain topology initialized but project dirty signaling failed.")
@@ -114,13 +116,22 @@ func assign_biome(biome_id: String) -> Dictionary:
 
 
 func update_streaming_focus(position_value: Vector3) -> Dictionary:
-    return _runtime.update_focus(position_value)
+    var result: Dictionary = _runtime.update_focus(position_value)
+    if not result.get("ok", false): return result
+    var entity_result: Dictionary = _sync_editor_streaming()
+    if not entity_result.get("ok", false): return entity_result
+    result["entity_count"] = _editor_session.get_bridge().entity_count()
+    return result
 
 
 func flush_dirty() -> Dictionary:
     if _repository == null or _state == null: return _failure("Terrain controller is not bound.")
     var result: Dictionary = _repository.flush_dirty(_state)
-    if result.get("ok", false): _runtime.update_focus(_runtime.focus_position())
+    if result.get("ok", false):
+        var stream_result: Dictionary = _runtime.update_focus(_runtime.focus_position())
+        if not stream_result.get("ok", false): return stream_result
+        var entity_result: Dictionary = _sync_editor_streaming()
+        if not entity_result.get("ok", false): return entity_result
     return result
 
 
@@ -143,6 +154,22 @@ func get_biomes() -> Array: return [] if _state == null else _state.biome_regist
 
 func get_brush_state() -> Dictionary:
     return {"mode": str(_mode), "cursor": _cursor, "radius": _radius, "strength": _strength, "cell_id": "" if _state == null else _state.cell_id_at_position(_cursor)}
+
+
+func _sync_editor_streaming() -> Dictionary:
+    if _editor_session == null or _state == null: return _failure("Terrain entity streaming requires a bound editor session.")
+    var bridge = _editor_session.get_bridge()
+    if bridge == null: return _failure("Terrain entity streaming could not resolve the runtime entity bridge.")
+    if not bool(_state.manifest.get("streaming", false)):
+        return bridge.clear_cell_filter()
+    var active_ids: Array[String] = _runtime.get_loaded_cell_ids()
+    var terrain_ids: Dictionary = {}
+    for cell_id in _state.cell_ids(): terrain_ids[cell_id] = true
+    for record in _project.entity_records:
+        var entity_cell: String = str(record.get("cell_id", ""))
+        if not terrain_ids.has(entity_cell) and not active_ids.has(entity_cell): active_ids.append(entity_cell)
+    active_ids.sort()
+    return bridge.set_active_cell_ids(active_ids)
 
 
 func _history_failure(result: Dictionary) -> Dictionary: return _failure(str(result.get("error", "Terrain command failed.")))
