@@ -4,30 +4,34 @@
 OPEN
 
 ## Project state
-P00-T01 through P00-T03 are complete. The repository now has the modular scaffold, coding/documentation standards, and explicit persistent identity/schema-version contracts. No command/persistence engine or user-facing editor systems are implemented yet.
+P00-T01 through P00-T04 are complete. The repository has the modular Godot scaffold, coding/documentation standards, persistent identity/schema contracts, and a dependency-free Godot-native runtime smoke harness. Phase 1 UI work has not started yet.
 
 ## Canonical UI
 `assets/reference/CANONICAL_UI_REFERENCE.png`
 
 ## Completed task
-`P00-T03 — Define persistent ID and schema-version conventions`
-
-## P00-T03 implementation evidence
-- Added `docs/architecture/PERSISTENT_ID_SCHEMA_CONVENTIONS.md` defining lowercase canonical UUID identities, UUID v4 initial generation, ID lifecycle, stable-reference rules, schema-version increments, migration behavior, document typing, ownership, editor/runtime boundaries, and validation expectations.
-- Updated `docs/architecture/FILE_FORMATS_VERSIONING.md` to reference and enforce the identity/schema contract.
-- Updated `docs/architecture/DATA_MODEL.md` with version/ID ownership and stable-reference expectations for core persisted records.
-- Updated `schemas/world_project.example.json` and `schemas/asset_record.example.json` to use concrete UUIDs, `document_type`, positive `schema_version`, explicit ID reference fields, and `null` optional references.
-- No runtime persistence or migration implementation was introduced; this task remains contract-only as required.
-
-## Known limitations
-- Runtime validation of the contracts will be added with later persistence/test tasks.
-- Godot executable remains unavailable in the current agent environment.
-
-## Next authorized task
 `P00-T04 — Implement test harness and runtime smoke-test scene`
 
-## P00-T04 boundary
-Implement a minimal real Godot-native test harness and runtime smoke scene sufficient to exercise project launch/scene loading without pulling future gameplay/editor features forward. Do not implement Phase 1 UI features yet.
+## P00-T04 implementation evidence
+- Added `tests/test_runner.gd`, a Godot `SceneTree` test runner that loads the runtime smoke scene and exits `0` on success or `1` on failure.
+- Added `tests/runtime/RuntimeSmoke.tscn` and `tests/runtime/runtime_smoke.gd`.
+- The runtime smoke behavior loads and instantiates the actual `src/main/Main.tscn`, verifies the Phase 0 root remains a `Control`, verifies the `PlayWorld Studio` title, and checks the scaffold subtitle exists.
+- Added `tests/README.md` documenting the exact headless command: `godot --headless --path . --script res://tests/test_runner.gd`.
+- The harness performs real scene loading/instantiation rather than asserting constants or symbol existence only.
+
+## Tests/commands run
+- Godot CLI execution could not be run in the current agent environment because no Godot executable is installed.
+- Repository structure and resource/script references were verified through the connected GitHub repository contents.
+
+## Known limitations
+- Runtime pass/fail remains unobserved until the documented command is run in an environment with Godot 4.7.x.
+- Unit/integration suites remain intentionally empty until their owning feature tasks exist.
+
+## Next authorized task
+`P00-T05 — Add canonical UI visual reference and comparison checklist`
+
+## P00-T05 boundary
+Confirm the canonical image is committed and create a concrete visual comparison/checklist workflow. Do not implement Phase 1 UI yet.
 
 ## New-thread start prompt
-Read `docs/implementation/CODING_STANDARDS.md`, `docs/qa/TEST_MATRIX.md`, `docs/qa/QUALITY_GATES.md`, `project.godot`, `src/main/Main.tscn`, and this file. Implement only P00-T04 with a minimal deterministic Godot test runner and runtime smoke scene. Document the exact command to run it; if Godot CLI is unavailable, verify structure statically and record that limitation. Then update the handoff and authorize only P00-T05.
+Read `docs/design/UI_UX_CANONICAL_SPEC.md`, `docs/design/DESIGN_TOKENS.md`, `docs/qa/UI_VISUAL_ACCEPTANCE.md`, `assets/reference/CANONICAL_UI_REFERENCE.png`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P00-T05 by establishing a repeatable canonical UI comparison checklist/workflow without modifying the application UI. Then update the handoff and authorize only P01-T01.
