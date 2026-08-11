@@ -20,13 +20,12 @@ func _run() -> void:
 
     var main_resource := load(MAIN_SCENE) as PackedScene
     if main_resource == null:
-        push_error("Unable to load Main.tscn for Phase 1 capture.")
+        push_error("Unable to load Main.tscn for rendered capture.")
         quit(1)
         return
-
     _app = main_resource.instantiate() as Control
     if _app == null:
-        push_error("Unable to instantiate Main.tscn for Phase 1 capture.")
+        push_error("Unable to instantiate Main.tscn for rendered capture.")
         quit(1)
         return
 
@@ -62,7 +61,29 @@ func _run() -> void:
     await _settle()
     await _capture("04-workspace-tools")
 
+    assets_button.emit_signal("pressed")
+    workspace.call("hide_inspector")
+    var begin_result: Dictionary = workspace.call("begin_proxy_placement", "Explorer Marker")
+    if not begin_result.get("ok", false):
+        push_error("Unable to begin Phase 3 visual placement: %s" % begin_result.get("errors", []))
+        quit(1)
+        return
+    workspace.call("update_placement_preview", Vector3(2.0, 0.5, 2.0))
+    var commit_result: Dictionary = workspace.call("commit_placement")
+    if not commit_result.get("ok", false):
+        push_error("Unable to commit Phase 3 visual placement: %s" % commit_result.get("errors", []))
+        quit(1)
+        return
+    await _settle()
+    await _capture("05-phase3-editor")
+
+    workspace.call("open_tool_wheel")
+    await _settle()
+    await _capture("06-phase3-tool-wheel")
+    workspace.call("handle_cancel")
+
     print("PASS: Phase 1 rendered screenshots captured.")
+    print("PASS: Phase 3 editor screenshots captured.")
     quit(0)
 
 
@@ -79,7 +100,6 @@ func _capture(file_stem: String) -> void:
         push_error("Rendered image is empty for %s." % file_stem)
         quit(1)
         return
-
     var output_file := "%s/%s.png" % [OUTPUT_DIR, file_stem]
     var save_error := image.save_png(ProjectSettings.globalize_path(output_file))
     if save_error != OK:
