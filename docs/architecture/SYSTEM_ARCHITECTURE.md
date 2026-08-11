@@ -1,96 +1,102 @@
 # System Architecture
 
 ## Architectural rule
-The editor must not hard-code world semantics such as "door", "car", or "enemy" into the core scene editor. The core understands entities, components, archetypes, prefabs, properties, events, graphs, resources, transactions, and stable IDs. Gameplay meaning is assembled above those primitives.
+The editor core operates on generic entities, assets, terrain cells, components, archetypes, prefabs, properties, graphs, transactions, resources, and stable IDs. It does not hard-code gameplay semantics such as "door", "enemy", or "car" into the scene editor.
+
+Persistent relationships use stable UUIDs. Scene-tree paths, node names, filesystem paths, and array positions are runtime/location metadata only.
 
 ## Major modules
 1. App Shell
 2. Project/World Manager
 3. Runtime Editor
 4. Command + Transaction/Undo System
-5. Asset Registry
-6. Import/Analysis Pipeline
-7. Thumbnail Service
+5. Asset Registry / Import / Thumbnail Pipeline
+6. Terrain + World Partition
+7. World Streaming
 8. Entity/Component Runtime
-9. Archetype Registry
-10. Prefab System
-11. Visual Script Runtime + Editor
-12. Terrain System
-13. Foliage/Scatter System
-14. Spline/Road System
-15. Environment/Weather System
-16. Save/Serialization
-17. World Streaming
-18. Template System
-19. AI Orchestrator
-20. Export Pipeline
-21. Input Abstraction
-22. Diagnostics/Performance
-23. Future Networking/Collaboration Layer
-
-## Data and identity boundaries
-Editor metadata remains separable from runtime game data. Persistent relationships use stable UUIDs; scene-tree paths, node names, source filesystem paths, and array positions are never persistent identity.
-
-Every world object, asset catalog record, prefab, component instance, graph, terrain cell, procedural generator, transaction, and retained checkpoint receives stable identity according to its owning schema.
+9. Archetype + Prefab System
+10. Visual Script Runtime + Editor
+11. Foliage/Scatter
+12. Spline/Road
+13. Environment/Weather
+14. Save/Serialization
+15. Template System
+16. AI Orchestrator
+17. Export Pipeline
+18. Input Abstraction
+19. Diagnostics/Performance
+20. Future Networking/Collaboration
 
 ## Commands and authored mutation
-All authored world mutations flow through commands. A command exposes deterministic `execute()` and `undo()` operations. Failure must leave authored state unchanged or restore partial work before returning failure. Transactions commit to history only after every command succeeds and roll back in reverse order otherwise.
+All authored mutations flow through reversible commands or transactions. Failed execution/undo/redo does not advance history. Persistence observes authored state; preview-only state does not dirty authored data.
 
-The command history owns bounded undo/redo stacks. A successful new edit after undo clears redo. Failed execution/undo/redo does not advance history. Persistence observes authored state rather than becoming an authoring mutation.
+Phase 3 entity placement/transforms and Phase 5 terrain sculpt/biome changes share the same editor command history. This means the global Undo/Redo path can restore entity transforms, entity owning cells, terrain height fields, and biome assignment without a second competing history stack.
 
-## Runtime placement editor
-`src/editor/editor_session.gd` coordinates the bound project, command history, runtime bridge, multi-selection, placement ghost, snapping service, transform-tool state, and dirty-state callback.
+## Runtime entity editor
+`src/editor/editor_session.gd` coordinates project state, command history, selection, placement ghost, snapping, transform editing, and the dirty callback.
 
-`src/editor/runtime_entity_bridge.gd` rebuilds the runtime hierarchy from validated world entity records. Lookup and parent relationships are resolved through stable entity IDs. It rejects duplicate IDs, unresolved parents, self-parenting, and parent cycles.
+`src/editor/runtime_entity_bridge.gd` validates the complete persisted entity set before creating runtime nodes. In Large streamed worlds it may instantiate only entities whose stable `cell_id` is active. References are still validated against the full project record set, including unloaded entities.
 
-`src/editor/runtime_entity_node.gd` is the generic `Node3D` wrapper for persisted `WorldEntity` state. Phase 4 allows the bridge to bind an Asset Library resolver. If an entity carries a valid catalog `asset_id`, the resolver attaches the real managed asset scene as the entity visual. If the catalog/source/import is unavailable, the node remains usable with its generic proxy instead of invalidating authored world state.
+A loaded child whose valid parent is temporarily unloaded attaches at the bridge root for runtime presentation. Its persisted `parent_entity_id` is never rewritten. A failed filtered rebuild preserves the previous known-good runtime mapping.
 
-`src/editor/placement_ghost.gd` keeps preview placement transient. It can now display a real Asset Library `Node3D` while retaining the generic proxy fallback. Preview movement/cancel never dirties project state.
-
-Placement commit still executes `PlayWorldPlaceEntityCommand`. Move/rotate/scale, duplicate, delete, grouping, drop-to-ground, and snapping continue through the Phase 3 command/session architecture. Phase 4 does not bypass command history or create a prefab system.
-
-`src/editor/snapping_service.gd` provides deterministic grid, angle, surface, object, socket, and ground snapping. Generic entity origins remain temporary sockets until the later prefab/socket phase.
+Placement ghosts and cross-cell move commands use the Phase 5 cell resolver. Moving/placing an entity across a partition boundary updates its transform and stable owning `cell_id` in the same reversible command; Undo/Redo restores both together.
 
 ## Universal Asset Library
-Phase 4 is owned by `src/assets` and is instantiated per world project. Its managed root is `<project-directory>/asset_library`.
+Phase 4 remains owned by `src/assets`. External registered asset folders are strictly read-only. Derived imports, catalog metadata, licensing, favorites, collections, duplicate metadata, and thumbnails live under project-managed `asset_library/` storage.
 
-### Source boundary
-`asset_source.gd` and `source_folder_registry.gd` define registered source folders. A source contract always declares `read_only: true`. Managed Asset Library storage cannot overlap a source root. Scanner traversal does not follow linked directories. Source assets are never renamed, reorganized, deleted, or used as cache/output destinations.
+Catalog selection still enters the Phase 3 placement ghost and `PlaceEntityCommand`. Terrain does not change Asset Library identity or source-folder guarantees.
 
-### Incremental discovery and stable identity
-`asset_scanner.gd` discovers supported source files in deterministic sorted order. It records source-relative path, supported type, file size, modification time, and SHA-256 content hash. When path, size, modification time, and an existing hash match, unchanged files reuse the prior hash rather than being rehashed.
+## Phase 5 terrain + partition architecture
+Phase 5 is owned primarily by `src/terrain`.
 
-`asset_catalog.gd` reconciles observations to stable `asset_id` values. Same source/path retains identity. A changed path may retain identity only when one unmatched record in that same source uniquely matches the content signature. Ambiguous duplicate content remains separate. Missing prior records stay in the catalog with `missing: true` so existing world references do not silently retarget another file.
+### Persistence/state boundary
+`terrain_schema.gd` validates versioned terrain manifest, terrain cell, and biome registry documents.
 
-Exact-content duplicate groups are informational/query state only. No duplicate workflow deletes or merges source files.
+`terrain_repository.gd` owns `<project>/terrain` storage. Terrain heights are persisted per cell rather than embedded in `project.json`, allowing one dirty cell to be saved without rewriting every terrain cell. `terrain_world_state.gd` is the in-memory canonical terrain state and tracks dirty/recovered cells.
 
-### Analysis and managed import
-`asset_analyzer.gd` performs safe structural preflight for GLTF, GLB, Godot text scenes, and Godot binary scenes. Corrupt input is retained as a failed-analysis catalog record and blocked before engine loading/placement.
+Terrain cells are not ordinary placed `WorldEntity` records. They have their own schema and stable cell identity. Existing world entities continue to reference their owning cell through `WorldEntity.cell_id`.
 
-`asset_importer.gd` creates derived copies only under project-managed `asset_library/imports`. GLTF local dependencies are copied into that managed import tree. Remote dependency URIs and dependency paths escaping the registered source root fail safely. Runtime GLTF/GLB generation and PackedScene loading occur from managed copies.
+### Profile topology
+`world_partition.gd` derives deterministic centered topology from the existing world profile:
+- Small: 1×1 1024m cell, non-streaming (~1 km²)
+- Medium: 3×3 1024m cells, non-streaming (~9 km²)
+- Large: 5×5 1024m cells, streamed (~25 km²)
 
-### Catalog metadata and thumbnails
-`asset_record.gd` owns stable record validation. `asset_catalog.gd` persists favorites, collections, licensing/source fields, user metadata, analysis state, derived-import metadata, and thumbnail metadata to managed `catalog.json`.
+The first pre-existing valid project cell ID is retained as the centered origin cell. Additional cells receive stable UUIDs. Position-to-cell resolution is deterministic.
 
-`thumbnail_cache.gd` creates deterministic per-content thumbnail entries under `asset_library/thumbnails`. Cache keys include stable asset identity plus source content hash. When content changes, obsolete thumbnail entries for that asset are invalidated. Thumbnail/cache failure is recoverable and never writes to a source root.
+### Runtime terrain
+`terrain_mesh_builder.gd` deterministically converts the cell height array into a 17×17 grid mesh with UVs and generated normals.
 
-### Browser and input
-`src/app/workspace/asset_browser.gd` fills the existing Phase 1 Asset drawer rather than introducing an enterprise/dashboard shell. Large cards are the default density; compact density remains available. Browser queries support search, source/type/collection filtering, favorites, exact duplicate groups, read-only source/license details, rescans, and collection assignment.
+`terrain_chunk_node.gd` owns each runtime mesh/collision chunk and biome material presentation. Runtime chunk nodes are disposable; the stable cell record is authoritative.
 
-Cards use native focusable buttons so keyboard/mouse and gamepad activation enter the same placement path. While the drawer owns focus, world D-pad transform input does not leak through. Existing Phase 3 controller mappings, including the left-shoulder tool wheel, remain intact.
+`terrain_runtime.gd` owns loaded chunks and refreshes only the affected runtime cell after sculpt/biome edits.
 
-### Placement handoff
-`asset_placement_handoff.gd` is the boundary between catalog selection and the Phase 3 editor. It requires a valid stable `asset_id`, successful analysis, and successful managed scene instantiation. It then starts the existing Phase 3 ghost, carries `asset_id` on the ghost's `WorldEntity` record, and leaves commit to the existing command-backed placement function.
+### Sculpting and biomes
+`terrain_brush.gd` implements raise, lower, smooth, and flatten behavior over a radial falloff.
 
-No authored entity exists and no dirty-state signal fires before commit. After commit, bridge rebuild resolves the same catalog asset ID to its real visual. Duplicate preserves `asset_id` while allocating a new entity UUID. Save/reopen retains the asset reference. A later missing source safely falls back to the generic runtime proxy.
+`terrain_sculpt_command.gd` captures before/after cell height state and revision. `terrain_biome_command.gd` changes the stable biome reference. Both mark their cell dirty, refresh runtime presentation, and use the shared command history.
 
-## Persistence and crash safety
-Custom editor persistence is versioned. `PlayWorldSafeJsonWriter` writes unique temporary candidates, flushes/closes them, parses and semantically validates them, and only then promotes them to canonical paths. Failed writes/promotions do not intentionally replace prior known-good files.
+Biome records are data-driven rule hooks: stable ID, display name, color, terrain material slots, and null future foliage/environment profile hooks. Phase 5 does not implement Phase 9 foliage scatter or Phase 11 weather/environment systems.
 
-World checkpoints remain owned by `src/world`. Asset Library source/catalog documents are project-managed sibling data with their own validation and crash-safe JSON writes. Authored `WorldEntity.asset_id` references remain stable across project persistence/reopen and Asset Library restart.
+### Streaming
+`terrain_streaming_policy.gd` returns deterministic active cell IDs. Small/Medium keep all cells active. Large uses a bounded radius-one cell set around the focus position.
 
-## Streaming
-Large worlds use partition cells. World objects declare owning cells and optional cross-cell relationships through stable IDs. Streaming must never depend on a parent node currently being loaded.
+`terrain_runtime.gd` refuses to unload a dirty cell that has not been safely persisted. After `terrain_repository.gd` successfully promotes the dirty cell, the next streaming update may unload it.
+
+`terrain_controller.gd` coordinates repository/state/runtime/editor history, binds the entity cell resolver, synchronizes Large-world entity filtering, and performs incremental terrain autosave.
+
+## Terrain workspace
+`terrain_workspace_layer.gd` and `terrain_tool_panel.gd` add a compact contextual Terrain workflow to the existing workspace instead of a dashboard redesign.
+
+Mouse clicking terrain can sculpt directly. Keyboard arrows/D-pad move the brush cursor; Enter/A applies; right shoulder cycles brush mode. Left shoulder remains the existing Phase 3 tool wheel. Terrain mode hides object-specific toolbars, preserves the Phase 4 Asset Library, and uses the canonical dark/playful Nintendo-forward / Apple-clean visual language.
+
+## Crash safety
+`PlayWorldSafeJsonWriter` remains the atomic JSON primitive: write temporary candidate, flush/close, parse, semantically validate, then promote.
+
+Before rewriting a terrain cell, `terrain_repository.gd` writes the previous validated canonical cell to `<project>/terrain/recovery/<cell-id>.json`. A corrupt canonical cell can reopen from that known-good recovery record without silently replacing the corrupt file. Missing/corrupt canonical data with no valid recovery fails closed. A failed promotion leaves the previous canonical file untouched and keeps the cell dirty for retry.
+
+## Performance boundary
+The automated Phase 5 scale regression exercises nine Medium chunks, the Large streamed 3×3 active set, deterministic triangle counts, and repeated terrain brush operations under a generous CI time budget. This is a behavioral/performance regression proxy, not a fabricated RTX 3060 benchmark. The documented 1080p/60 FPS RTX 3060-class target remains a hardware performance target for later release-scale validation.
 
 ## Later-phase boundaries
-Phase 4 intentionally does not implement prefab inheritance, component systems, named prefab sockets, terrain/streaming, or gameplay semantics. Those remain owned by later phases and must build on the stable asset/entity boundaries rather than be backfilled into the Asset Library.
+Phase 5 does not implement component/prefab authoring, named prefab sockets, foliage/scatter, roads/splines, full environment/weather, gameplay semantics, or export stripping. Those remain later-phase responsibilities built on the stable entity/asset/terrain boundaries above.

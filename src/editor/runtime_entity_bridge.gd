@@ -7,7 +7,10 @@ const RuntimeEntityNode = preload("res://src/editor/runtime_entity_node.gd")
 
 var _runtime_nodes: Dictionary = {}
 var _records: Dictionary = {}
+var _all_records: Array[Dictionary] = []
 var _asset_resolver := Callable()
+var _cell_filter_enabled := false
+var _active_cell_ids: Dictionary = {}
 
 
 func bind_asset_resolver(resolver: Callable) -> void:
@@ -15,26 +18,36 @@ func bind_asset_resolver(resolver: Callable) -> void:
 
 
 func rebuild(records: Array) -> Dictionary:
-    var staged_nodes: Dictionary = {}
-    var staged_records: Dictionary = {}
+    var record_map: Dictionary = {}
     var parent_ids: Dictionary = {}
-
+    var validated_records: Array[Dictionary] = []
     for item in records:
         if not item is Dictionary:
-            _free_staged(staged_nodes)
             return _failure("Runtime entity bridge records must be dictionaries.")
-
         var record: Dictionary = item
         var errors: Array[String] = WorldEntity.validate_dictionary(record)
-        if not errors.is_empty():
-            _free_staged(staged_nodes)
-            return {"ok": false, "errors": errors}
+        if not errors.is_empty(): return {"ok": false, "errors": errors}
+        var entity_id: String = str(record.get("entity_id", ""))
+        if record_map.has(entity_id): return _failure("Runtime entity bridge received a duplicate entity ID.")
+        record_map[entity_id] = record.duplicate(true)
+        parent_ids[entity_id] = _optional_id(record.get("parent_entity_id"))
+        validated_records.append(record.duplicate(true))
 
-        var entity_id := str(record.get("entity_id", ""))
-        if staged_nodes.has(entity_id):
-            _free_staged(staged_nodes)
-            return _failure("Runtime entity bridge received a duplicate entity ID.")
+    for entity_id in record_map.keys():
+        var parent_id: String = str(parent_ids[entity_id])
+        if parent_id.is_empty(): continue
+        if parent_id == entity_id: return _failure("Runtime entity cannot parent itself.")
+        if not record_map.has(parent_id): return _failure("Runtime entity parent reference does not resolve in the project record set.")
+    if _contains_parent_cycle(parent_ids): return _failure("Runtime entity hierarchy contains a parent cycle.")
 
+    var staged_nodes: Dictionary = {}
+    var staged_records: Dictionary = {}
+    var ordered_ids: Array[String] = []
+    for entity_id in record_map.keys(): ordered_ids.append(str(entity_id))
+    ordered_ids.sort()
+    for entity_id in ordered_ids:
+        var record: Dictionary = record_map[entity_id]
+        if not _record_is_active(record): continue
         var runtime_node = RuntimeEntityNode.new()
         var node_errors: Array[String] = runtime_node.apply_record(record)
         if not node_errors.is_empty():
@@ -42,43 +55,76 @@ func rebuild(records: Array) -> Dictionary:
             _free_staged(staged_nodes)
             return {"ok": false, "errors": node_errors}
         _apply_asset_visual(runtime_node, record)
-
         staged_nodes[entity_id] = runtime_node
         staged_records[entity_id] = record.duplicate(true)
-        parent_ids[entity_id] = _optional_id(record.get("parent_entity_id"))
-
-    for entity_id in staged_nodes.keys():
-        var parent_id: String = str(parent_ids[entity_id])
-        if parent_id.is_empty(): continue
-        if parent_id == entity_id:
-            _free_staged(staged_nodes)
-            return _failure("Runtime entity cannot parent itself.")
-        if not staged_nodes.has(parent_id):
-            _free_staged(staged_nodes)
-            return _failure("Runtime entity parent reference does not resolve in the bridge.")
-
-    if _contains_parent_cycle(parent_ids):
-        _free_staged(staged_nodes)
-        return _failure("Runtime entity hierarchy contains a parent cycle.")
 
     _clear_runtime_nodes()
     _runtime_nodes = staged_nodes
     _records = staged_records
+    _all_records = validated_records
 
     var children_by_parent: Dictionary = {}
-    for entity_id in parent_ids.keys():
-        var parent_id: String = str(parent_ids[entity_id])
-        if parent_id.is_empty(): continue
-        if not children_by_parent.has(parent_id): children_by_parent[parent_id] = []
-        children_by_parent[parent_id].append(str(entity_id))
-    for child_ids in children_by_parent.values(): child_ids.sort()
+    var root_ids: Array[String] = []
     for entity_id in entity_ids():
-        if str(parent_ids[entity_id]).is_empty(): _attach_subtree(entity_id, self, children_by_parent)
+        var parent_id: String = str(parent_ids.get(entity_id, ""))
+        if parent_id.is_empty() or not _runtime_nodes.has(parent_id):
+            root_ids.append(entity_id)
+            continue
+        if not children_by_parent.has(parent_id): children_by_parent[parent_id] = []
+        children_by_parent[parent_id].append(entity_id)
+    for child_ids in children_by_parent.values(): child_ids.sort()
+    root_ids.sort()
+    for entity_id in root_ids: _attach_subtree(entity_id, self, children_by_parent)
+    return {"ok": true, "errors": [], "count": _runtime_nodes.size(), "total_count": _all_records.size(), "filtered": _cell_filter_enabled}
 
-    return {"ok": true, "errors": [], "count": _runtime_nodes.size()}
+
+func set_active_cell_ids(cell_ids: Array) -> Dictionary:
+    var staged_filter: Dictionary = {}
+    for value in cell_ids:
+        var cell_id: String = str(value)
+        if not StableId.is_valid(cell_id): return _failure("Runtime entity cell filter contains an invalid stable cell ID.")
+        staged_filter[cell_id] = true
+    var previous_enabled: bool = _cell_filter_enabled
+    var previous_filter: Dictionary = _active_cell_ids.duplicate()
+    _cell_filter_enabled = true
+    _active_cell_ids = staged_filter
+    var result: Dictionary = rebuild(_all_records)
+    if not result.get("ok", false):
+        _cell_filter_enabled = previous_enabled
+        _active_cell_ids = previous_filter
+        rebuild(_all_records)
+    return result
 
 
-func clear_entities() -> void: _clear_runtime_nodes()
+func clear_cell_filter() -> Dictionary:
+    var previous_enabled: bool = _cell_filter_enabled
+    var previous_filter: Dictionary = _active_cell_ids.duplicate()
+    _cell_filter_enabled = false
+    _active_cell_ids.clear()
+    var result: Dictionary = rebuild(_all_records)
+    if not result.get("ok", false):
+        _cell_filter_enabled = previous_enabled
+        _active_cell_ids = previous_filter
+        rebuild(_all_records)
+    return result
+
+
+func get_active_cell_ids() -> Array[String]:
+    var result: Array[String] = []
+    for cell_id in _active_cell_ids.keys(): result.append(str(cell_id))
+    result.sort()
+    return result
+
+
+func is_cell_filter_enabled() -> bool: return _cell_filter_enabled
+func all_record_count() -> int: return _all_records.size()
+
+
+func clear_entities() -> void:
+    _clear_runtime_nodes()
+    _all_records.clear()
+
+
 func entity_count() -> int: return _runtime_nodes.size()
 
 
@@ -102,10 +148,15 @@ func resolve_entity_id(node: Node) -> String:
     var current := node
     while current != null and current != self:
         if current.has_meta(RuntimeEntityNode.ENTITY_ID_META):
-            var candidate := str(current.get_meta(RuntimeEntityNode.ENTITY_ID_META))
+            var candidate: String = str(current.get_meta(RuntimeEntityNode.ENTITY_ID_META))
             if StableId.is_valid(candidate) and _runtime_nodes.has(candidate): return candidate
         current = current.get_parent()
     return ""
+
+
+func _record_is_active(record: Dictionary) -> bool:
+    if not _cell_filter_enabled: return true
+    return _active_cell_ids.has(str(record.get("cell_id", "")))
 
 
 func _apply_asset_visual(runtime_node, record: Dictionary) -> void:
@@ -132,7 +183,7 @@ func _attach_subtree(entity_id: String, parent: Node, children_by_parent: Dictio
 func _contains_parent_cycle(parent_ids: Dictionary) -> bool:
     for entity_id in parent_ids.keys():
         var seen: Dictionary = {}
-        var current := str(entity_id)
+        var current: String = str(entity_id)
         while not current.is_empty():
             if seen.has(current): return true
             seen[current] = true
