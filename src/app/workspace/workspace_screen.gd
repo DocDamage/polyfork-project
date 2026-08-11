@@ -284,41 +284,33 @@ func _apply_mode_label() -> void: mode_badge.text = "%s MODE" % str(_mode).to_up
 func _request_home() -> void: home_requested.emit()
 
 
+func _format_vector(value: Variant) -> String:
+    if not value is Array or value.size() != 3: return "—"
+    return "%.2f, %.2f, %.2f" % [float(value[0]), float(value[1]), float(value[2])]
+
+
 func _is_tool_wheel_event(event: InputEvent) -> bool:
-    if not event.is_pressed() or event.is_echo(): return false
-    if event is InputEventKey: return event.physical_keycode == KEY_Q
-    if event is InputEventJoypadButton: return event.button_index == JOY_BUTTON_X
-    return false
+    return (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_Q) or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_LEFT_SHOULDER)
 
 
 func _is_confirm_event(event: InputEvent) -> bool:
-    if not event.is_pressed() or event.is_echo(): return false
-    if event is InputEventMouseButton: return event.button_index == MOUSE_BUTTON_LEFT
-    if event is InputEventKey: return event.physical_keycode == KEY_ENTER or event.physical_keycode == KEY_SPACE
-    if event is InputEventJoypadButton: return event.button_index == JOY_BUTTON_A
-    return false
+    return (event is InputEventKey and event.pressed and not event.echo and [KEY_ENTER, KEY_KP_ENTER].has(event.keycode)) or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_A)
 
 
 func _direction_from_event(event: InputEvent) -> Vector2:
-    if not event.is_pressed() or event.is_echo(): return Vector2.ZERO
-    if event is InputEventKey:
-        match event.physical_keycode:
-            KEY_LEFT, KEY_A: return Vector2.LEFT
-            KEY_RIGHT, KEY_D: return Vector2.RIGHT
-            KEY_UP, KEY_W: return Vector2.UP
-            KEY_DOWN, KEY_S: return Vector2.DOWN
-    if event is InputEventJoypadButton:
+    if event is InputEventKey and event.pressed and not event.echo:
+        match event.keycode:
+            KEY_LEFT: return Vector2.LEFT
+            KEY_RIGHT: return Vector2.RIGHT
+            KEY_UP: return Vector2.UP
+            KEY_DOWN: return Vector2.DOWN
+    if event is InputEventJoypadButton and event.pressed:
         match event.button_index:
             JOY_BUTTON_DPAD_LEFT: return Vector2.LEFT
             JOY_BUTTON_DPAD_RIGHT: return Vector2.RIGHT
             JOY_BUTTON_DPAD_UP: return Vector2.UP
             JOY_BUTTON_DPAD_DOWN: return Vector2.DOWN
     return Vector2.ZERO
-
-
-static func _format_vector(value: Array) -> String:
-    if value.size() != 3: return "—"
-    return "%.2f, %.2f, %.2f" % [float(value[0]), float(value[1]), float(value[2])]
 
 
 func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}
