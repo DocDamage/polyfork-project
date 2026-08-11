@@ -75,6 +75,8 @@ jobs:
           xvfb-run -a ./Godot_v4.7.1-stable_linux.x86_64 \
             --path . \
             --rendering-method gl_compatibility \
+            --audio-driver Dummy \
+            --disable-vsync \
             --script res://tests/runtime/capture_phase1.gd 2>&1 | tee godot-visual.log
           godot_status=${PIPESTATUS[0]}
           set -e
