@@ -67,8 +67,11 @@ func load_preview_records(records: Array) -> Dictionary:
 func refresh_runtime(preserve_selection: bool = true) -> Dictionary:
     if _project == null:
         return _failure("Editor session has no bound project.")
-    var selected: Array[String] = _selection.get_selected_ids() if preserve_selection else []
-    var primary: String = _selection.get_primary_entity_id() if preserve_selection else ""
+    var selected: Array[String] = []
+    var primary: String = ""
+    if preserve_selection:
+        selected = _selection.get_selected_ids()
+        primary = _selection.get_primary_entity_id()
     _selection.clear()
     var result: Dictionary = _bridge.rebuild(_project.entity_records)
     if not result.get("ok", false):
