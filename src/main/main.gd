@@ -20,6 +20,23 @@ func _ready() -> void:
     print("PlayWorld Studio application shell loaded.")
 
 
+func _unhandled_input(event: InputEvent) -> void:
+    if not event.is_action_pressed("ui_cancel"):
+        return
+
+    if workspace_screen.visible:
+        if workspace_screen.handle_cancel():
+            get_viewport().set_input_as_handled()
+            return
+        _show_home()
+        get_viewport().set_input_as_handled()
+        return
+
+    if new_world_screen.visible:
+        _show_home()
+        get_viewport().set_input_as_handled()
+
+
 func _on_home_route_requested(route: StringName) -> void:
     if route == &"new_world":
         _show_new_world()
@@ -33,6 +50,8 @@ func _show_home() -> void:
     new_world_screen.hide()
     workspace_screen.hide()
     home_screen.show()
+    if home_screen.has_method("focus_primary"):
+        home_screen.call_deferred("focus_primary")
 
 
 func _show_new_world() -> void:
@@ -48,6 +67,8 @@ func _show_workspace(configuration: Dictionary) -> void:
     new_world_screen.hide()
     workspace_screen.show()
     workspace_screen.set_configuration(configuration)
+    if workspace_screen.has_method("focus_primary"):
+        workspace_screen.call_deferred("focus_primary")
 
 
 func _on_new_world_create_requested(configuration: Dictionary) -> void:
