@@ -1,25 +1,56 @@
 # Core Data Model
 
+All persisted records follow `docs/architecture/PERSISTENT_ID_SCHEMA_CONVENTIONS.md`: stable lowercase UUID identities, positive integer `schema_version`, stable-ID references, and explicit editor/runtime ownership.
+
 ## AssetRecord
-Fields include: id, source_path, canonical_path, hash, type, display_name, source_pack, author, license, source_url, commercial_use, attribution_required, tags, categories, dimensions, thumbnail, material_summary, texture_summary, animation_summary, skeleton_summary, collision_summary, lod_summary, estimated_memory, import_status, warnings.
+Fields include: schema_version, id, source_path, canonical_path, hash, type, display_name, source_pack, author, license, source_url, commercial_use, attribution_required, tags, categories, dimensions, thumbnail, material_summary, texture_summary, animation_summary, skeleton_summary, collision_summary, lod_summary, estimated_memory, import_status, warnings.
+
+Ownership: `src/assets`. `id` remains stable across ordinary rescans when the catalog entry is reconciled. Source paths and hashes are metadata, not identity.
 
 ## WorldEntity
-Stable ID, transform, asset/prefab reference, component list, archetype reference, owning world cell, visibility flags, editor flags, tags, parent entity ID, socket attachment data.
+Fields include: schema_version, id, transform, asset/prefab reference IDs, component instance list, archetype reference ID, owning world-cell ID, visibility flags, editor flags, tags, parent entity ID, socket attachment data.
+
+Ownership: `src/world` for entity persistence with gameplay data supplied by `src/gameplay`. Parent, prefab, archetype, component, and cell relationships are stable-ID references.
 
 ## ComponentDefinition
-ID, display name, category, properties schema, runtime script/class, dependencies, incompatible components, exposed events/actions, serialization version.
+Fields include: schema_version, id, display name, category, properties schema, runtime script/class, dependencies, incompatible component IDs, exposed events/actions, serialization version.
+
+Ownership: `src/gameplay`.
+
+## ComponentInstance
+Fields include: schema_version, id, definition_id, owner_entity_id, property values, runtime-required state, editor metadata where applicable.
+
+Ownership: `src/gameplay`. Each independently persisted component instance has its own stable ID.
 
 ## Archetype
-ID, base archetype, required/default components, property defaults, tags, icon, validation rules.
+Fields include: schema_version, id, base_archetype_id, required/default component definition IDs, property defaults, tags, icon, validation rules.
+
+Ownership: `src/gameplay`.
 
 ## Prefab
-ID, base prefab optional, root entity snapshot, child entities, component overrides, socket definitions, exposed parameters, inheritance overrides, thumbnail.
+Fields include: schema_version, id, base_prefab_id optional, root entity snapshot, child entities, component overrides, socket definitions, exposed parameters, inheritance overrides, thumbnail metadata.
+
+Ownership: `src/gameplay`.
 
 ## VisualGraph
-ID, owner scope, variables, nodes, edges, entry events, macros/functions, validation state, runtime compile/cache metadata.
+Fields include: schema_version, id, owner scope/reference ID, variables, nodes, edges, entry events, macros/functions, validation state, runtime compile/cache metadata.
+
+Ownership: `src/visual_script`. Canonical graph data is persistent; compiled/cache data must be rebuildable.
 
 ## ProceduralSet
-ID, generator type, seed, bounds, rule set, source asset queries, generated entity ownership, regeneration policy.
+Fields include: schema_version, id, generator type, seed, bounds, rule set, source asset queries, generated entity ownership IDs, regeneration policy.
+
+Ownership: the system that owns the generator type (`src/foliage`, `src/splines`, terrain/procedural systems, etc.).
+
+## WorldCell
+Fields include: schema_version, id, project_id, coordinates/bounds, owned entity IDs, terrain resource IDs, dirty/revision metadata, streaming metadata.
+
+Ownership: `src/world`.
 
 ## WorldProject
-Project ID, title, template, world profile, cell layout, environment, registries, save version, editor settings, export settings, dependency list.
+Fields include: schema_version, document_type, project_id, title, template ID, world profile, cell layout/IDs, environment references/state, registries, editor settings, export settings, dependency list.
+
+Ownership: `src/world`. `project_id` is the root stable UUID for the authored project.
+
+## Reference rule
+No persisted relationship in these models may use a scene-tree path, node name, array index, or filesystem path as identity. Those values may exist as metadata only where explicitly documented.
