@@ -15,7 +15,7 @@ Task IDs use `P##-T##`.
 - [x] P01-T03 Implement Create New World flow
 - [x] P01-T04 Implement main workspace shell
 - [x] P01-T05 Implement Build|Play switch UI
-- [ ] P01-T06 Implement right inspector shell
+- [x] P01-T06 Implement right inspector shell
 - [ ] P01-T07 Implement bottom category dock and asset drawer shell
 - [ ] P01-T08 Implement keyboard/mouse + gamepad navigation
 - [ ] P01-T09 Screenshot parity review against canonical reference
