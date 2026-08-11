@@ -7,6 +7,7 @@ const SnappingContracts = preload("res://tests/unit/snapping_contracts.gd")
 const AssetLibraryContracts = preload("res://tests/unit/asset_library_contracts.gd")
 const AssetFormatContracts = preload("res://tests/unit/asset_format_contracts.gd")
 const TerrainContracts = preload("res://tests/unit/terrain_contracts.gd")
+const TerrainRuntimeContracts = preload("res://tests/unit/terrain_runtime_contracts.gd")
 const ProjectRepositoryContracts = preload("res://tests/integration/project_repository_contracts.gd")
 const AutosaveCheckpointContracts = preload("res://tests/integration/autosave_checkpoint_contracts.gd")
 const Phase2LifecycleContracts = preload("res://tests/integration/phase2_lifecycle_contracts.gd")
@@ -15,6 +16,7 @@ const Phase3EditorSessionContracts = preload("res://tests/integration/phase3_edi
 const Phase3PlacementSnappingContracts = preload("res://tests/integration/phase3_placement_snapping_contracts.gd")
 const Phase4PlacementContracts = preload("res://tests/integration/phase4_placement_contracts.gd")
 const Phase5TerrainPersistenceContracts = preload("res://tests/integration/phase5_terrain_persistence_contracts.gd")
+const Phase5SculptStreamingContracts = preload("res://tests/integration/phase5_sculpt_streaming_contracts.gd")
 const ContinueReopenSmoke = preload("res://tests/runtime/continue_reopen_smoke.gd")
 const Phase3EditorSmoke = preload("res://tests/runtime/phase3_editor_smoke.gd")
 const Phase4AssetBrowserSmoke = preload("res://tests/runtime/phase4_asset_browser_smoke.gd")
@@ -23,8 +25,7 @@ const RUNTIME_SMOKE_SCENE := "res://tests/runtime/RuntimeSmoke.tscn"
 var _failures: Array[String] = []
 
 
-func _init() -> void:
-    call_deferred("_run")
+func _init() -> void: call_deferred("_run")
 
 
 func _run() -> void:
@@ -50,6 +51,7 @@ func _run_unit_checks() -> void:
     for error in AssetLibraryContracts.run_checks(): _failures.append(error)
     for error in AssetFormatContracts.run_checks(): _failures.append(error)
     for error in TerrainContracts.run_checks(): _failures.append(error)
+    for error in TerrainRuntimeContracts.run_checks(): _failures.append(error)
 
 
 func _run_integration_checks() -> void:
@@ -61,6 +63,7 @@ func _run_integration_checks() -> void:
     for error in Phase3PlacementSnappingContracts.run_checks(): _failures.append(error)
     for error in Phase4PlacementContracts.run_checks(): _failures.append(error)
     for error in Phase5TerrainPersistenceContracts.run_checks(): _failures.append(error)
+    for error in Phase5SculptStreamingContracts.run_checks(): _failures.append(error)
 
 
 func _run_runtime_smoke() -> void:
