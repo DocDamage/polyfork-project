@@ -25,37 +25,34 @@ var created_at_unix: int = 0
 var updated_at_unix: int = 0
 
 
-static func create_new(project_title: String, profile_id: StringName, starting_template_id: String) -> PlayWorldProject:
-    var project := PlayWorldProject.new()
-    project.project_id = StableId.generate()
-    project.title = project_title.strip_edges()
-    project.world_profile = profile_id
-    project.template_id = starting_template_id.strip_edges()
+func initialize_new(project_title: String, profile_id: StringName, starting_template_id: String) -> void:
+    project_id = StableId.generate()
+    title = project_title.strip_edges()
+    world_profile = profile_id
+    template_id = starting_template_id.strip_edges()
     var now := int(Time.get_unix_time_from_system())
-    project.created_at_unix = now
-    project.updated_at_unix = now
-    return project
+    created_at_unix = now
+    updated_at_unix = now
 
 
-static func from_dictionary(data: Dictionary) -> Dictionary:
+func load_dictionary(data: Dictionary) -> Array[String]:
     var errors := validate_dictionary(data)
     if not errors.is_empty():
-        return {"ok": false, "errors": errors, "project": null}
+        return errors
 
-    var project := PlayWorldProject.new()
-    project.project_id = str(data["project_id"])
-    project.title = str(data["title"])
-    project.world_profile = StringName(str(data["world_profile"]))
-    project.template_id = str(data["template_id"])
-    project.cell_ids = _string_array(data.get("cell_ids", []))
-    project.environment = data.get("environment", {}).duplicate(true)
-    project.registries = data.get("registries", {}).duplicate(true)
-    project.editor = data.get("editor", {}).duplicate(true)
-    project.export_settings = data.get("export", {}).duplicate(true)
-    project.dependencies = data.get("dependencies", []).duplicate(true)
-    project.created_at_unix = int(data.get("created_at_unix", 0))
-    project.updated_at_unix = int(data.get("updated_at_unix", project.created_at_unix))
-    return {"ok": true, "errors": [], "project": project}
+    project_id = str(data["project_id"])
+    title = str(data["title"])
+    world_profile = StringName(str(data["world_profile"]))
+    template_id = str(data["template_id"])
+    cell_ids = _string_array(data.get("cell_ids", []))
+    environment = data.get("environment", {}).duplicate(true)
+    registries = data.get("registries", {}).duplicate(true)
+    editor = data.get("editor", {}).duplicate(true)
+    export_settings = data.get("export", {}).duplicate(true)
+    dependencies = data.get("dependencies", []).duplicate(true)
+    created_at_unix = int(data.get("created_at_unix", 0))
+    updated_at_unix = int(data.get("updated_at_unix", created_at_unix))
+    return []
 
 
 static func validate_dictionary(data: Dictionary) -> Array[String]:
