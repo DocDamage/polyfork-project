@@ -4,31 +4,33 @@
 OPEN
 
 ## Project state
-Phase 0 is complete and P01-T01 is complete. The application now has reusable semantic UI tokens and a Godot theme factory, but no Phase 1 screen has been implemented yet.
+Phase 0, P01-T01, and P01-T02 are complete. The application now starts on a themed Home/Project Hub with all five required large-card actions and route-intent signals. Destination flows beyond Home are not implemented yet.
 
 ## Canonical UI
 `assets/reference/CANONICAL_UI_REFERENCE.png`
 
 ## Completed task
-`P01-T01 — Implement theme/tokens`
-
-## P01-T01 implementation evidence
-- Added `src/app/theme/ui_tokens.gd` with surface hierarchy, text/state colors, semantic tool accents, spacing, target sizes, radii, typography roles, and motion durations.
-- Added `src/app/theme/theme_factory.gd` producing reusable Godot `Theme` styles for labels, buttons, primary buttons, large card buttons, tool buttons, panels, elevated/drawer panels, line edits, and option buttons.
-- Theme focus styles use visible outlines and semantic state colors rather than relying on color-only communication.
-- No Home/workspace screen logic was introduced in P01-T01.
-
-## Tests/commands run
-- Static repository/resource review only; Godot runtime execution remains unavailable in the current environment.
-
-## Known limitations
-- Final theme constants still require screenshot tuning against the running canonical comparison workflow.
-
-## Next authorized task
 `P01-T02 — Implement Home screen`
 
-## P01-T02 boundary
-Implement only the Home screen and the minimum app-shell routing needed to display it. Home must expose the documented large-card actions: Create New World, Continue, My Worlds, Templates, Asset Library. Do not implement the New World form or workspace yet.
+## P01-T02 implementation evidence
+- Added `src/app/screens/home/HomeScreen.tscn` with a dark, spacious, rounded large-card layout for Create New World, Continue, My Worlds, Templates, and Asset Library.
+- Added `src/app/screens/home/home_screen.gd` with explicit route constants/signals and initial focus on Create New World.
+- Replaced the Phase 0 placeholder main view with the real Home screen in `src/main/Main.tscn`.
+- Updated `src/main/main.gd` to apply the shared theme and forward route intents without implementing future destination screens prematurely.
+- Updated the runtime smoke test to validate that Home is the startup view and that all five required actions exist with expected labels.
+
+## Tests/commands run
+- Static scene/script/reference review only; Godot runtime execution remains unavailable in the current environment.
+
+## Known limitations
+- Home visual tuning still requires running-app screenshot comparison.
+- Continue, My Worlds, Templates, and Asset Library route destinations remain future tasks.
+
+## Next authorized task
+`P01-T03 — Implement Create New World flow`
+
+## P01-T03 boundary
+Implement the New World screen and routing from Home/back to Home. The flow must offer Small, Medium, and Large/streamed choices before creation plus the initial template choices. Do not create/save actual world project files yet; Phase 2 owns project persistence.
 
 ## New-thread start prompt
-Read `docs/design/UI_UX_CANONICAL_SPEC.md`, `docs/design/UI_SCREEN_INVENTORY.md`, `src/app/theme/ui_tokens.gd`, `src/app/theme/theme_factory.gd`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P01-T02 as the themed runtime Home screen with large friendly cards and minimal routing hooks. Then update the handoff and authorize only P01-T03.
+Read `docs/PRODUCT_REQUIREMENTS.md`, `docs/design/UI_UX_CANONICAL_SPEC.md`, `docs/systems/TEMPLATE_SYSTEM.md`, `src/main/main.gd`, `src/app/screens/home/`, and this file. Implement only P01-T03: themed New World configuration UI, world-size selection, template selection, back behavior, and a create request signal carrying configuration data without Phase 2 persistence. Then update the handoff and authorize only P01-T04.
