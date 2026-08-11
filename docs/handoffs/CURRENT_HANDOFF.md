@@ -4,33 +4,33 @@
 OPEN
 
 ## Project state
-Phase 0 and P01-T01 through P01-T04 are complete. The app now routes Home → New World → a dominant-viewport runtime workspace using only in-memory configuration. The workspace includes compact top chrome and reserved overlay layers for later Phase 1 controls.
+Phase 0 and P01-T01 through P01-T05 are complete. The runtime workspace now includes a prominent top-center Build | Play segmented control with deterministic UI state and mode-change signaling. No gameplay transition behavior is implemented.
 
 ## Canonical UI
 `assets/reference/CANONICAL_UI_REFERENCE.png`
 
 ## Completed task
-`P01-T04 — Implement main workspace shell`
+`P01-T05 — Implement Build|Play switch UI`
 
-## P01-T04 implementation evidence
-- Added `src/app/workspace/WorkspaceScreen.tscn` with a dominant central viewport area, compact rounded top bar, world context, and dedicated empty layers for inspector and bottom-dock features.
-- Added `src/app/workspace/workspace_screen.gd` to receive/duplicate in-memory New World configuration and display world title/profile/template context.
-- Updated `src/main/Main.tscn` and `src/main/main.gd` so Create World routes into the workspace without creating persistent project data.
-- Workspace Home action returns to Home.
-- Runtime smoke behavior now exercises Home → New World → Back and Home → New World → Workspace → Home, verifies world context reaches the workspace, and checks the reserved Phase 1 layers exist.
+## P01-T05 implementation evidence
+- Added `src/app/workspace/ModeSwitch.tscn` and `src/app/workspace/mode_switch.gd`.
+- The switch defaults to Build, uses a mutually exclusive button group, exposes `set_mode`, `get_mode`, and `mode_changed`, and provides focus entry for later gamepad navigation.
+- Mounted the switch in the workspace's reserved top-center `ModeSlot`.
+- Updated workspace UI state so the viewport badge reflects BUILD MODE / PLAY MODE without triggering gameplay behavior.
+- Runtime smoke behavior now checks the segmented control exists, defaults to Build, and deterministically changes the UI state to Play.
 
 ## Tests/commands run
 - Static scene/script/reference review only; Godot runtime execution remains unavailable in the current environment.
 
 ## Known limitations
-- The central viewport is a shell surface only; terrain/world rendering belongs to later phases.
-- Build|Play, inspector, bottom dock, asset drawer, and controller navigation remain intentionally unimplemented.
+- Play is UI state only. Actual Build ↔ Play runtime transition belongs to Phase 7.
+- Visual tuning still requires running-app screenshot comparison.
 
 ## Next authorized task
-`P01-T05 — Implement Build|Play switch UI`
+`P01-T06 — Implement right inspector shell`
 
-## P01-T05 boundary
-Implement the segmented Build | Play control and workspace mode state/signals only. Do not implement actual gameplay activation, player spawning, scene swapping, or Phase 7 instant-play behavior.
+## P01-T06 boundary
+Implement a right-side inspector panel shell with hidden-by-default behavior, Basic-first information, an Advanced disclosure area, close behavior, and a generic context API. Do not implement object selection or gameplay-specific properties.
 
 ## New-thread start prompt
-Read `docs/design/UI_UX_CANONICAL_SPEC.md`, `src/app/workspace/`, `src/app/theme/`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P01-T05 as a prominent top-center Build | Play segmented control with deterministic UI state and a mode-change signal. Do not implement gameplay transition behavior. Then update the handoff and authorize only P01-T06.
+Read `docs/design/UI_UX_CANONICAL_SPEC.md`, `src/app/workspace/`, `src/app/theme/`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P01-T06 as a generic right inspector shell with Basic-first and hidden Advanced content. Mount it in the reserved inspector layer without adding object-selection semantics. Then update the handoff and authorize only P01-T07.
