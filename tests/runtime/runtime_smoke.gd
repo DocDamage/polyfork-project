@@ -44,7 +44,7 @@ func _check_home(home: Control, errors: Array[String]) -> void:
         "AssetLibraryButton": "Asset Library"
     }
 
-    for node_name: String in required_buttons:
+    for node_name in required_buttons:
         var button := home.find_child(node_name, true, false) as Button
         if button == null:
             errors.append("Home screen is missing %s." % required_buttons[node_name])
