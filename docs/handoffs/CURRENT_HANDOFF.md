@@ -1,96 +1,122 @@
 # Current Handoff
 
 ## Status
-OPEN
+OPEN — P02-T07 implementation is complete and verified on its task branch; merge is still required before `master` reflects Phase 2 completion.
 
 ## Project state
-Phase 0 and Phase 1 are complete. P02-T05 is merged into `master` through PR #4 at merge commit `e0d9efa91f29d55279a127f82e5d8a5f6b92fb9e`. P02-T06 is complete and verified on `dev/p02-t06-autosave-recovery`, but is not merged into `master` yet. Therefore the current merged `master` baseline remains complete through P02-T05 until the P02-T06 PR is reviewed and merged. P02-T07 remains incomplete. Phase 3 has not started.
+Phase 0 and Phase 1 are complete on authoritative `master`.
 
-## Repository branch state
-- Authoritative project branch: `master`.
-- Current P02-T06 baseline: `master` at `e0d9efa91f29d55279a127f82e5d8a5f6b92fb9e`.
-- P02-T06 implementation branch: `dev/p02-t06-autosave-recovery`, created directly from that `master` baseline.
-- The repository default branch remains `main`; it is still the obsolete starter branch and was not used for this work.
-- The default branch was intentionally not changed.
-- Do not merge the P02-T06 PR unless explicitly instructed by the user.
+PR #5 merged P02-T06 into `master` at merge commit `c6af112ef6044ef2bef1b4325206e6693fabb694`. P02-T07 was then implemented from that exact baseline on `dev/p02-t07-phase2-closeout`.
 
-## Completed task on the implementation branch
-`P02-T06 — Implement crash-safe autosave and checkpoint recovery`
+All Phase 2 tasks are complete on the P02-T07 branch. Phase 3 has not started. `master` becomes the completed Phase 2 baseline only after the P02-T07 PR is reviewed and merged.
 
-## P02-T06 architecture added
-- `src/world/safe_json_writer.gd` centralizes crash-safe JSON writes: unique temporary file, flush/close, read-back parse, semantic validation, and promotion only after validation succeeds. Failed writes/promotions remove the candidate and preserve the prior final file.
-- `src/world/checkpoint_record.gd` defines schema-v1 `world_checkpoint` documents with a stable checkpoint UUID, owning stable `project_id`, millisecond creation timestamp, and validated `WorldProject` snapshot.
-- `src/world/checkpoint_store.gd` owns checkpoint persistence, deterministic newest-first selection, project association, recovery-state classification, and bounded retention. Recovery inspection distinguishes valid newer checkpoints, corrupted checkpoints, unsupported future schemas, incomplete temporary writes, non-newer checkpoints, and missing checkpoints.
-- `src/world/autosave_service.gd` owns autosave timing and explicit dirty state. Clean projects are not rewritten merely because the timer fires, and dirty state is cleared only after a successful checkpoint.
-- `src/world/project_repository.gd` now uses the shared safe writer for canonical saves, exposes checkpoint/recovery operations, preserves canonical state on failed recovery, and reports recovery availability when projects are opened.
-- `src/world/world_project.gd` adds backward-compatible optional millisecond timestamps under schema v1 so canonical saves and checkpoints created in the same Unix second can still be ordered deterministically. Legacy schema-v1 manifests without the millisecond fields remain loadable through Unix timestamp fallback.
-- `src/main/main.gd` attaches the autosave service to the active project and advances its timer. It exposes `mark_project_dirty()` for future command-driven dirty tracking and reports detected recovery availability without silently overwriting canonical state.
-- Autosave remains persistence infrastructure rather than an authoring mutation; no Phase 3 placement or gameplay-specific commands were introduced.
+The repository default branch remains the obsolete starter branch `main`; do not develop from it. The authoritative project branch remains `master`.
 
-## Behavioral tests added
-`tests/integration/autosave_checkpoint_contracts.gd` verifies real persistence behavior, including:
-- dirty checkpoint creation after the configured interval;
-- clean-state suppression and no redundant checkpoint creation;
-- checkpoint reload across a fresh repository instance;
-- stable checkpoint UUID and stable project association;
-- canonical project data remaining unchanged by ordinary autosave/checkpoint creation;
-- valid newer recovery detection;
-- valid recovery restoring intended state while preserving `project_id`;
-- recovered state surviving a fresh reopen;
-- injected explicit-save failure before promotion preserving the prior canonical manifest;
-- injected checkpoint promotion failure preserving the previous known-good checkpoint;
-- injected recovery promotion failure preserving canonical data;
-- corrupted checkpoint rejection;
-- unsupported future checkpoint schema rejection;
-- incomplete temporary checkpoint detection without canonical replacement;
-- deterministic bounded retention keeping the newest valid checkpoints;
-- regression coverage preventing scene-tree-path relationships from entering checkpoint persistence.
+## Completed task
+`P02-T07 — Complete Phase 2 integration tests and persistence hardening`
 
-`tests/test_runner.gd` runs these contracts together with the existing world foundation, repository, command-history, and runtime smoke tests.
+## Persistence hardening added
+- `WorldProject` now persists an additive optional schema-v1 `entities` collection so the existing `WorldEntity`/`EntityRegistry` foundation actually survives save and reopen.
+- Persisted entity records are validated for stable UUID identity, duplicate entity IDs, owning project cell membership, resolvable parent references, and self-parenting.
+- `EntityRegistry` can serialize its stable-ID-sorted records and reconstruct itself from persisted dictionaries while rejecting duplicate and unresolved/self parent identities.
+- A P02-T07 integration run exposed a real nullable-ID defect in `WorldEntity`: JSON `null` optional UUID fields were previously converted through `str(null)` during load, creating bogus non-empty runtime references. `WorldEntity` now maps persisted null optional IDs back to empty runtime references.
+- Legacy schema-v1 project manifests without additive `entities` or millisecond timestamp fields remain supported.
+- Unsupported future world-project schemas still fail explicitly and do not receive a hidden fallback.
+
+## Integrated lifecycle verification
+`tests/integration/phase2_lifecycle_contracts.gd` verifies realistic Phase 2 flows:
+- create project -> create/register stable entities -> persist -> reopen -> reconstruct registry -> verify stable IDs, parent references, and authored transform state;
+- execute a generic project mutation through command history -> save -> reopen;
+- undo -> save -> reopen and verify the undone state;
+- redo -> save -> reopen and verify the redone state;
+- transaction with a later injected command failure -> rollback prior successful command -> verify failed transaction never enters history -> save/reopen known-good state;
+- command-authored dirty state -> autosave checkpoint -> simulated repository restart -> recovery -> verify recovered command state and stable project identity;
+- bounded history during realistic project mutation and persistence.
+
+`tests/integration/phase2_persistence_hardening_contracts.gd` verifies:
+- supported legacy schema-v1 manifests load through documented optional-field fallback;
+- unsupported future world-project schema versions fail explicitly;
+- unresolved `parent_entity_id` persistence is rejected while preserving the prior canonical manifest;
+- duplicate persisted entity identities are rejected with actionable errors.
+
+The existing P02-T06 contracts remain active and continue to cover corrupted checkpoints, unsupported checkpoint schema, interrupted temporary writes, failed canonical writes, failed checkpoint promotion, failed recovery promotion, bounded checkpoint retention, stable checkpoint/project identity, and scene-tree-path relationship regression.
+
+## Real Home -> Continue verification
+`tests/runtime/continue_reopen_smoke.gd` creates a project through the real app shell, constructs a fresh app instance against the same on-disk storage root, emits the Home `continue` route, and verifies that the persisted project reopens into the workspace with the expected title.
+
+This closes the previous runtime evidence gap where New World creation was exercised but the actual restart/Continue path was not.
+
+## Verification evidence
+Initial P02-T07 implementation commit:
+`722a530fba36e34a89ca70e43e35b5db72017897`
+
+Workflow run `31506840432` correctly FAILED `runtime-smoke` while visual capture passed. The log exposed:
+- typed-array fixture assignment errors; and
+- the real nullable optional-UUID load defect described above.
+
+The tests were not weakened.
+
+Hardening fix commit:
+`7e89d4a9d1323c1cd303433ca1cf7c83184a7dbd`
+
+Workflow run `31507033430` then passed both:
+- `runtime-smoke` — SUCCESS
+- `phase1-visual-capture` — SUCCESS
+
+Continue/restart verification commit:
+`a70d016aff4050dcc73c369390d2263fea07b4da`
+
+Workflow run `31507218527` used Godot `4.7.1.stable.official.a13da4feb` and passed both:
+- `runtime-smoke` — SUCCESS
+- `phase1-visual-capture` — SUCCESS
+
+The runtime log contains `PASS: PlayWorld Studio test harness completed.` and contains no `SCRIPT ERROR:` or engine `ERROR:` output. The real Home -> Continue restart flow executed during that harness run.
+
+The visual-capture workflow remains unchanged, including `--audio-driver Dummy`, `--disable-vsync`, strict script/engine error rejection, and the existing Phase 1 screenshot evidence path.
+
+After this documentation closeout commit, require one final branch workflow run and record that run in the P02-T07 PR/completion report before treating the PR as ready to merge.
 
 ## Changed files
-- `src/main/main.gd`
-- `src/world/autosave_service.gd`
-- `src/world/checkpoint_record.gd`
-- `src/world/checkpoint_store.gd`
-- `src/world/project_repository.gd`
-- `src/world/safe_json_writer.gd`
 - `src/world/world_project.gd`
-- `tests/integration/autosave_checkpoint_contracts.gd`
+- `src/world/world_entity.gd`
+- `src/world/entity_registry.gd`
+- `tests/unit/fixtures/project_title_command.gd`
+- `tests/integration/phase2_lifecycle_contracts.gd`
+- `tests/integration/phase2_persistence_hardening_contracts.gd`
+- `tests/runtime/continue_reopen_smoke.gd`
 - `tests/test_runner.gd`
-- `docs/architecture/SYSTEM_ARCHITECTURE.md`
 - `docs/architecture/DATA_MODEL.md`
 - `docs/implementation/TASK_BACKLOG.md`
 - `docs/handoffs/CURRENT_HANDOFF.md`
 
-## Verification evidence
-Implementation commit before documentation closeout: `be45e9a1d7db88e9ae78c6c86c135a794a3a860f`.
+## Phase 2 acceptance state
+The P02-T07 branch now demonstrates:
+- stable project/world UUIDs and Small/Medium/Large profiles;
+- project create/open/crash-safe save;
+- persistent New World and real Continue/reopen;
+- stable world entities and registry reconstruction across persistence;
+- generic commands, grouped transactions, rollback, bounded undo/redo;
+- save after commands, undo then save, redo then save;
+- crash-safe autosave, checkpoints, recovery, retention and corruption handling;
+- explicit supported/unsupported schema behavior;
+- known-good canonical preservation across tested failure paths;
+- strict real-Godot 4.7.1 execution with the existing UI visual capture intact.
 
-GitHub Actions workflow run `31505363692` executed the implementation with Godot `4.7.1.stable.official.a13da4feb` and completed successfully:
-- `runtime-smoke` — SUCCESS;
-- `phase1-visual-capture` — SUCCESS.
+## Known residual limitations
+- Recovery detection/operation exists, but a dedicated user recovery-choice UI is still deferred; Phase 2 does not redesign the canonical UI.
+- Dirty state remains explicit infrastructure. Future successful authoring commands must mark the active project dirty.
+- Entity records are embedded in the Phase 2 project manifest. Later world-partition/streaming work may move large entity sets into cell-owned storage through a documented migration; no current identity depends on file location.
+- The obsolete `main` versus authoritative `master` branch mismatch remains intentionally unresolved.
 
-The runtime log contains `PASS: PlayWorld Studio test harness completed.` and no `SCRIPT ERROR:` or engine `ERROR:` output. The workflow's strict log rejection remained unchanged.
-
-The visual-capture job retained `--audio-driver Dummy` and `--disable-vsync`, produced the existing five Phase 1 evidence images, and contains `PASS: Phase 1 rendered screenshots captured.` with no `SCRIPT ERROR:` or engine `ERROR:` output. A graphics-driver V-Sync warning remains a warning, not an engine error.
-
-The branch must receive one final Godot 4.7.1 workflow verification after this documentation closeout commit before the PR is treated as ready for review. Record that final run in the PR/completion report.
-
-## Failure-path evidence
-The test suite injects failures immediately before promotion rather than pretending a write succeeded. It proves that failed canonical saves preserve the prior manifest, failed checkpoint writes preserve the prior recoverable checkpoint set, and failed recovery promotion preserves canonical data. Corrupted, unsupported, and incomplete recovery candidates are classified and rejected instead of being silently loaded.
-
-## Known limitations and residual risks
-- P02-T06 provides recovery detection and a deterministic recovery operation, but does not add a new recovery-choice UI. The existing app shell only reports that a recoverable checkpoint is available; UI expansion is not required for the persistence foundation and no canonical UI redesign was introduced.
-- Dirty state is explicit infrastructure. Future authoring commands must call the dirty-state entrypoint after successful mutations; P02-T06 deliberately does not invent Phase 3 authoring commands to exercise that wiring.
-- Checkpoint retention defaults to five valid snapshots. Failure to remove an expired checkpoint is surfaced as a warning rather than invalidating a newly proven valid checkpoint.
-- The obsolete `main`/authoritative `master` branch mismatch remains intentionally unresolved.
+## Phase 3 decomposition
+Phase 3 is decomposed in `docs/implementation/TASK_BACKLOG.md` as P03-T01 through P03-T09. Do not implement multiple tasks at once.
 
 ## Next authorized task
-Only after the P02-T06 PR is merged into `master`, authorize:
+Only after the P02-T07 PR is merged into `master`, authorize only:
 
-`P02-T07 — Complete Phase 2 integration tests and persistence hardening`
+`P03-T01 — Implement runtime entity scene bridge and single-selection foundation`
 
-Do not stack P02-T07 on the unmerged P02-T06 branch. Do not begin Phase 3.
+Do not begin P03-T02 or any broader Phase 3 work in the same authorization step.
 
 ## New-thread start prompt
-Work from `master` only after the P02-T06 PR has been merged there; never use the stale default `main` branch. Read `README.md`, `docs/PRODUCT_REQUIREMENTS.md`, `docs/PROJECT_CHARTER.md`, `docs/design/UI_UX_CANONICAL_SPEC.md`, `docs/architecture/SYSTEM_ARCHITECTURE.md`, `docs/architecture/PERSISTENT_ID_SCHEMA_CONVENTIONS.md`, `docs/architecture/DATA_MODEL.md`, `docs/implementation/MASTER_IMPLEMENTATION_PLAN.md`, `docs/implementation/CODEX_EXECUTION_RULES.md`, `docs/implementation/CODING_STANDARDS.md`, `docs/implementation/TASK_BACKLOG.md`, and this file. Verify the merged P02-T06 baseline, then implement only P02-T07 with realistic lifecycle integration and persistence hardening. Do not begin Phase 3. At Phase 2 completion, update the backlog/handoff with final Godot 4.7.1 evidence and authorize only the first decomposed Phase 3 task.
+Verify the P02-T07 PR has been merged into authoritative `master`; never develop from stale default `main`. Read the standard project/architecture/implementation documents and this handoff. If Phase 2 completion is present on `master`, implement only `P03-T01 — Implement runtime entity scene bridge and single-selection foundation`. All authoring mutations must use the command/transaction framework, successful mutations must integrate dirty-state signaling, persisted relationships remain stable-ID based, and UI changes must preserve the canonical dark/playful Nintendo-forward visual direction. Do not begin P03-T02 until P03-T01 is verified, documented, and merged.

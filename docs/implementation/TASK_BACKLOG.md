@@ -27,7 +27,18 @@ Task IDs use `P##-T##`.
 - [x] P02-T04 Implement stable world-entity record and registry foundation
 - [x] P02-T05 Implement command, transaction, undo, and redo framework
 - [x] P02-T06 Implement crash-safe autosave and checkpoint recovery
-- [ ] P02-T07 Complete Phase 2 integration tests and persistence hardening
+- [x] P02-T07 Complete Phase 2 integration tests and persistence hardening
+
+## Phase 3 — Runtime Placement Editor
+- [ ] P03-T01 Implement runtime entity scene bridge and single-selection foundation
+- [ ] P03-T02 Implement command-backed object placement and ghost preview
+- [ ] P03-T03 Implement command-backed move/rotate/scale editing and gizmo state
+- [ ] P03-T04 Implement command-backed duplicate and delete operations
+- [ ] P03-T05 Implement multi-select and grouping foundations
+- [ ] P03-T06 Implement grid and angle snapping
+- [ ] P03-T07 Implement surface/object/socket snapping and drop-to-ground
+- [ ] P03-T08 Implement contextual placement toolbar and controller tool wheel
+- [ ] P03-T09 Complete Phase 3 integration, gamepad, failure-path, and visual verification
 
 ## Later phases
-Do not decompose or begin Phase 3 until Phase 2 is actually complete. Decompose each later phase in `MASTER_IMPLEMENTATION_PLAN.md` into similarly sized tasks before starting that phase. Each task must have acceptance evidence and a new handoff.
+Decompose each later phase in `MASTER_IMPLEMENTATION_PLAN.md` into implementation-sized tasks before beginning that phase. Do not broadly authorize an entire phase; the current handoff must authorize only the next task.

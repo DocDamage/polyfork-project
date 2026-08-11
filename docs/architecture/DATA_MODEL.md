@@ -8,9 +8,9 @@ Fields include: schema_version, id, source_path, canonical_path, hash, type, dis
 Ownership: `src/assets`. `id` remains stable across ordinary rescans when the catalog entry is reconciled. Source paths and hashes are metadata, not identity.
 
 ## WorldEntity
-Fields include: schema_version, id, transform, asset/prefab reference IDs, component instance list, archetype reference ID, owning world-cell ID, visibility flags, editor flags, tags, parent entity ID, socket attachment data.
+Fields include: schema_version, document_type, entity_id, display_name, transform, asset/prefab reference IDs, component instance IDs, owning world-cell ID, and parent entity ID.
 
-Ownership: `src/world` for entity persistence with gameplay data supplied by `src/gameplay`. Parent, prefab, archetype, component, and cell relationships are stable-ID references.
+Ownership: `src/world`. `entity_id` is stable across ordinary edits and persistence cycles. Parent, prefab, component, and cell relationships are stable-ID references. Optional UUID fields serialize as JSON `null` and load back to an empty runtime reference rather than a stringified null value.
 
 ## ComponentDefinition
 Fields include: schema_version, id, display name, category, properties schema, runtime script/class, dependencies, incompatible component IDs, exposed events/actions, serialization version.
@@ -48,9 +48,11 @@ Fields include: schema_version, id, project_id, coordinates/bounds, owned entity
 Ownership: `src/world`.
 
 ## WorldProject
-Fields include: schema_version, document_type, project_id, title, template ID, world profile, cell layout/IDs, environment references/state, registries, editor settings, export settings, dependency list, created/updated Unix timestamps, and optional millisecond-resolution created/updated timestamps.
+Fields include: schema_version, document_type, project_id, title, template ID, world profile, cell IDs, persisted entity records, environment references/state, registries, editor settings, export settings, dependency list, created/updated Unix timestamps, and optional millisecond-resolution created/updated timestamps.
 
-Ownership: `src/world`. `project_id` is the root stable UUID for the authored project. Millisecond timestamps were added as backward-compatible optional schema-v1 metadata for deterministic save/checkpoint ordering; older schema-v1 manifests without those fields derive them from the existing Unix-second timestamps when loaded.
+Ownership: `src/world`. `project_id` is the root stable UUID for the authored project. `entities` is an additive optional schema-v1 field containing validated `WorldEntity` records. Older schema-v1 manifests without `entities` load with an empty entity-record collection. Persisted entity IDs must be unique, owning `cell_id` values must resolve within the project, and `parent_entity_id` values must resolve to another persisted project entity and may not self-reference.
+
+Millisecond timestamps are backward-compatible optional schema-v1 metadata for deterministic save/checkpoint ordering; older schema-v1 manifests without those fields derive them from the existing Unix-second timestamps when loaded.
 
 ## WorldCheckpoint
 Fields: schema_version, document_type, id, project_id, created_at_msec, project_state.
