@@ -1,7 +1,7 @@
 # System Architecture
 
 ## Architectural rule
-The editor must not hard-code world semantics such as "door", "car", or "enemy" into the core scene editor. The core understands **entities, components, archetypes, prefabs, properties, events, graphs, resources, transactions, and IDs**. Gameplay meaning is assembled above those primitives.
+The editor must not hard-code world semantics such as "door", "car", or "enemy" into the core scene editor. The core understands entities, components, archetypes, prefabs, properties, events, graphs, resources, transactions, and stable IDs. Gameplay meaning is assembled above those primitives.
 
 ## Major modules
 1. App Shell
@@ -28,55 +28,69 @@ The editor must not hard-code world semantics such as "door", "car", or "enemy" 
 22. Diagnostics/Performance
 23. Future Networking/Collaboration Layer
 
-## Data boundaries
-Editor metadata must be separable from runtime game data. Export builds strip editor-only metadata where possible while preserving gameplay state and authored resources.
+## Data and identity boundaries
+Editor metadata remains separable from runtime game data. Persistent relationships use stable UUIDs; scene-tree paths, node names, source filesystem paths, and array positions are never persistent identity.
 
-## IDs
-Every world object, prefab, component instance, graph, asset registry entry, terrain cell, procedural generator, transaction, and retained checkpoint receives a stable UUID. Never use scene-tree paths as persistent identity.
+Every world object, asset catalog record, prefab, component instance, graph, terrain cell, procedural generator, transaction, and retained checkpoint receives stable identity according to its owning schema.
 
-## Commands
-All authored mutations flow through commands. Examples: PlaceObject, DeleteObject, SetTransform, AddComponent, ChangeProperty, SculptTerrainStroke, GenerateScatter, ExecuteAIPlan. Gameplay-specific commands are implemented by the owning feature module on top of the generic command contract.
+## Commands and authored mutation
+All authored world mutations flow through commands. A command exposes deterministic `execute()` and `undo()` operations. Failure must leave authored state unchanged or restore partial work before returning failure. Transactions commit to history only after every command succeeds and roll back in reverse order otherwise.
 
-A command exposes deterministic `execute()` and `undo()` operations. Returning `false` means the requested operation did not commit; a failed command must leave authored state unchanged or restore its own partial work before returning. Commands surface recoverable failure details through their command error message instead of relying on scene-tree identity or editor-only node paths.
-
-Commands may be grouped into a transaction. Each transaction receives a stable UUID, executes its commands in order, and becomes exactly one undoable history entry only after every command succeeds. If a later command fails, the transaction rolls back already-applied commands in reverse order. Undo reverses a committed transaction in reverse command order; redo executes it again in forward order. If an undo operation itself fails after earlier commands were reversed, the transaction attempts to restore those earlier commands so history is not advanced from a partially reversed entry.
-
-The command history owns bounded undo and redo stacks. A successful new edit after an undo clears the redo stack. Failed execution, undo, or redo attempts do not advance the corresponding history stacks. Command history is in-memory editor infrastructure; persistence observes authored state rather than becoming an authoring mutation.
-
-## Runtime entity scene bridge and selection
-`src/editor/runtime_entity_node.gd` is the generic runtime `Node3D` wrapper for a persisted `WorldEntity`. It copies the stable entity UUID into runtime metadata, applies persisted position/rotation/scale, and supplies generic proxy mesh/collision geometry for runtime placement editing until the universal asset library can attach real asset content.
-
-`src/editor/runtime_entity_bridge.gd` rebuilds the runtime entity hierarchy from validated entity records. Runtime node names and tree locations are disposable implementation details; lookup and parent relationships are resolved only through stable entity IDs. The bridge rejects duplicate IDs, unresolved parents, self-parenting, and parent cycles. A rejected rebuild leaves the previous known-good runtime mapping intact.
-
-The bridge can resolve descendant runtime nodes back to the owning stable entity ID by walking runtime metadata. This provides the stable boundary for editor viewport picking without persisting scene-tree paths.
-
-`src/editor/multi_selection.gd` owns editor selection as a stable-ID set with one primary entity. Single selection, additive selection, runtime-node selection, and selection clearing only affect editor/runtime presentation and never alter persisted project data.
+The command history owns bounded undo/redo stacks. A successful new edit after undo clears redo. Failed execution/undo/redo does not advance history. Persistence observes authored state rather than becoming an authoring mutation.
 
 ## Runtime placement editor
-`src/editor/editor_session.gd` is the Phase 3 editor coordinator. It owns the runtime bridge, command history, multi-selection, placement ghost, snapping service, transform-tool state, and the callback used to mark the bound project dirty. The session keeps authored `WorldProject` state and transient runtime nodes synchronized after every successful authoring command.
+`src/editor/editor_session.gd` coordinates the bound project, command history, runtime bridge, multi-selection, placement ghost, snapping service, transform-tool state, and dirty-state callback.
 
-Placement begins as a transient generic ghost. Moving or cancelling the ghost does not mutate the project and does not mark it dirty. Committing placement executes a `PlayWorldPlaceEntityCommand`; the first placement can establish the project's first stable owning cell, and undo removes that cell again only when no entity still owns it.
+`src/editor/runtime_entity_bridge.gd` rebuilds the runtime hierarchy from validated world entity records. Lookup and parent relationships are resolved through stable entity IDs. It rejects duplicate IDs, unresolved parents, self-parenting, and parent cycles.
 
-Move/rotate/scale edits execute through `PlayWorldSetEntityTransformsCommand`. Duplicate, delete, and group operations have dedicated reversible commands. Delete captures the selected descendant closure so a parent/group cannot be removed while leaving invalid persisted child references. Grouping creates a generic stable-ID `WorldEntity` group and persists children through `parent_entity_id`; it does not invent a gameplay-specific group type.
+`src/editor/runtime_entity_node.gd` is the generic `Node3D` wrapper for persisted `WorldEntity` state. Phase 4 allows the bridge to bind an Asset Library resolver. If an entity carries a valid catalog `asset_id`, the resolver attaches the real managed asset scene as the entity visual. If the catalog/source/import is unavailable, the node remains usable with its generic proxy instead of invalidating authored world state.
 
-After a successful authoring mutation, the session rebuilds the runtime bridge from persisted project records, restores surviving selection when appropriate, then calls the active project's dirty-state entrypoint. Failed command execution does not advance history, rebuild known-good runtime state, or mark the project dirty.
+`src/editor/placement_ghost.gd` keeps preview placement transient. It can now display a real Asset Library `Node3D` while retaining the generic proxy fallback. Preview movement/cancel never dirties project state.
 
-`src/editor/snapping_service.gd` keeps snapping deterministic and separate from persistent identity. Grid and angle snapping are numeric editor policies. Surface snapping consumes a hit position/normal. Object and socket snapping use deterministic candidate IDs and project-local positions. During Phase 3, bridged entity origins act as generic object targets and temporary origin sockets; richer prefab/socket metadata is deferred to the later prefab/socket system without changing entity identity.
+Placement commit still executes `PlayWorldPlaceEntityCommand`. Move/rotate/scale, duplicate, delete, grouping, drop-to-ground, and snapping continue through the Phase 3 command/session architecture. Phase 4 does not bypass command history or create a prefab system.
 
-`src/editor/editor_viewport_3d.gd` and `EditorViewport3D.tscn` provide the live editor viewport, generic ground, camera/lighting, physics picking, and runtime proxy rendering. Picking resolves the collider back through stable runtime entity metadata before selection changes.
+`src/editor/snapping_service.gd` provides deterministic grid, angle, surface, object, socket, and ground snapping. Generic entity origins remain temporary sockets until the later prefab/socket phase.
 
-The existing workspace integrates this editor through a compact placement/snapping toolbar, the existing transform toolbar, right inspector, and an opt-in controller tool wheel. Keyboard/mouse and gamepad actions route to the same command-backed editor session rather than maintaining separate authoring paths.
+## Universal Asset Library
+Phase 4 is owned by `src/assets` and is instantiated per world project. Its managed root is `<project-directory>/asset_library`.
+
+### Source boundary
+`asset_source.gd` and `source_folder_registry.gd` define registered source folders. A source contract always declares `read_only: true`. Managed Asset Library storage cannot overlap a source root. Scanner traversal does not follow linked directories. Source assets are never renamed, reorganized, deleted, or used as cache/output destinations.
+
+### Incremental discovery and stable identity
+`asset_scanner.gd` discovers supported source files in deterministic sorted order. It records source-relative path, supported type, file size, modification time, and SHA-256 content hash. When path, size, modification time, and an existing hash match, unchanged files reuse the prior hash rather than being rehashed.
+
+`asset_catalog.gd` reconciles observations to stable `asset_id` values. Same source/path retains identity. A changed path may retain identity only when one unmatched record in that same source uniquely matches the content signature. Ambiguous duplicate content remains separate. Missing prior records stay in the catalog with `missing: true` so existing world references do not silently retarget another file.
+
+Exact-content duplicate groups are informational/query state only. No duplicate workflow deletes or merges source files.
+
+### Analysis and managed import
+`asset_analyzer.gd` performs safe structural preflight for GLTF, GLB, Godot text scenes, and Godot binary scenes. Corrupt input is retained as a failed-analysis catalog record and blocked before engine loading/placement.
+
+`asset_importer.gd` creates derived copies only under project-managed `asset_library/imports`. GLTF local dependencies are copied into that managed import tree. Remote dependency URIs and dependency paths escaping the registered source root fail safely. Runtime GLTF/GLB generation and PackedScene loading occur from managed copies.
+
+### Catalog metadata and thumbnails
+`asset_record.gd` owns stable record validation. `asset_catalog.gd` persists favorites, collections, licensing/source fields, user metadata, analysis state, derived-import metadata, and thumbnail metadata to managed `catalog.json`.
+
+`thumbnail_cache.gd` creates deterministic per-content thumbnail entries under `asset_library/thumbnails`. Cache keys include stable asset identity plus source content hash. When content changes, obsolete thumbnail entries for that asset are invalidated. Thumbnail/cache failure is recoverable and never writes to a source root.
+
+### Browser and input
+`src/app/workspace/asset_browser.gd` fills the existing Phase 1 Asset drawer rather than introducing an enterprise/dashboard shell. Large cards are the default density; compact density remains available. Browser queries support search, source/type/collection filtering, favorites, exact duplicate groups, read-only source/license details, rescans, and collection assignment.
+
+Cards use native focusable buttons so keyboard/mouse and gamepad activation enter the same placement path. While the drawer owns focus, world D-pad transform input does not leak through. Existing Phase 3 controller mappings, including the left-shoulder tool wheel, remain intact.
+
+### Placement handoff
+`asset_placement_handoff.gd` is the boundary between catalog selection and the Phase 3 editor. It requires a valid stable `asset_id`, successful analysis, and successful managed scene instantiation. It then starts the existing Phase 3 ghost, carries `asset_id` on the ghost's `WorldEntity` record, and leaves commit to the existing command-backed placement function.
+
+No authored entity exists and no dirty-state signal fires before commit. After commit, bridge rebuild resolves the same catalog asset ID to its real visual. Duplicate preserves `asset_id` while allocating a new entity UUID. Save/reopen retains the asset reference. A later missing source safely falls back to the generic runtime proxy.
+
+## Persistence and crash safety
+Custom editor persistence is versioned. `PlayWorldSafeJsonWriter` writes unique temporary candidates, flushes/closes them, parses and semantically validates them, and only then promotes them to canonical paths. Failed writes/promotions do not intentionally replace prior known-good files.
+
+World checkpoints remain owned by `src/world`. Asset Library source/catalog documents are project-managed sibling data with their own validation and crash-safe JSON writes. Authored `WorldEntity.asset_id` references remain stable across project persistence/reopen and Asset Library restart.
 
 ## Streaming
-Large worlds use partition cells. World objects declare owning cell and optional cross-cell references through stable IDs. Streaming must never depend on parent node being currently loaded.
+Large worlds use partition cells. World objects declare owning cells and optional cross-cell relationships through stable IDs. Streaming must never depend on a parent node currently being loaded.
 
-## Persistence
-Use versioned JSON/resource metadata for editor-facing data and Godot resources/scenes where appropriate for runtime content. Every persisted structure carries schema/version information and migration responsibility.
-
-P02-T06 centralizes crash-safe JSON promotion in `PlayWorldSafeJsonWriter`. Canonical project manifests and checkpoints are serialized to unique temporary files, flushed and closed, parsed back, semantically validated, and only then promoted to the requested final path. A failed write or failed promotion removes the temporary candidate and leaves the prior canonical file untouched.
-
-Project checkpoints are owned by `src/world`, stored under the stable project directory, and represented by versioned `world_checkpoint` documents. Each retained checkpoint has its own stable UUID, the owning `project_id`, a millisecond creation timestamp, and a validated `WorldProject` snapshot. Checkpoint retention is bounded and deterministic; pruning occurs only after a newer checkpoint has been successfully written and validated.
-
-Recovery inspection distinguishes a valid newer checkpoint from corrupted checkpoint data, unsupported checkpoint schemas, incomplete temporary writes, older/equal checkpoints, and missing checkpoints. Recovery never replaces canonical project state until the selected checkpoint has been loaded and validated and the normal crash-safe project-save path succeeds.
-
-`PlayWorldAutosaveService` coordinates checkpoint timing separately from UI and repository internals. It requires an explicit dirty signal, does not rewrite unchanged projects simply because its timer elapsed, and clears dirty state only after checkpoint creation succeeds. Phase 3 authoring commands use that dirty-state entrypoint only after successful mutations.
+## Later-phase boundaries
+Phase 4 intentionally does not implement prefab inheritance, component systems, named prefab sockets, terrain/streaming, or gameplay semantics. Those remain owned by later phases and must build on the stable asset/entity boundaries rather than be backfilled into the Asset Library.
