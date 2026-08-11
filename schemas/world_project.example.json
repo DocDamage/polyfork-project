@@ -1,20 +1,25 @@
 {
+  "document_type": "world_project",
   "schema_version": 1,
-  "project_id": "uuid",
+  "project_id": "8f40c45e-326e-4e4b-9c78-8b35f11fa2aa",
   "title": "Sunset Valley",
   "world_profile": "medium",
-  "template": "third_person_adventure",
-  "cells": [],
+  "template_id": "third_person_adventure",
+  "cell_ids": [],
   "environment": {
     "time_of_day": 12.75,
-    "weather_profile": "clear"
+    "weather_profile_id": null
   },
   "registries": {
-    "prefabs": [],
-    "archetypes": [],
-    "visual_graphs": []
+    "prefab_ids": [],
+    "archetype_ids": [],
+    "visual_graph_ids": []
   },
   "editor": {
     "last_mode": "build"
-  }
+  },
+  "export": {
+    "preset_id": null
+  },
+  "dependencies": []
 }
