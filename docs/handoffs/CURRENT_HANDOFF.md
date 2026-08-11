@@ -4,38 +4,44 @@
 OPEN
 
 ## Project state
-Phase 0 and P01-T01 through P01-T08 are complete. Home, New World, and Workspace now have deterministic keyboard/gamepad focus entry and navigation. Workspace Back/Cancel priority closes the Asset drawer first, then inspector, then leaves the workspace. The real Godot 4.7.1 smoke workflow passes.
+Phase 0 and Phase 1 are complete. The application has a verified Godot 4.7.1 runtime shell with Home, New World configuration, a canonical-styled runtime workspace, Build | Play UI state, inspector/dock/drawer shells, transform toolbar shell, deterministic keyboard/gamepad navigation, and reproducible rendered visual evidence. Persistent world projects do not exist yet; Phase 2 is now authorized.
 
 ## Canonical UI
 `assets/reference/CANONICAL_UI_REFERENCE.png`
 
 ## Completed task
-`P01-T08 — Implement keyboard/mouse + gamepad navigation`
-
-## P01-T08 implementation evidence
-- Home has deterministic focus entry plus explicit directional and tab-order relationships across all five primary cards.
-- New World has explicit focus relationships across Back, name, three size cards, template choice, and Create.
-- Workspace links Home, Build | Play, and the bottom tool dock into one focus graph.
-- Bottom dock supports deterministic horizontal traversal across all eight tool categories; opening Assets moves focus into Search.
-- Inspector focuses its close control when opened and provides reachable Advanced disclosure controls.
-- `src/main/main.gd` handles semantic `ui_cancel`: New World returns Home; Workspace closes Asset drawer first, inspector second, then returns Home.
-- Updated `docs/systems/INPUT_GAMEPAD_TOUCH.md` with the Phase 1 navigation baseline.
-- Added `.github/workflows/godot-smoke.yml` so the actual repository runs the Godot-native smoke harness on official Godot 4.7.1.
-
-## Tests/commands run
-- GitHub Actions run `31492160584`, job `93781001574`: SUCCESS.
-- Engine reported `4.7.1.stable.official.a13da4feb`.
-- Runtime log reached `PASS: PlayWorld Studio runtime smoke checks completed.` after loading the real app shell and exercising the Phase 1 routes and controls.
-
-## Known limitations
-- Input testing proves deterministic UI state/focus contracts and semantic `ui_cancel` behavior in the runtime harness; physical-device matrix testing can expand later.
-- Visual parity is not yet accepted until running-app screenshots are compared against the canonical reference.
-
-## Next authorized task
 `P01-T09 — Screenshot parity review against canonical reference`
 
-## P01-T09 boundary
-Capture the real running Phase 1 application at the target aspect ratio, compare it against `assets/reference/CANONICAL_UI_REFERENCE.png` using `docs/qa/UI_VISUAL_ACCEPTANCE.md`, correct material Phase 1 visual defects, and preserve evidence. Do not begin Phase 2 until the Phase 1 visual gate is passed or explicitly documented as blocked.
+## P01-T09 implementation evidence
+- Added `tests/runtime/capture_phase1.gd` and the `phase1-visual-capture` GitHub Actions job to render the actual Godot application at the target aspect ratio.
+- Preserved the canonical image alongside each evidence artifact for direct comparison.
+- First rendered pass was rejected as too flat, gray/blue, spacious, and generic; Phase 1-owned UI was retuned rather than accepted from static scene files.
+- Added/tuned canonical dark surface hierarchy, purple creation emphasis, lime active/focus states, floating workspace chrome, compact Build | Play, compact transform strip, semantic bottom dock, large-card asset drawer shell, structured right inspector, and compact status strip.
+- Corrected accent panels to remain dark with lime edging rather than solid green fills.
+- Added `docs/qa/PHASE1_VISUAL_REVIEW.md` documenting the comparison, corrections, accepted Phase 1 elements, and later-phase items explicitly marked Not Yet Applicable.
+
+## Tests/commands run
+- GitHub Actions run `31493367487`: SUCCESS for both `runtime-smoke` and `phase1-visual-capture`.
+- Runtime smoke executes on Godot `4.7.1.stable.official.a13da4feb` and passes the real app routes, Build | Play state, inspector/drawer behavior, transform-shell presence, focus graph, and Cancel priority.
+- Final visual evidence artifact: `phase1-visual-evidence`, artifact ID `9101929849`, digest `sha256:89d7c9df439f9814a9ac129e43fcbdab1e2c5aa9b1a5166c16fb2afffc1fa639`.
+
+## Phase 1 exit decision
+PASS for Phase 1-owned UI foundation. Later-phase production systems depicted in the composite canonical board remain Not Yet Applicable and must replace honest shells as they are implemented.
+
+## Phase 2 decomposition
+- P02-T01 Stable ID utility + Small/Medium/Large profile contracts.
+- P02-T02 World-project model + atomic create/open/save repository.
+- P02-T03 Persistent New World integration + project reopening.
+- P02-T04 Stable world-entity record + registry.
+- P02-T05 Command/transaction + undo/redo framework.
+- P02-T06 Crash-safe autosave/checkpoint recovery.
+- P02-T07 Phase 2 integration tests + persistence hardening.
+
+## Next authorized task
+`P02-T01 — Implement stable ID utility and Small/Medium/Large world-profile contracts`
+
+## P02-T01 boundary
+Implement only reusable stable UUID generation/validation plus concrete runtime world-profile data for Small, Medium, and Large/streamed. Do not create/save project files, entity registries, command history, or autosave yet.
 
 ## New-thread start prompt
-Read `docs/qa/UI_VISUAL_ACCEPTANCE.md`, `docs/design/UI_UX_CANONICAL_SPEC.md`, `assets/reference/CANONICAL_UI_REFERENCE.png`, all Phase 1 UI scenes/theme resources, and this file. Implement only P01-T09: automate/capture running-app screenshots, compare against the canonical reference, correct Phase 1 visual defects, document evidence, and then authorize Phase 2 only if the visual gate is genuinely satisfied.
+Read `docs/architecture/PERSISTENT_ID_SCHEMA_CONVENTIONS.md`, `docs/PRODUCT_REQUIREMENTS.md`, `config/project_defaults.json`, `docs/implementation/CODING_STANDARDS.md`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P02-T01 with deterministic validation tests. Then update this handoff and authorize only P02-T02.
