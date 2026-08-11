@@ -1,123 +1,76 @@
 # Current Handoff
 
 ## Status
-OPEN — P03-T01 implementation is complete and verified on its task branch; merge is required before `master` advances beyond completed Phase 2.
+OPEN — Phase 3 runtime-placement milestone in progress.
 
 ## Project state
 Phase 0, Phase 1, and Phase 2 are complete on authoritative `master`.
 
-PR #6 merged P02-T07 into `master` at merge commit `20ee082ee242a06e80364df57fda0e2f8aebe678`. P03-T01 was implemented from that exact merged baseline on `dev/p03-t01-runtime-selection`.
+PR #7 merged `P03-T01 — Implement runtime entity scene bridge and single-selection foundation` into `master` at merge commit `95ec15bdc4d6a2b293511f724cfc4204e9ae485d`.
 
 The repository default branch remains the obsolete starter branch `main`; do not develop from it. The authoritative project branch remains `master`.
 
-## Completed task on the implementation branch
-`P03-T01 — Implement runtime entity scene bridge and single-selection foundation`
+## Workflow policy change
+The project now uses milestone-based review gates rather than one PR per internal task.
 
-## Runtime editor architecture added
-- `src/editor/runtime_entity_node.gd` defines the generic `Node3D` wrapper for one persisted `WorldEntity`. The wrapper copies the stable entity UUID into runtime metadata and applies persisted position, rotation, and scale.
-- `src/editor/runtime_entity_bridge.gd` builds the runtime node hierarchy from validated entity dictionaries and resolves runtime nodes back to stable entity IDs.
-- Runtime parent relationships are reconstructed from `parent_entity_id`; no persistent relationship depends on node names or scene-tree paths.
-- Bridge rebuild rejects invalid records, duplicate stable IDs, unresolved parents, self-parenting, and parent cycles.
-- Bridge rebuild is failure-safe: invalid replacement data is staged and rejected before the prior known-good runtime mapping is destroyed.
-- `src/editor/single_selection.gd` owns exactly one selected entity at a time and accepts either a stable entity ID or a descendant runtime node resolved through the bridge.
-- Invalid selection attempts preserve the previous selection; selecting a new entity clears the prior wrapper's selected state.
-- Selection is editor-only state. It does not change project persistence, enter command history, or mark the project dirty.
+- Task IDs remain internal implementation checkpoints.
+- Work continuously through the authorized milestone on one branch.
+- Commit and run CI at useful checkpoints.
+- Do not stop merely because one task ID is complete.
+- Open a PR only when the full authorized milestone is complete and verified, unless a genuine external blocker requires review.
+- Do not merge a PR without explicit user authorization.
 
-## Workspace integration
-`src/app/workspace/workspace_screen.gd` now:
-- creates and owns the runtime entity bridge when the workspace initializes;
-- rebuilds bridged entities from the persisted `entities` collection supplied by the active project configuration;
-- exposes stable-ID and runtime-node selection entry points for later picking/placement systems;
-- drives the existing right inspector from selected entity records;
-- displays persisted position, rotation, scale, stable entity ID, owning cell ID, and parent ID;
-- clears entity selection when the inspector is closed;
-- preserves existing generic inspector behavior, mode controls, bottom dock, and canonical UI shell.
+This policy is recorded in `docs/implementation/CODEX_EXECUTION_RULES.md` and applies to future threads unless the user explicitly changes milestone size.
 
-No new permanent UI chrome or visual redesign was introduced.
+## Current milestone
+**Phase 3 Runtime Placement Editor completion**
 
-## P03-T01 scope boundaries
-Not implemented in this task:
-- object placement;
-- ghost preview;
-- viewport raycast/picking geometry;
-- move/rotate/scale authoring;
-- transform commands or gizmo state;
-- duplicate/delete;
-- multi-select/grouping;
-- snapping;
-- controller tool wheel;
-- asset loading or asset-registry behavior.
+Authorized task range:
+- `P03-T02 — Implement command-backed object placement and ghost preview`
+- `P03-T03 — Implement command-backed move/rotate/scale editing and gizmo state`
+- `P03-T04 — Implement command-backed duplicate and delete operations`
+- `P03-T05 — Implement multi-select and grouping foundations`
+- `P03-T06 — Implement grid and angle snapping`
+- `P03-T07 — Implement surface/object/socket snapping and drop-to-ground`
+- `P03-T08 — Implement contextual placement toolbar and controller tool wheel`
+- `P03-T09 — Complete Phase 3 integration, gamepad, failure-path, and visual verification`
 
-The bridge intentionally provides generic `Node3D` anchors rather than inventing asset loading before the asset-library phase exists. Later selectable geometry can resolve to the owning entity through bridge metadata.
+Milestone branch:
+`dev/phase3-runtime-placement-milestone`
 
-## Automated tests added
-`tests/unit/runtime_entity_bridge_contracts.gd` verifies:
-- one runtime node per persisted entity;
-- stable-ID lookup;
-- persisted position/rotation/scale application;
-- stable-ID parent hierarchy reconstruction;
-- descendant runtime-node resolution back to owning entity ID;
-- selecting by stable ID;
-- replacing a previous single selection;
-- selecting through a descendant runtime node;
-- rejected unknown-ID selection preserving prior state;
-- selection clearing runtime selected state;
-- parent-cycle rejection;
-- failed bridge rebuild preserving the previous known-good mapping.
+Milestone baseline:
+`master` at `95ec15bdc4d6a2b293511f724cfc4204e9ae485d`.
 
-`tests/runtime/entity_selection_smoke.gd` verifies the actual workspace integration:
-- valid project entity records rebuild into runtime wrappers;
-- entity selection opens the existing inspector;
-- inspector content comes from the persisted entity record;
-- selecting a second entity leaves exactly one runtime wrapper selected;
-- descendant runtime-node selection resolves through stable identity;
-- selection does not mutate workspace project configuration;
-- closing the inspector clears the selection and runtime selected state.
+Do not open the Phase 3 completion PR until P03-T02 through P03-T09 are complete and the milestone passes strict Godot 4.7.1 verification.
 
-`tests/test_runner.gd` runs the new bridge contracts together with all existing Phase 0–2 contracts.
+## Merged P03-T01 foundation
+The milestone begins with these already-merged contracts:
+- generic `Node3D` runtime wrapper for persisted `WorldEntity` records;
+- stable-ID runtime entity bridge and hierarchy reconstruction;
+- failure-safe bridge rebuilds;
+- descendant runtime-node -> stable entity resolution;
+- single-selection model;
+- workspace/right-inspector selection integration;
+- no persistent scene-tree-path identity.
 
-`tests/runtime/runtime_smoke.gd` now exercises the entity-selection smoke inside the real application workspace while retaining all existing shell, mode, inspector, dock, cancel, persistence, and Continue-path verification.
+## Milestone-wide constraints
+- Every user-visible authoring mutation must execute through the command/transaction framework.
+- Successful mutations must mark the active project dirty so autosave/checkpoint behavior remains correct.
+- Undo/redo must restore authored project state and the runtime bridge consistently.
+- Persistent identity remains stable-ID based.
+- Invalid commands/transactions must not leave partial project or runtime state.
+- Placement/transform/delete/duplicate/group operations must be behaviorally tested, including failure paths.
+- Snapping must be deterministic and separable from persistence identity.
+- Keyboard/mouse and gamepad authoring flows must be tested by P03-T09.
+- UI additions must preserve the canonical dark/playful Nintendo-forward visual direction and avoid permanent enterprise-style density.
+- Do not fabricate the universal asset-library/import pipeline. Until Phase 4 exists, placement may use generic editor preview/runtime proxy geometry while preserving `asset_id`/`prefab_id` contracts for later integration.
+- Do not begin Phase 4 during this milestone.
 
-## Verification evidence
-Implementation commit:
-`16a581704fc0f1b85f1c31504a0f88254aa070a8`
+## PR/review boundary
+The next planned PR is the **Phase 3 completion PR** containing the completed P03-T02 through P03-T09 milestone. Internal commits and CI runs should occur throughout the milestone, but no intermediate task PR is required.
 
-GitHub Actions run `31515688225` used Godot `4.7.1.stable.official.a13da4feb` and passed:
-- `runtime-smoke` — SUCCESS
-- `phase1-visual-capture` — SUCCESS
-
-The runtime raw log contains `PASS: PlayWorld Studio test harness completed.` and contains no `SCRIPT ERROR:` or engine `ERROR:` output.
-
-The visual-capture raw log retains `--audio-driver Dummy` and `--disable-vsync`, contains `PASS: Phase 1 rendered screenshots captured.`, and contains no `SCRIPT ERROR:` or engine `ERROR:` output. The existing five canonical Phase 1 evidence images remain generated.
-
-After this documentation closeout commit, require one final Godot 4.7.1 branch workflow run and record that final run in the PR/completion report before treating P03-T01 as ready to merge.
-
-## Changed files
-- `src/editor/runtime_entity_node.gd`
-- `src/editor/runtime_entity_bridge.gd`
-- `src/editor/single_selection.gd`
-- `src/app/workspace/workspace_screen.gd`
-- `tests/unit/runtime_entity_bridge_contracts.gd`
-- `tests/runtime/entity_selection_smoke.gd`
-- `tests/runtime/runtime_smoke.gd`
-- `tests/test_runner.gd`
-- `docs/architecture/SYSTEM_ARCHITECTURE.md`
-- `docs/implementation/TASK_BACKLOG.md`
-- `docs/handoffs/CURRENT_HANDOFF.md`
-
-## Known limitations and residual risks
-- P03-T01 selection is programmatic/editor-model selection. Real viewport picking requires selectable geometry and belongs to later placement/editor work rather than being fabricated against the current placeholder viewport.
-- Runtime wrappers currently contain no asset scene content because the universal asset registry/import pipeline has not been implemented yet.
-- Wrapper selected state is a generic selection flag; a rendered bright outline requires actual rendered selectable content and remains a later visual/editor integration responsibility.
-- Selection is intentionally not persisted across sessions.
-- The obsolete `main` versus authoritative `master` branch mismatch remains intentionally unresolved.
-
-## Next authorized task
-Only after the P03-T01 PR is reviewed and merged into authoritative `master`, authorize only:
-
-`P03-T02 — Implement command-backed object placement and ghost preview`
-
-Do not begin P03-T03 or broader Phase 3 work in the same authorization step.
+## Next milestone after Phase 3
+Only after the Phase 3 milestone is complete, verified, reviewed, and merged should the next handoff authorize a meaningful Phase 4 milestone for the Universal Asset Library.
 
 ## New-thread start prompt
-Verify the P03-T01 PR has been merged into authoritative `master`; never develop from stale default `main`. Read the standard project/architecture/implementation documents and this handoff. If P03-T01 is present on `master`, implement only `P03-T02 — Implement command-backed object placement and ghost preview`. All authoring mutations must go through the command/transaction framework, successful mutations must mark the active project dirty, persistent identity remains stable-ID based, and UI/visual work must preserve the canonical dark/playful Nintendo-forward direction. Do not begin P03-T03 until P03-T02 is verified, documented, and merged.
+Use authoritative `master`, never stale default `main`. If the Phase 3 milestone branch already exists, continue `dev/phase3-runtime-placement-milestone` rather than creating per-task PR branches. Read the standard architecture/implementation documents and this handoff. Continue through the full authorized P03-T02 through P03-T09 milestone, committing and verifying internally as needed. Do not stop at individual task boundaries and do not open a PR until the Phase 3 milestone is complete unless a genuine external blocker requires review.
