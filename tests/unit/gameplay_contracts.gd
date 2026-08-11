@@ -17,7 +17,7 @@ static func run_checks() -> Array[String]:
     var ids: Dictionary = {}; var keys: Dictionary = {}
     for definition in definitions:
         var contract_errors := Contracts.validate_component_definition(definition)
-        if not contract_errors.is_empty(): errors.append("Built-in component definition must validate: %s" % contract_errors)
+        if not contract_errors.is_empty(): errors.append("Built-in component definition must validate: %s" % [contract_errors])
         var definition_id := str(definition.get("definition_id", "")); var key := str(definition.get("key", ""))
         if ids.has(definition_id) or keys.has(key): errors.append("Built-in component definitions require unique stable IDs and keys.")
         ids[definition_id] = true; keys[key] = true
@@ -28,7 +28,7 @@ static func run_checks() -> Array[String]:
     var test_cells: Array[String] = [StableId.generate()]
     project.cell_ids = test_cells
     var state_errors := state.validate(project)
-    if not state_errors.is_empty(): errors.append("Seed component/archetype state must cross-validate: %s" % state_errors)
+    if not state_errors.is_empty(): errors.append("Seed component/archetype state must cross-validate: %s" % [state_errors])
     if state.archetypes.size() != 9: errors.append("Initial archetype registry must contain the nine documented presets.")
 
     var plan := state.dependency_plan(Components.id_for("vehicle_body"), [])
@@ -52,7 +52,7 @@ static func run_checks() -> Array[String]:
     derived["node_overrides"] = {root_node["node_id"]: {"display_name": "Derived Root", "components": {Components.id_for("health"): {"max_health": 250.0}}}}
     state.prefabs.append(derived)
     var resolved := PrefabResolver.new(state).resolve(derived["prefab_id"])
-    if not resolved.get("ok", false): errors.append("Derived prefab must resolve its base and overrides: %s" % resolved.get("errors", []))
+    if not resolved.get("ok", false): errors.append("Derived prefab must resolve its base and overrides: %s" % [resolved.get("errors", [])])
     else:
         var effective: Dictionary = resolved.get("nodes", [])[0]
         if effective.get("display_name") != "Derived Root" or float(effective.get("components", {}).get(Components.id_for("health"), {}).get("max_health", 0.0)) != 250.0: errors.append("Derived prefab must preserve deterministic meaningful overrides.")
@@ -61,7 +61,7 @@ static func run_checks() -> Array[String]:
     var repo_root := "user://tests/phase6_gameplay_%s" % StableId.generate()
     var repository = GameplayRepository.new(repo_root.path_join("project"))
     var open_result := repository.open_or_create(project)
-    if not open_result.get("ok", false): errors.append("Gameplay repository must seed valid project-managed registries: %s" % open_result.get("errors", []))
+    if not open_result.get("ok", false): errors.append("Gameplay repository must seed valid project-managed registries: %s" % [open_result.get("errors", [])])
     else:
         var reopened = GameplayRepository.new(repo_root.path_join("project")).open_or_create(project)
         if not reopened.get("ok", false) or reopened.get("state").definitions.size() != 21: errors.append("Gameplay definitions must survive repository reopen with stable identity.")
