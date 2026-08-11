@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource path="res://src/main/main.gd" type="Script" id="1"]
 [ext_resource path="res://src/app/screens/home/HomeScreen.tscn" type="PackedScene" id="2"]
 [ext_resource path="res://src/app/screens/new_world/NewWorldScreen.tscn" type="PackedScene" id="3"]
+[ext_resource path="res://src/app/workspace/WorkspaceScreen.tscn" type="PackedScene" id="4"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -22,6 +23,15 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="NewWorldScreen" parent="." instance=ExtResource("3")]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WorkspaceScreen" parent="." instance=ExtResource("4")]
 visible = false
 layout_mode = 1
 anchors_preset = 15
