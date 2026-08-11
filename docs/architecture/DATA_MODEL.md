@@ -48,9 +48,14 @@ Fields include: schema_version, id, project_id, coordinates/bounds, owned entity
 Ownership: `src/world`.
 
 ## WorldProject
-Fields include: schema_version, document_type, project_id, title, template ID, world profile, cell layout/IDs, environment references/state, registries, editor settings, export settings, dependency list.
+Fields include: schema_version, document_type, project_id, title, template ID, world profile, cell layout/IDs, environment references/state, registries, editor settings, export settings, dependency list, created/updated Unix timestamps, and optional millisecond-resolution created/updated timestamps.
 
-Ownership: `src/world`. `project_id` is the root stable UUID for the authored project.
+Ownership: `src/world`. `project_id` is the root stable UUID for the authored project. Millisecond timestamps were added as backward-compatible optional schema-v1 metadata for deterministic save/checkpoint ordering; older schema-v1 manifests without those fields derive them from the existing Unix-second timestamps when loaded.
+
+## WorldCheckpoint
+Fields: schema_version, document_type, id, project_id, created_at_msec, project_state.
+
+Ownership: `src/world`, with `checkpoint_store.gd` as write/retention authority and `checkpoint_record.gd` as schema/validation authority. `id` is the checkpoint's stable UUID. `project_id` is the stable owning project reference. `project_state` is a complete validated `WorldProject` snapshot and must carry the same `project_id`. Checkpoint documents are editor persistence/recovery data rather than exported runtime gameplay state. Checkpoint schema migration responsibility remains in world persistence code.
 
 ## Reference rule
 No persisted relationship in these models may use a scene-tree path, node name, array index, or filesystem path as identity. Those values may exist as metadata only where explicitly documented.
