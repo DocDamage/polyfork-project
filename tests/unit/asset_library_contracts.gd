@@ -26,7 +26,7 @@ static func run_checks() -> Array[String]:
     var library = AssetLibraryService.new(project_root)
     var load_result: Dictionary = library.load_library()
     if not load_result.get("ok", false):
-        errors.append("Asset Library must initialize managed project storage: %s" % load_result.get("errors", []))
+        errors.append("Asset Library must initialize managed project storage: %s" % [load_result.get("errors", [])])
         return errors
 
     var overlap_result: Dictionary = library.register_source(project_root, "Invalid overlap")
@@ -35,7 +35,7 @@ static func run_checks() -> Array[String]:
 
     var register_result: Dictionary = library.register_source(source_root, "Test Source")
     if not register_result.get("ok", false):
-        errors.append("Readable external source folder must register and scan: %s" % register_result.get("errors", []))
+        errors.append("Readable external source folder must register and scan: %s" % [register_result.get("errors", [])])
         return errors
     var first_stats: Dictionary = register_result.get("stats", {})
     if int(first_stats.get("files", 0)) != 131 or int(first_stats.get("hashed", 0)) != 131:
@@ -65,7 +65,7 @@ static func run_checks() -> Array[String]:
     library.add_to_collection(tree_id, "Nature")
     var reloaded = AssetLibraryService.new(project_root)
     var reload_result: Dictionary = reloaded.load_library()
-    var persisted := reloaded.get_record(tree_id)
+    var persisted: Dictionary = reloaded.get_record(tree_id)
     if not reload_result.get("ok", false) or not bool(persisted.get("favorite", false)) or not persisted.get("collections", []).has("Nature") or str(persisted.get("license", {}).get("spdx", "")) != "CC0-1.0":
         errors.append("Favorites, collections, licensing, and catalog metadata must persist across library restart.")
 
@@ -77,14 +77,14 @@ static func run_checks() -> Array[String]:
     var moved_path := source_root.path_join("props/moved_tree.tscn")
     DirAccess.rename_absolute(ProjectSettings.globalize_path(tree_path), ProjectSettings.globalize_path(moved_path))
     var move_scan: Dictionary = reloaded.scan_all()
-    var moved_record := _record_by_relative(reloaded.get_records(), "props/moved_tree.tscn")
+    var moved_record: Dictionary = _record_by_relative(reloaded.get_records(), "props/moved_tree.tscn")
     if not move_scan.get("ok", false) or str(moved_record.get("asset_id", "")) != tree_id:
         errors.append("A uniquely provable in-source move must reconcile back to the original stable asset ID.")
 
     var duplicate_path := source_root.path_join("props/tree_copy.tscn")
     _copy_file(moved_path, duplicate_path)
     var duplicate_scan: Dictionary = reloaded.scan_all()
-    var copy_record := _record_by_relative(reloaded.get_records(), "props/tree_copy.tscn")
+    var copy_record: Dictionary = _record_by_relative(reloaded.get_records(), "props/tree_copy.tscn")
     if not duplicate_scan.get("ok", false) or copy_record.is_empty() or str(copy_record.get("asset_id", "")) == tree_id:
         errors.append("Duplicate content must receive its own catalog identity rather than silently merging source files.")
     if reloaded.duplicate_groups().is_empty():
@@ -105,14 +105,14 @@ static func run_checks() -> Array[String]:
     var old_copy_thumbnail := str(copy_record.get("thumbnail", {}).get("path", ""))
     _write_text(duplicate_path, _tree_scene("TreeCopyChanged") + "\n# content changed with a different size\n")
     var changed_scan: Dictionary = reloaded.scan_all()
-    var changed_copy := _record_by_relative(reloaded.get_records(), "props/tree_copy.tscn")
+    var changed_copy: Dictionary = _record_by_relative(reloaded.get_records(), "props/tree_copy.tscn")
     var new_copy_thumbnail := str(changed_copy.get("thumbnail", {}).get("path", ""))
     if not changed_scan.get("ok", false) or old_copy_thumbnail == new_copy_thumbnail or new_copy_thumbnail.is_empty() or not FileAccess.file_exists(new_copy_thumbnail):
         errors.append("Content changes must invalidate and regenerate the asset thumbnail cache deterministically.")
     if not old_copy_thumbnail.is_empty() and FileAccess.file_exists(old_copy_thumbnail):
         errors.append("Stale thumbnail cache entries for a changed asset must be invalidated.")
 
-    var corrupt_import := reloaded.ensure_import(str(corrupt_record.get("asset_id", "")))
+    var corrupt_import: Dictionary = reloaded.ensure_import(str(corrupt_record.get("asset_id", "")))
     if corrupt_import.get("ok", false):
         errors.append("Corrupt analyzed assets must fail import before unsafe engine loading is attempted.")
 
@@ -121,7 +121,7 @@ static func run_checks() -> Array[String]:
     var missing_scan: Dictionary = reloaded.scan_all()
     if missing_scan.get("ok", true):
         errors.append("Missing registered sources must surface a recoverable scan failure.")
-    var missing_tree := reloaded.get_record(tree_id)
+    var missing_tree: Dictionary = reloaded.get_record(tree_id)
     if not bool(missing_tree.get("missing", false)):
         errors.append("Catalog records must be retained and marked missing when a registered source becomes unavailable.")
 

@@ -11,7 +11,7 @@ func _init(root: String) -> void:
 
 
 func ensure_import(record: Dictionary, source_root: String) -> Dictionary:
-    var errors := AssetRecord.validate_dictionary(record)
+    var errors: Array[String] = AssetRecord.validate_dictionary(record)
     if not errors.is_empty(): return {"ok": false, "errors": errors}
     if bool(record.get("missing", false)): return _failure("Missing source assets cannot be imported.")
     var analysis: Dictionary = record.get("analysis", {})
@@ -27,10 +27,10 @@ func ensure_import(record: Dictionary, source_root: String) -> Dictionary:
         return {"ok": true, "errors": [], "derived": _derived(record, target_path, target_dir), "reused": true}
     var make_error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(target_dir))
     if make_error != OK: return _failure("Unable to create managed import directory: %s" % make_error)
-    var copy_result := _copy_file(source_path, target_path)
+    var copy_result: Dictionary = _copy_file(source_path, target_path)
     if not copy_result.get("ok", false): return copy_result
     if str(record.get("asset_type", "")) == "gltf":
-        var dependency_result := _copy_gltf_dependencies(source_path, target_dir, source_root)
+        var dependency_result: Dictionary = _copy_gltf_dependencies(source_path, target_dir, source_root)
         if not dependency_result.get("ok", false):
             DirAccess.remove_absolute(ProjectSettings.globalize_path(target_path))
             return dependency_result
@@ -38,7 +38,7 @@ func ensure_import(record: Dictionary, source_root: String) -> Dictionary:
 
 
 func instantiate(record: Dictionary, source_root: String) -> Dictionary:
-    var import_result := ensure_import(record, source_root)
+    var import_result: Dictionary = ensure_import(record, source_root)
     if not import_result.get("ok", false): return import_result
     var derived: Dictionary = import_result["derived"]
     var path := str(derived.get("imported_path", ""))
@@ -46,18 +46,19 @@ func instantiate(record: Dictionary, source_root: String) -> Dictionary:
         "gltf", "glb":
             var document := GLTFDocument.new()
             var state := GLTFState.new()
-            var append_error := document.append_from_file(path, state)
+            var append_error: Error = document.append_from_file(path, state)
             if append_error != OK: return _failure("Godot could not import the GLTF asset: %s" % append_error)
-            var node := document.generate_scene(state)
-            if node == null: return _failure("Godot could not generate a scene from the GLTF asset.")
-            return {"ok": true, "errors": [], "node": node, "derived": derived}
+            var generated_node: Node = document.generate_scene(state)
+            if generated_node == null: return _failure("Godot could not generate a scene from the GLTF asset.")
+            return {"ok": true, "errors": [], "node": generated_node, "derived": derived}
         "godot_text_scene", "godot_binary_scene":
-            var resource := ResourceLoader.load(path)
+            var resource: Resource = ResourceLoader.load(path)
             if resource == null or not resource is PackedScene:
                 return _failure("Godot scene asset could not be loaded as a PackedScene.")
-            var node := resource.instantiate()
-            if node == null: return _failure("Godot scene asset could not be instantiated.")
-            return {"ok": true, "errors": [], "node": node, "derived": derived}
+            var packed_scene := resource as PackedScene
+            var scene_node: Node = packed_scene.instantiate()
+            if scene_node == null: return _failure("Godot scene asset could not be instantiated.")
+            return {"ok": true, "errors": [], "node": scene_node, "derived": derived}
     return _failure("Asset type cannot be instantiated.")
 
 
@@ -87,7 +88,7 @@ func _copy_gltf_dependencies(source_path: String, target_dir: String, source_roo
         var dependency_target := target_dir.path_join(uri).replace("\\", "/").simplify_path()
         var make_error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dependency_target.get_base_dir()))
         if make_error != OK: return _failure("Unable to create managed GLTF dependency folder.")
-        var copy_result := _copy_file(dependency_source, dependency_target)
+        var copy_result: Dictionary = _copy_file(dependency_source, dependency_target)
         if not copy_result.get("ok", false): return copy_result
     return {"ok": true, "errors": []}
 
