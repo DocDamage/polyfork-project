@@ -50,15 +50,6 @@ jobs:
           fi
           grep -F 'PASS: PlayWorld Studio test harness completed.' godot-smoke.log
 
-      - name: Upload runtime smoke log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: runtime-smoke-log
-          path: godot-smoke.log
-          if-no-files-found: error
-          retention-days: 1
-
   phase1-visual-capture:
     runs-on: ubuntu-latest
     timeout-minutes: 10
