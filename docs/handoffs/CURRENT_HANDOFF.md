@@ -3,7 +3,14 @@
 Repository: `https://github.com/DocDamage/polyfork-project`
 
 ## Status
-Phase 5 — Terrain + Streaming — is implemented and verified on its single milestone branch. One Phase 5 completion PR must be reviewed and merged before Phase 6 begins.
+Phase 5 — Terrain + Streaming — is implemented and verified on its single milestone branch.
+
+Completion PR:
+**PR #10 — Phase 5 — Terrain + Streaming**
+
+Target: `master`
+
+PR #10 must be reviewed and explicitly merged before Phase 6 begins.
 
 ## Authoritative baseline
 Authoritative project branch: `master`
@@ -15,6 +22,9 @@ The repository default branch `main` remains obsolete starter code. Never develo
 
 Phase 5 branch:
 `dev/phase5-terrain-streaming-milestone`
+
+Verified implementation/documentation closeout commit before the PR-number-only handoff update:
+`901216cf8ed69588b129bebe5f57edb5d3546c4f`
 
 ## Completed task range
 - P05-T01 versioned terrain/biome/cell persistence and stable cell identity
@@ -79,8 +89,8 @@ Controls include:
 Mouse terrain clicks sculpt directly. Keyboard arrows/D-pad move the brush cursor. Enter/A applies. Right shoulder cycles brush mode. The Phase 3 left-shoulder tool wheel remains intact. Phase 4 Asset Library behavior remains accessible after terrain editing.
 
 ## Verification
-Latest fully green implementation run before documentation closeout:
-`31544299439`
+Final pre-PR closeout run:
+`31544495810`
 
 Godot version:
 `4.7.1.stable.official.a13da4feb`
@@ -109,17 +119,17 @@ Behavioral verification covers:
 - entity placement/movement cell ownership with undo/redo
 - real workspace keyboard/mouse/gamepad authoring
 - preservation of Phase 3 controller tool wheel and Phase 4 Asset Library
-- Medium/ Large deterministic scale workload and repeated brush regression proxy
+- Medium/Large deterministic scale workload and repeated brush regression proxy
 
 The automated performance workload is a CI regression proxy, not an RTX 3060 hardware benchmark. The documented RTX 3060-class 1080p/60 FPS goal remains a release hardware target and has not been falsely claimed as measured by GitHub Actions.
 
 ## Raw log inspection
-The raw `runtime-smoke` log was inspected and contains `PASS: PlayWorld Studio test harness completed.` with no `SCRIPT ERROR:` or engine `ERROR:` output.
+The raw closeout `runtime-smoke` log was inspected and contains `PASS: PlayWorld Studio test harness completed.` with no `SCRIPT ERROR:` or engine `ERROR:` output.
 
-The raw Phase 5 visual log was inspected and contains `PASS: Phase 5 rendered screenshots captured.` with no `SCRIPT ERROR:` or engine `ERROR:` output. Expected runner/graphics warnings do not bypass the strict error gate.
+The raw closeout Phase 5 visual log was inspected and contains `PASS: Phase 5 rendered screenshots captured.` with no `SCRIPT ERROR:` or engine `ERROR:` output. Expected runner/graphics warnings do not bypass the strict error gate.
 
 ## Visual evidence
-Run `31544299439` uploaded Phase 5 artifact ID `9121883914` (`phase5-visual-evidence`).
+Run `31544495810` uploaded Phase 5 artifact ID `9121952251` (`phase5-visual-evidence`).
 
 Files:
 - `00-canonical-reference.png`
@@ -131,9 +141,9 @@ Visual inspection was performed manually. Initial screenshots were rejected beca
 ## Scope boundary
 Phase 5 does not implement foliage/scatter, roads/splines, full weather/environment, prefab/component authoring, visual scripting, gameplay frameworks, AI creation, or export. Those remain later phases.
 
-## Next action
-Open exactly one Phase 5 completion PR targeting authoritative `master`.
+## Merge gate
+PR #10 is the only Phase 5 completion PR.
 
 Do not merge without explicit user authorization.
 
-Do not begin Phase 6 until the Phase 5 completion PR is merged and the new authoritative `master` commit is verified.
+Do not begin Phase 6 until PR #10 is merged into authoritative `master` and the new authoritative `master` commit is verified.
