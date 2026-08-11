@@ -1,20 +1,32 @@
 # Current Handoff
 
 ## Status
-OPEN — Phase 4 Universal Asset Library implementation is complete and verified on its milestone branch. The single Phase 4 completion PR must be reviewed and merged before Phase 5 begins.
+OPEN — Phase 4 Universal Asset Library implementation is complete and verified. Completion PR #9 is open against authoritative `master` and must be explicitly merged before Phase 5 begins.
 
 ## Authoritative branch state
 Repository: `DocDamage/polyfork-project`
 
 Authoritative project branch: `master`
 
-Phase 4 started from authoritative `master` commit:
+Current authoritative `master` remains:
 `e5c80c82a4a18ad0225111d15720347c5614612a`
+
+Phase 4 started from that exact commit.
 
 The repository default branch `main` remains obsolete starter code. Never develop from `main`.
 
 Phase 4 milestone branch:
 `dev/phase4-universal-asset-library-milestone`
+
+Verified implementation/documentation closeout commit:
+`d0c507279cf63d6fab03a96565375763b1a1ad1c`
+
+Completion PR:
+`#9 — Phase 4 — Universal Asset Library`
+
+Target: `master`
+
+State: **OPEN / NOT MERGED**
 
 ## Milestone workflow policy
 The project uses milestone-based review gates rather than one PR per internal task.
@@ -111,7 +123,7 @@ Behavioral coverage includes:
 - keyboard and gamepad browser controls;
 - existing Phase 0–3 tests retained.
 
-Godot Actions run `31537427941` used `4.7.1.stable.official.a13da4feb` and passed:
+Final closeout Godot Actions run `31537873378` used `4.7.1.stable.official.a13da4feb` and passed:
 - `runtime-smoke` — SUCCESS
 - `phase1-visual-capture` — SUCCESS
 - `phase4-visual-capture` — SUCCESS
@@ -123,10 +135,10 @@ The raw Phase 4 visual log contains `PASS: Phase 4 rendered screenshots captured
 - `01-asset-library-large.png`
 - `02-asset-library-compact.png`
 
-Visual inspection confirmed the Asset Library remains integrated into the canonical dark/playful workspace. A compact-density horizontal overflow exposed by that inspection was corrected before milestone closeout.
+Visual inspection confirmed the Asset Library remains integrated into the canonical dark/playful workspace. A compact-density horizontal overflow exposed by that inspection was corrected and the regenerated screenshot was manually re-inspected before PR creation.
 
 ## Scope boundary
-Phase 5 has not started. Terrain/streaming work is not authorized until the Phase 4 completion PR is merged into authoritative `master`.
+Phase 5 has not started. Terrain/streaming work is not authorized until PR #9 is merged into authoritative `master`.
 
 ## Next action
-Open one Phase 4 completion PR targeting `master`. Do not merge it without explicit user authorization. After it is merged, verify the new authoritative `master` commit and create the next handoff before beginning Phase 5.
+Review PR #9. Do not merge it without explicit user authorization. After it is merged, verify the new authoritative `master` commit and create the next handoff before beginning Phase 5.
