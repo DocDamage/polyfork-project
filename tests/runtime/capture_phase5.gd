@@ -47,22 +47,23 @@ func _run() -> void:
     terrain_button.emit_signal("pressed")
     await _settle()
 
-    controller.set_radius(210.0)
-    controller.set_strength(24.0)
+    controller.set_radius(280.0)
+    controller.set_strength(32.0)
     controller.set_mode(&"raise")
-    for index in range(4):
+    for index in range(7):
         controller.set_cursor(Vector3.ZERO)
         var result: Dictionary = controller.apply_brush()
         if not result.get("ok", false):
             push_error("Phase 5 visual sculpt failed: %s" % result.get("errors", []))
             quit(1); return
-    controller.set_cursor(Vector3(220.0, 0.0, -110.0))
-    controller.set_radius(150.0)
-    controller.set_strength(16.0)
-    for index in range(2): controller.apply_brush()
-    controller.set_cursor(Vector3(-190.0, 0.0, 150.0))
-    for index in range(2): controller.apply_brush()
+    controller.set_cursor(Vector3(240.0, 0.0, -140.0))
+    controller.set_radius(190.0)
+    controller.set_strength(24.0)
+    for index in range(3): controller.apply_brush()
+    controller.set_cursor(Vector3(-220.0, 0.0, 170.0))
+    for index in range(3): controller.apply_brush()
     controller.set_cursor(Vector3.ZERO)
+    controller.set_radius(260.0)
     await _settle()
     await _capture("01-terrain-sculpt")
 
@@ -76,8 +77,8 @@ func _run() -> void:
         var panel = terrain_layer.call("get_panel")
         if panel != null: panel.call("select_biome", target_biome_id)
     controller.set_mode(&"smooth")
-    controller.set_radius(260.0)
-    controller.set_strength(0.55)
+    controller.set_radius(320.0)
+    controller.set_strength(0.70)
     controller.apply_brush()
     await _settle()
     await _capture("02-terrain-biome")
