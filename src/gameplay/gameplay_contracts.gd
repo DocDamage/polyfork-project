@@ -68,36 +68,28 @@ static func validate_prefab(data: Dictionary) -> Array[String]:
     var nodes = data.get("nodes", [])
     if not nodes is Array: errors.append("Prefab nodes must be an array.")
     else:
-        var known: Dictionary = {}
-        var roots := 0
+        var known: Dictionary = {}; var roots := 0
         for item in nodes:
             if not item is Dictionary: errors.append("Prefab nodes must contain dictionaries only."); continue
-            var node: Dictionary = item
-            var node_id := str(node.get("node_id", ""))
+            var node: Dictionary = item; var node_id := str(node.get("node_id", ""))
             _require_id(node_id, "Prefab node_id", errors)
             if known.has(node_id): errors.append("Prefab contains duplicate node_id.")
             known[node_id] = true
             if str(node.get("display_name", "")).strip_edges().is_empty(): errors.append("Prefab node display_name is required.")
-            _optional_id(node.get("parent_node_id"), "Prefab node parent_node_id", errors)
-            _optional_id(node.get("asset_id"), "Prefab node asset_id", errors)
+            _optional_id(node.get("parent_node_id"), "Prefab node parent_node_id", errors); _optional_id(node.get("asset_id"), "Prefab node asset_id", errors)
             _validate_transform(node.get("transform"), "Prefab node transform", errors)
             if not node.get("components", {}) is Dictionary: errors.append("Prefab node components must be a dictionary.")
             if node.get("parent_node_id") == null or str(node.get("parent_node_id", "")).is_empty(): roots += 1
         for item in nodes:
             if item is Dictionary:
                 var parent = item.get("parent_node_id")
-                if parent != null and not str(parent).is_empty() and not known.has(str(parent)) and data.get("base_prefab_id") == null:
-                    errors.append("Base prefab node parent_node_id must resolve inside the prefab.")
-        if (data.get("base_prefab_id") == null or str(data.get("base_prefab_id", "")).is_empty()) and roots != 1:
-            errors.append("A base prefab must contain exactly one root node.")
+                if parent != null and not str(parent).is_empty() and not known.has(str(parent)) and data.get("base_prefab_id") == null: errors.append("Base prefab node parent_node_id must resolve inside the prefab.")
+        if (data.get("base_prefab_id") == null or str(data.get("base_prefab_id", "")).is_empty()) and roots != 1: errors.append("A base prefab must contain exactly one root node.")
     var overrides = data.get("node_overrides", {})
     if not overrides is Dictionary: errors.append("Prefab node_overrides must be a dictionary.")
     else:
-        for node_id in overrides.keys():
-            _require_id(node_id, "Prefab node_overrides key", errors)
-            if not overrides[node_id] is Dictionary: errors.append("Prefab node overrides must be dictionaries.")
-    _validate_id_array(data.get("removed_node_ids", []), "removed_node_ids", errors)
-    _validate_id_array(data.get("socket_ids", []), "socket_ids", errors)
+        for node_id in overrides.keys(): _require_id(node_id, "Prefab node_overrides key", errors); 
+    _validate_id_array(data.get("removed_node_ids", []), "removed_node_ids", errors); _validate_id_array(data.get("socket_ids", []), "socket_ids", errors)
     var socket_overrides = data.get("socket_overrides", {})
     if not socket_overrides is Dictionary: errors.append("Prefab socket_overrides must be a dictionary.")
     else:
@@ -107,47 +99,36 @@ static func validate_prefab(data: Dictionary) -> Array[String]:
 
 
 static func validate_socket(data: Dictionary) -> Array[String]:
-    var errors := _base(data, SOCKET, "socket_id")
-    var owner_kind := str(data.get("owner_kind", ""))
+    var errors := _base(data, SOCKET, "socket_id"); var owner_kind := str(data.get("owner_kind", ""))
     if not ["entity", "prefab_node"].has(owner_kind): errors.append("Socket owner_kind must be entity or prefab_node.")
     _require_id(data.get("owner_id"), "Socket owner_id", errors)
     if str(data.get("name", "")).strip_edges().is_empty(): errors.append("Socket name is required.")
     var category := str(data.get("category", ""))
     if not SOCKET_CATEGORIES.has(category): errors.append("Socket category is unsupported.")
     if category == "Custom" and str(data.get("custom_category", "")).strip_edges().is_empty(): errors.append("Custom socket category requires custom_category.")
-    _validate_transform(data.get("local_transform"), "Socket local_transform", errors)
-    return errors
+    _validate_transform(data.get("local_transform"), "Socket local_transform", errors); return errors
 
 
 static func validate_attachment(data: Dictionary) -> Array[String]:
     var errors := _base(data, ATTACHMENT, "attachment_id")
-    _require_id(data.get("parent_entity_id"), "Attachment parent_entity_id", errors)
-    _require_id(data.get("parent_socket_id"), "Attachment parent_socket_id", errors)
-    _require_id(data.get("child_entity_id"), "Attachment child_entity_id", errors)
-    _optional_id(data.get("child_socket_id"), "Attachment child_socket_id", errors)
+    _require_id(data.get("parent_entity_id"), "Attachment parent_entity_id", errors); _require_id(data.get("parent_socket_id"), "Attachment parent_socket_id", errors); _require_id(data.get("child_entity_id"), "Attachment child_entity_id", errors); _optional_id(data.get("child_socket_id"), "Attachment child_socket_id", errors)
     if str(data.get("parent_entity_id", "")) == str(data.get("child_entity_id", "")): errors.append("Attachment parent and child entities must differ.")
-    _validate_transform(data.get("offset_transform"), "Attachment offset_transform", errors)
-    return errors
+    _validate_transform(data.get("offset_transform"), "Attachment offset_transform", errors); return errors
 
 
 static func validate_prefab_instance(data: Dictionary) -> Array[String]:
     var errors := _base(data, PREFAB_INSTANCE, "instance_id")
-    _require_id(data.get("prefab_id"), "Prefab instance prefab_id", errors)
-    _require_id(data.get("root_entity_id"), "Prefab instance root_entity_id", errors)
+    _require_id(data.get("prefab_id"), "Prefab instance prefab_id", errors); _require_id(data.get("root_entity_id"), "Prefab instance root_entity_id", errors)
     var mapping = data.get("node_entity_ids", {})
     if not mapping is Dictionary: errors.append("Prefab instance node_entity_ids must be a dictionary.")
     else:
-        for node_id in mapping.keys():
-            _require_id(node_id, "Prefab instance node ID", errors)
-            _require_id(mapping[node_id], "Prefab instance entity ID", errors)
-    var overrides = data.get("overrides", {})
-    if not overrides is Dictionary: errors.append("Prefab instance overrides must be a dictionary.")
+        for node_id in mapping.keys(): _require_id(node_id, "Prefab instance node ID", errors); _require_id(mapping[node_id], "Prefab instance entity ID", errors)
+    if not data.get("overrides", {}) is Dictionary: errors.append("Prefab instance overrides must be a dictionary.")
     return errors
 
 
 static func validate_values(values: Dictionary, definition: Dictionary, partial: bool = false) -> Array[String]:
-    var errors: Array[String] = []
-    var specs: Dictionary = definition.get("properties", {})
+    var errors: Array[String] = []; var specs: Dictionary = definition.get("properties", {})
     for key in values.keys():
         if not specs.has(key): errors.append("Unknown property %s for %s." % [key, definition.get("display_name", "component")]); continue
         _validate_property_value(str(key), values[key], specs[key], errors)
@@ -167,8 +148,7 @@ static func _base(data: Dictionary, expected_type: String, id_field: String) -> 
     var errors: Array[String] = []
     if data.get("document_type") != expected_type: errors.append("%s document_type is invalid." % expected_type)
     if int(data.get("schema_version", 0)) != SCHEMA_VERSION: errors.append("%s schema_version is unsupported." % expected_type)
-    _require_id(data.get(id_field), "%s %s" % [expected_type, id_field], errors)
-    return errors
+    _require_id(data.get(id_field), "%s %s" % [expected_type, id_field], errors); return errors
 
 
 static func _validate_property_spec(name: String, spec: Dictionary, errors: Array[String]) -> void:
@@ -183,11 +163,10 @@ static func _validate_property_spec(name: String, spec: Dictionary, errors: Arra
 
 
 static func _validate_property_value(name: String, value: Variant, spec: Dictionary, errors: Array[String]) -> void:
-    var type_name := str(spec.get("type", ""))
-    var valid := false
+    var type_name := str(spec.get("type", "")); var valid := false
     match type_name:
         "bool": valid = value is bool
-        "int": valid = value is int
+        "int": valid = value is int or (value is float and is_equal_approx(float(value), round(float(value))))
         "float": valid = value is int or value is float
         "string": valid = value is String
         "enum": valid = spec.get("options", []).has(value)
@@ -216,8 +195,7 @@ static func _validate_id_array(value: Variant, label: String, errors: Array[Stri
     if not value is Array: errors.append("%s must be an array." % label); return
     var seen: Dictionary = {}
     for item in value:
-        var id := str(item)
-        _require_id(id, label, errors)
+        var id := str(item); _require_id(id, label, errors)
         if seen.has(id): errors.append("%s contains duplicate IDs." % label)
         seen[id] = true
 
