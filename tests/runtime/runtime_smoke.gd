@@ -18,28 +18,23 @@ func run_checks() -> Dictionary:
 
     add_child(main_instance)
 
-    if not main_instance is Control:
-        errors.append("Main scene root must be a Control.")
-
     var home := main_instance.get_node_or_null("HomeScreen") as Control
     var new_world := main_instance.get_node_or_null("NewWorldScreen") as Control
+    var workspace := main_instance.get_node_or_null("WorkspaceScreen") as Control
 
+    if not main_instance is Control:
+        errors.append("Main scene root must be a Control.")
     if home == null:
         errors.append("Home screen must be the initial application view.")
     else:
         _check_home(home, errors)
-
     if new_world == null:
         errors.append("New World screen must exist as an app route target.")
-    elif new_world.visible:
-        errors.append("New World screen must start hidden while Home is active.")
+    if workspace == null:
+        errors.append("Workspace screen must exist as an app route target.")
 
-    if home != null and new_world != null:
-        home.emit_signal("route_requested", &"new_world")
-        _check_new_world_route(home, new_world, errors)
-        new_world.emit_signal("back_requested")
-        if not home.visible or new_world.visible:
-            errors.append("Back from New World must return to Home.")
+    if home != null and new_world != null and workspace != null:
+        _exercise_routes(home, new_world, workspace, errors)
 
     main_instance.queue_free()
     return {"ok": errors.is_empty(), "errors": errors}
@@ -66,6 +61,35 @@ func _check_home(home: Control, errors: Array[String]) -> void:
             errors.append("Home action %s has unexpected text." % required_buttons[node_name])
 
 
+func _exercise_routes(
+    home: Control,
+    new_world: Control,
+    workspace: Control,
+    errors: Array[String]
+) -> void:
+    if new_world.visible or workspace.visible:
+        errors.append("Home must be the only initial route visible.")
+
+    home.emit_signal("route_requested", &"new_world")
+    _check_new_world_route(home, new_world, errors)
+
+    new_world.emit_signal("back_requested")
+    if not home.visible or new_world.visible:
+        errors.append("Back from New World must return to Home.")
+
+    home.emit_signal("route_requested", &"new_world")
+    new_world.emit_signal("create_requested", {
+        "title": "Smoke World",
+        "world_profile": "medium",
+        "template_id": "third_person_adventure"
+    })
+    _check_workspace_route(home, new_world, workspace, errors)
+
+    workspace.emit_signal("home_requested")
+    if not home.visible or workspace.visible:
+        errors.append("Workspace Home action must return to Home.")
+
+
 func _check_new_world_route(home: Control, new_world: Control, errors: Array[String]) -> void:
     if home.visible or not new_world.visible:
         errors.append("Create New World route must hide Home and show New World.")
@@ -73,3 +97,24 @@ func _check_new_world_route(home: Control, new_world: Control, errors: Array[Str
     for node_name in ["SmallButton", "MediumButton", "LargeButton", "TemplateOption", "CreateButton"]:
         if new_world.find_child(node_name, true, false) == null:
             errors.append("New World screen is missing %s." % node_name)
+
+
+func _check_workspace_route(
+    home: Control,
+    new_world: Control,
+    workspace: Control,
+    errors: Array[String]
+) -> void:
+    if home.visible or new_world.visible or not workspace.visible:
+        errors.append("Create request must route into the workspace shell.")
+
+    var title := workspace.find_child("WorldTitle", true, false) as Label
+    if title == null or title.text != "Smoke World":
+        errors.append("Workspace must receive the in-memory world title.")
+
+    if workspace.find_child("ModeSlot", true, false) == null:
+        errors.append("Workspace must reserve a mode-switch slot.")
+    if workspace.find_child("InspectorLayer", true, false) == null:
+        errors.append("Workspace must reserve an inspector layer.")
+    if workspace.find_child("BottomDockLayer", true, false) == null:
+        errors.append("Workspace must reserve a bottom-dock layer.")
