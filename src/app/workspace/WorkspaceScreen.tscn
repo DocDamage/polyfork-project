@@ -1,10 +1,13 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource path="res://src/app/workspace/workspace_screen.gd" type="Script" id="1"]
 [ext_resource path="res://src/app/workspace/ModeSwitch.tscn" type="PackedScene" id="2"]
 [ext_resource path="res://src/app/workspace/InspectorPanel.tscn" type="PackedScene" id="3"]
 [ext_resource path="res://src/app/workspace/BottomToolDock.tscn" type="PackedScene" id="4"]
 [ext_resource path="res://src/app/workspace/TransformToolbar.tscn" type="PackedScene" id="5"]
+[ext_resource path="res://src/editor/EditorViewport3D.tscn" type="PackedScene" id="6"]
+[ext_resource path="res://src/app/workspace/PlacementToolbar.tscn" type="PackedScene" id="7"]
+[ext_resource path="res://src/app/workspace/ToolWheel.tscn" type="PackedScene" id="8"]
 
 [node name="WorkspaceScreen" type="Control"]
 layout_mode = 3
@@ -27,10 +30,7 @@ color = Color(0.031, 0.051, 0.071, 1)
 
 [node name="TopBar" type="PanelContainer" parent="."]
 layout_mode = 1
-anchor_left = 0.0
-anchor_top = 0.0
 anchor_right = 1.0
-anchor_bottom = 0.0
 offset_left = 12.0
 offset_top = 10.0
 offset_right = -12.0
@@ -57,8 +57,8 @@ theme_type_variation = &"ToolButton"
 text = "Home"
 
 [node name="WorldStack" type="VBoxContainer" parent="TopBar/TopMargin/TopRow"]
-layout_mode = 2
 custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
 theme_override_constants/separation = 1
 
 [node name="WorldTitle" type="Label" parent="TopBar/TopMargin/TopRow/WorldStack"]
@@ -96,12 +96,10 @@ theme_type_variation = &"AccentPanel"
 [node name="SessionText" type="Label" parent="TopBar/TopMargin/TopRow/SessionBadge"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
-text = "SESSION ONLY"
+text = "BUILD READY"
 
 [node name="ViewportFrame" type="PanelContainer" parent="."]
 layout_mode = 1
-anchor_left = 0.0
-anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 12.0
@@ -119,8 +117,6 @@ color = Color(0.09, 0.24, 0.29, 1)
 
 [node name="SkyGlow" type="ColorRect" parent="ViewportFrame/ViewportBackdrop"]
 layout_mode = 1
-anchor_left = 0.0
-anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.58
 grow_horizontal = 2
@@ -130,7 +126,6 @@ color = Color(0.14, 0.35, 0.43, 1)
 
 [node name="Land" type="ColorRect" parent="ViewportFrame/ViewportBackdrop"]
 layout_mode = 1
-anchor_left = 0.0
 anchor_top = 0.58
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -150,6 +145,14 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.18, 0.36, 0.24, 1)
 
+[node name="EditorViewport3D" parent="ViewportFrame/ViewportBackdrop" instance=ExtResource("6")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [node name="ViewportCenter" type="CenterContainer" parent="ViewportFrame/ViewportBackdrop"]
 layout_mode = 1
 anchors_preset = 15
@@ -166,13 +169,13 @@ theme_override_constants/separation = 6
 [node name="ViewportTitle" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportCenter/ViewportStack"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "WORLD VIEWPORT"
+text = "LIVE WORLD EDITOR"
 horizontal_alignment = 1
 
 [node name="ViewportHint" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportCenter/ViewportStack"]
 layout_mode = 2
 theme_type_variation = &"SecondaryLabel"
-text = "Rendering and authoring systems attach to this live surface."
+text = "Place a proxy object or select an existing entity to start editing."
 horizontal_alignment = 1
 
 [node name="ViewportBadge" type="PanelContainer" parent="ViewportFrame/ViewportBackdrop"]
@@ -198,6 +201,19 @@ offset_top = 94.0
 offset_right = 102.0
 offset_bottom = 418.0
 
+[node name="PlacementToolbar" parent="." instance=ExtResource("7")]
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -390.0
+offset_top = -112.0
+offset_right = 390.0
+offset_bottom = -62.0
+grow_horizontal = 2
+grow_vertical = 0
+
 [node name="InspectorLayer" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -210,7 +226,6 @@ mouse_filter = 2
 [node name="InspectorPanel" parent="InspectorLayer" instance=ExtResource("3")]
 layout_mode = 1
 anchor_left = 1.0
-anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -354.0
@@ -237,9 +252,30 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="ToolWheelLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ToolWheel" parent="ToolWheelLayer" instance=ExtResource("8")]
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -165.0
+offset_top = -150.0
+offset_right = 165.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [node name="StatusBar" type="PanelContainer" parent="."]
 layout_mode = 1
-anchor_left = 0.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -278,4 +314,4 @@ size_flags_horizontal = 3
 [node name="StatusState" type="Label" parent="StatusBar/StatusMargin/StatusRow"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
-text = "Session only • persistence begins in Phase 2"
+text = "Editor ready"

@@ -11,28 +11,44 @@ signal tool_selected(tool: StringName)
 @onready var delete_button: Button = %DeleteButton
 
 var _active_tool: StringName = &"select"
+var _mode_buttons: Dictionary = {}
 
 
 func _ready() -> void:
     var group := ButtonGroup.new()
     group.allow_unpress = false
-    for button in [select_button, move_button, rotate_button, scale_button]:
+    _mode_buttons = {
+        &"select": select_button,
+        &"move": move_button,
+        &"rotate": rotate_button,
+        &"scale": scale_button
+    }
+    for button in _mode_buttons.values():
         button.toggle_mode = true
         button.button_group = group
 
     select_button.button_pressed = true
-    select_button.pressed.connect(_select.bind(&"select"))
-    move_button.pressed.connect(_select.bind(&"move"))
-    rotate_button.pressed.connect(_select.bind(&"rotate"))
-    scale_button.pressed.connect(_select.bind(&"scale"))
-    duplicate_button.pressed.connect(_select.bind(&"duplicate"))
-    delete_button.pressed.connect(_select.bind(&"delete"))
+    select_button.pressed.connect(select_tool.bind(&"select", true))
+    move_button.pressed.connect(select_tool.bind(&"move", true))
+    rotate_button.pressed.connect(select_tool.bind(&"rotate", true))
+    scale_button.pressed.connect(select_tool.bind(&"scale", true))
+    duplicate_button.pressed.connect(_emit_action.bind(&"duplicate"))
+    delete_button.pressed.connect(_emit_action.bind(&"delete"))
 
 
 func get_active_tool() -> StringName:
     return _active_tool
 
 
-func _select(tool: StringName) -> void:
+func select_tool(tool: StringName, emit_signal: bool = false) -> void:
+    if not _mode_buttons.has(tool):
+        return
     _active_tool = tool
+    var button: Button = _mode_buttons[tool]
+    button.button_pressed = true
+    if emit_signal:
+        tool_selected.emit(tool)
+
+
+func _emit_action(tool: StringName) -> void:
     tool_selected.emit(tool)
