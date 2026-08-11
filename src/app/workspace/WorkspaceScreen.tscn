@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource path="res://src/app/workspace/workspace_screen.gd" type="Script" id="1"]
+[ext_resource path="res://src/app/workspace/ModeSwitch.tscn" type="PackedScene" id="2"]
 
 [node name="WorkspaceScreen" type="Control"]
 layout_mode = 3
@@ -76,6 +77,9 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 48)
 layout_mode = 2
 
+[node name="ModeSwitch" parent="TopBar/TopMargin/TopRow/ModeSlot" instance=ExtResource("2")]
+layout_mode = 2
+
 [node name="TopSpacerRight" type="Control" parent="TopBar/TopMargin/TopRow"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -140,7 +144,7 @@ theme_type_variation = &"ElevatedPanel"
 [node name="BadgeText" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportBadge"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
-text = "VIEWPORT READY"
+text = "BUILD MODE"
 horizontal_alignment = 1
 vertical_alignment = 1
 
