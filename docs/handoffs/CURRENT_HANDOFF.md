@@ -4,33 +4,33 @@
 OPEN
 
 ## Project state
-Phase 0 and P01-T01 through P01-T06 are complete. The workspace now has the dominant viewport, Build | Play UI state, and a generic hidden-by-default right inspector with Basic-first and collapsed Advanced content. Object-selection semantics remain deferred.
+Phase 0 and P01-T01 through P01-T07 are complete. The workspace now includes the themed shell, Build | Play state, right inspector shell, eight-category bottom dock, and an Asset drawer with search, large-card default density, density toggle, and empty state. Asset indexing remains deferred.
 
 ## Canonical UI
 `assets/reference/CANONICAL_UI_REFERENCE.png`
 
 ## Completed task
-`P01-T06 — Implement right inspector shell`
+`P01-T07 — Implement bottom category dock and asset drawer shell`
 
-## P01-T06 implementation evidence
-- Added `src/app/workspace/InspectorPanel.tscn` and `src/app/workspace/inspector_panel.gd`.
-- Inspector is hidden by default, mounted on the right side, driven by a generic context dictionary, and exposes Basic content before Advanced.
-- Advanced content starts collapsed and expands only when requested.
-- Workspace exposes neutral `show_inspector`, `hide_inspector`, and `is_inspector_open` methods without any object-selection or gameplay semantics.
-- Runtime smoke behavior checks hidden-default behavior, generic context display, Advanced disclosure, and clear/hide behavior.
+## P01-T07 implementation evidence
+- Added `src/app/workspace/BottomToolDock.tscn` and `src/app/workspace/bottom_tool_dock.gd`.
+- Bottom dock exposes Terrain, Assets, Foliage, Roads, Water, Gameplay, AI, and More with semantic accent colors.
+- Asset drawer starts closed, opens above the dock, includes search, defaults to Large Cards, includes a density toggle, and has a non-destructive external-library empty state.
+- Workspace exposes neutral drawer state/focus methods and re-emits tool selection without implementing asset indexing or placement.
+- Runtime smoke behavior checks all eight tools, drawer closed default, Assets open/close toggle, search presence, large-card default, and density toggle state.
 
 ## Tests/commands run
 - Static scene/script/reference review only; Godot runtime execution remains unavailable in the current environment.
 
 ## Known limitations
-- Selection wiring and real property editors belong to later runtime-editor/component phases.
-- Slide animation and final visual tuning remain pending screenshot parity work.
+- Asset folders, indexing, cards, filtering, thumbnails, and placement belong to Phase 4 and later editor tasks.
+- Final layout density and drawer proportions still require runtime screenshot comparison.
 
 ## Next authorized task
-`P01-T07 — Implement bottom category dock and asset drawer shell`
+`P01-T08 — Implement keyboard/mouse + gamepad navigation`
 
-## P01-T07 boundary
-Implement the bottom contextual category dock with Terrain, Assets, Foliage, Roads, Water, Gameplay, AI, and More. Implement an Asset drawer/sheet shell with search, large-card default density, density toggle, and an empty state. Do not implement asset indexing/import behavior.
+## P01-T08 boundary
+Implement deterministic focus entry, directional focus relationships for core Phase 1 screens, standard `ui_*` keyboard/gamepad navigation, and prioritized Back/Cancel behavior for transient workspace panels and routes. Do not add gameplay controls or controller-only feature shortcuts beyond Phase 1 UI navigation.
 
 ## New-thread start prompt
-Read `docs/design/UI_UX_CANONICAL_SPEC.md`, `docs/systems/ASSET_LIBRARY_SYSTEM.md`, `src/app/workspace/`, `src/app/theme/`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P01-T07: the bottom category dock and Asset drawer shell, mounted in the reserved workspace layer. Keep asset data/indexing out of scope. Then update the handoff and authorize only P01-T08.
+Read `docs/systems/INPUT_GAMEPAD_TOUCH.md`, `docs/design/UI_SCREEN_INVENTORY.md`, all Phase 1 UI scripts/scenes, `src/main/main.gd`, and this file. Implement only P01-T08: deterministic keyboard/mouse/gamepad UI focus/navigation and Back/Cancel handling across Home, New World, and Workspace, including inspector/drawer priority. Then update the handoff and authorize only P01-T09.
