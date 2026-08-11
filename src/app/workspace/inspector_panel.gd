@@ -17,6 +17,10 @@ var _context: Dictionary = {}
 func _ready() -> void:
     close_button.pressed.connect(_close)
     advanced_button.toggled.connect(_on_advanced_toggled)
+    close_button.focus_neighbor_bottom = close_button.get_path_to(advanced_button)
+    advanced_button.focus_neighbor_top = advanced_button.get_path_to(close_button)
+    close_button.focus_next = close_button.get_path_to(advanced_button)
+    advanced_button.focus_previous = advanced_button.get_path_to(close_button)
     advanced_panel.hide()
     hide()
 
@@ -32,6 +36,7 @@ func show_context(context: Dictionary) -> void:
     advanced_button.button_pressed = false
     advanced_panel.hide()
     show()
+    call_deferred("focus_primary")
 
 
 func clear_context() -> void:
