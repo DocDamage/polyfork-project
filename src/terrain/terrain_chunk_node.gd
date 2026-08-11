@@ -20,9 +20,14 @@ func apply_cell(cell: Dictionary, biome: Dictionary) -> Dictionary:
     position = Vector3(float(int(coord[0])) * size, 0.0, float(int(coord[1])) * size)
     var material := StandardMaterial3D.new()
     var color: Array = biome.get("color", [0.28, 0.48, 0.30, 1.0])
+    var biome_color := Color(0.28, 0.48, 0.30, 1.0)
     if color.size() == 4:
-        material.albedo_color = Color(float(color[0]), float(color[1]), float(color[2]), float(color[3]))
+        biome_color = Color(float(color[0]), float(color[1]), float(color[2]), float(color[3]))
+    material.albedo_color = biome_color
     material.roughness = 0.92
+    material.emission_enabled = true
+    material.emission = biome_color.darkened(0.48)
+    material.emission_energy_multiplier = 0.55
     mesh.surface_set_material(0, material)
     var mesh_instance := MeshInstance3D.new()
     mesh_instance.name = "TerrainMesh"
