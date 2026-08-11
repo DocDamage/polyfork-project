@@ -22,7 +22,7 @@ Task IDs use `P##-T##`.
 
 ## Phase 2 — World project + save foundation
 - [x] P02-T01 Implement stable ID utility and Small/Medium/Large world-profile contracts
-- [ ] P02-T02 Implement world-project model and atomic create/open/save repository
+- [x] P02-T02 Implement world-project model and atomic create/open/save repository
 - [ ] P02-T03 Integrate New World creation with persistent projects and project reopening
 - [ ] P02-T04 Implement stable world-entity record and registry foundation
 - [ ] P02-T05 Implement command, transaction, undo, and redo framework
