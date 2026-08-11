@@ -32,11 +32,23 @@ jobs:
       - name: Run runtime smoke harness
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          set +e
           ./Godot_v4.7.1-stable_linux.x86_64 \
             --headless \
             --path . \
-            --script res://tests/test_runner.gd
+            --script res://tests/test_runner.gd 2>&1 | tee godot-smoke.log
+          godot_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$godot_status" -ne 0 ]; then
+            echo "Godot exited with status $godot_status"
+            exit "$godot_status"
+          fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' godot-smoke.log; then
+            echo "Godot emitted script/engine errors even though the process returned zero."
+            exit 1
+          fi
+          grep -F 'PASS: PlayWorld Studio test harness completed.' godot-smoke.log
 
   phase1-visual-capture:
     runs-on: ubuntu-latest
@@ -58,11 +70,22 @@ jobs:
       - name: Capture rendered Phase 1 UI
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          set +e
           xvfb-run -a ./Godot_v4.7.1-stable_linux.x86_64 \
             --path . \
             --rendering-method gl_compatibility \
-            --script res://tests/runtime/capture_phase1.gd
+            --script res://tests/runtime/capture_phase1.gd 2>&1 | tee godot-visual.log
+          godot_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$godot_status" -ne 0 ]; then
+            exit "$godot_status"
+          fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' godot-visual.log; then
+            echo "Godot emitted script/engine errors during visual capture."
+            exit 1
+          fi
+          grep -F 'PASS: Phase 1 rendered screenshots captured.' godot-visual.log
           cp assets/reference/CANONICAL_UI_REFERENCE.png artifacts/phase1/00-canonical-reference.png
           file artifacts/phase1/*.png
 
