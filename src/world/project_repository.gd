@@ -61,11 +61,12 @@ func save_project(project) -> Dictionary:
     file.flush()
     file.close()
 
-    var parsed = JSON.parse_string(FileAccess.get_file_as_string(temp_path))
-    if not parsed is Dictionary:
+    var parse_result := _parse_dictionary(FileAccess.get_file_as_string(temp_path))
+    if not parse_result.get("ok", false):
         DirAccess.remove_absolute(ProjectSettings.globalize_path(temp_path))
         return _failure("Temporary project manifest failed JSON verification.")
 
+    var parsed: Dictionary = parse_result["data"]
     var verify_errors: Array[String] = WorldProject.validate_dictionary(parsed)
     if not verify_errors.is_empty():
         DirAccess.remove_absolute(ProjectSettings.globalize_path(temp_path))
@@ -90,13 +91,12 @@ func open_project(project_id: String) -> Dictionary:
     if not FileAccess.file_exists(manifest_path):
         return _failure("Project manifest does not exist.")
 
-    var text := FileAccess.get_file_as_string(manifest_path)
-    var parsed = JSON.parse_string(text)
-    if not parsed is Dictionary:
+    var parse_result := _parse_dictionary(FileAccess.get_file_as_string(manifest_path))
+    if not parse_result.get("ok", false):
         return _failure("Project manifest is not valid JSON.")
 
     var project = WorldProject.new()
-    var load_errors: Array[String] = project.load_dictionary(parsed)
+    var load_errors: Array[String] = project.load_dictionary(parse_result["data"])
     if not load_errors.is_empty():
         return {
             "ok": false,
@@ -117,6 +117,14 @@ func get_project_directory(project_id: String) -> String:
 
 func get_manifest_path(project_id: String) -> String:
     return "%s/%s" % [get_project_directory(project_id), MANIFEST_FILE]
+
+
+func _parse_dictionary(text: String) -> Dictionary:
+    var parser := JSON.new()
+    var parse_error := parser.parse(text)
+    if parse_error != OK or not parser.data is Dictionary:
+        return {"ok": false, "data": {}}
+    return {"ok": true, "data": parser.data}
 
 
 func _failure(message: String) -> Dictionary:
