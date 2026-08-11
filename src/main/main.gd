@@ -5,12 +5,15 @@ signal new_world_requested(configuration: Dictionary)
 
 const ThemeFactory = preload("res://src/app/theme/theme_factory.gd")
 const ProjectRepository = preload("res://src/world/project_repository.gd")
+const AutosaveService = preload("res://src/world/autosave_service.gd")
 
 @onready var home_screen: Control = $HomeScreen
 @onready var new_world_screen: Control = $NewWorldScreen
 @onready var workspace_screen: Control = $WorkspaceScreen
 
 var _project_repository
+var _autosave_service
+var _active_project
 
 
 func _ready() -> void:
@@ -20,6 +23,7 @@ func _ready() -> void:
         "user://projects"
     ))
     _project_repository = ProjectRepository.new(storage_root)
+    _autosave_service = AutosaveService.new(_project_repository)
 
     home_screen.route_requested.connect(_on_home_route_requested)
     new_world_screen.back_requested.connect(_show_home)
@@ -27,6 +31,14 @@ func _ready() -> void:
     workspace_screen.home_requested.connect(_show_home)
     _show_home()
     print("PlayWorld Studio application shell loaded.")
+
+
+func _process(delta: float) -> void:
+    if _autosave_service == null:
+        return
+    var autosave_result: Dictionary = _autosave_service.advance(delta)
+    if autosave_result.get("attempted", false) and not autosave_result.get("ok", false):
+        push_warning("Autosave checkpoint failed: %s" % autosave_result.get("errors", []))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -44,6 +56,12 @@ func _unhandled_input(event: InputEvent) -> void:
     if new_world_screen.visible:
         _show_home()
         get_viewport().set_input_as_handled()
+
+
+func mark_project_dirty() -> Dictionary:
+    if _autosave_service == null or _active_project == null:
+        return {"ok": false, "errors": ["No active project is available for autosave."]}
+    return _autosave_service.mark_dirty()
 
 
 func _on_home_route_requested(route: StringName) -> void:
@@ -85,6 +103,17 @@ func _show_workspace(project_data: Dictionary) -> void:
         workspace_screen.call_deferred("focus_primary")
 
 
+func _activate_project(project) -> bool:
+    if project == null:
+        return false
+    var attach_result: Dictionary = _autosave_service.attach_project(project)
+    if not attach_result.get("ok", false):
+        push_warning("Unable to attach project autosave: %s" % attach_result.get("errors", []))
+        return false
+    _active_project = project
+    return true
+
+
 func _on_new_world_create_requested(configuration: Dictionary) -> void:
     var create_result: Dictionary = _project_repository.create_project(
         str(configuration.get("title", "")),
@@ -98,6 +127,9 @@ func _on_new_world_create_requested(configuration: Dictionary) -> void:
         return
 
     var project = create_result["project"]
+    if not _activate_project(project):
+        new_world_screen.set_error_message("Could not activate autosave for the new project.")
+        return
     var project_data: Dictionary = project.to_dictionary()
     new_world_requested.emit(project_data)
     _show_workspace(project_data)
@@ -109,6 +141,11 @@ func _open_recent_project() -> void:
     var project = recent.get("project")
     if not recent.get("ok", false) or project == null:
         _refresh_recent_project()
+        return
+    var recovery: Dictionary = recent.get("recovery", {})
+    if recovery.get("recoverable", false):
+        print("Recovery checkpoint available for project: %s" % project.project_id)
+    if not _activate_project(project):
         return
     _show_workspace(project.to_dictionary())
 

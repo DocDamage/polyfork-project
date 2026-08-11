@@ -23,6 +23,8 @@ var export_settings: Dictionary = {"preset_id": null}
 var dependencies: Array = []
 var created_at_unix: int = 0
 var updated_at_unix: int = 0
+var created_at_msec: int = 0
+var updated_at_msec: int = 0
 
 
 func initialize_new(project_title: String, profile_id: StringName, starting_template_id: String) -> void:
@@ -30,9 +32,12 @@ func initialize_new(project_title: String, profile_id: StringName, starting_temp
     title = project_title.strip_edges()
     world_profile = profile_id
     template_id = starting_template_id.strip_edges()
-    var now := int(Time.get_unix_time_from_system())
-    created_at_unix = now
-    updated_at_unix = now
+    var now_msec := int(Time.get_unix_time_from_system() * 1000.0)
+    var now_unix := int(now_msec / 1000)
+    created_at_unix = now_unix
+    updated_at_unix = now_unix
+    created_at_msec = now_msec
+    updated_at_msec = now_msec
 
 
 func load_dictionary(data: Dictionary) -> Array[String]:
@@ -52,6 +57,8 @@ func load_dictionary(data: Dictionary) -> Array[String]:
     dependencies = data.get("dependencies", []).duplicate(true)
     created_at_unix = int(data.get("created_at_unix", 0))
     updated_at_unix = int(data.get("updated_at_unix", created_at_unix))
+    created_at_msec = int(data.get("created_at_msec", created_at_unix * 1000))
+    updated_at_msec = int(data.get("updated_at_msec", updated_at_unix * 1000))
     return []
 
 
@@ -87,6 +94,9 @@ static func validate_dictionary(data: Dictionary) -> Array[String]:
     for timestamp_key in ["created_at_unix", "updated_at_unix"]:
         if int(data.get(timestamp_key, 0)) <= 0:
             errors.append("World project %s must be a positive Unix timestamp." % timestamp_key)
+    for timestamp_key in ["created_at_msec", "updated_at_msec"]:
+        if data.has(timestamp_key) and int(data.get(timestamp_key, 0)) <= 0:
+            errors.append("World project %s must be a positive millisecond timestamp." % timestamp_key)
     return errors
 
 
@@ -95,9 +105,9 @@ func validate() -> Array[String]:
 
 
 func touch_updated() -> void:
-    updated_at_unix = int(Time.get_unix_time_from_system())
-    if updated_at_unix < created_at_unix:
-        updated_at_unix = created_at_unix
+    var now_msec := int(Time.get_unix_time_from_system() * 1000.0)
+    updated_at_msec = max(now_msec, max(created_at_msec, updated_at_msec + 1))
+    updated_at_unix = max(int(updated_at_msec / 1000), created_at_unix)
 
 
 func to_dictionary() -> Dictionary:
@@ -115,7 +125,9 @@ func to_dictionary() -> Dictionary:
         "export": export_settings.duplicate(true),
         "dependencies": dependencies.duplicate(true),
         "created_at_unix": created_at_unix,
-        "updated_at_unix": updated_at_unix
+        "updated_at_unix": updated_at_unix,
+        "created_at_msec": created_at_msec,
+        "updated_at_msec": updated_at_msec
     }
 
 
