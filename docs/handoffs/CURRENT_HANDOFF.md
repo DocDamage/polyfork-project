@@ -1,17 +1,32 @@
 # Current Handoff
 
 ## Status
-OPEN — Phase 3 Runtime Placement Editor milestone is complete and verified on its milestone branch; merge is required before `master` reflects Phase 3 completion.
+OPEN — Phase 4 Universal Asset Library implementation is complete and verified. Completion PR #9 is open against authoritative `master` and must be explicitly merged before Phase 5 begins.
 
-## Project state
-Phase 0, Phase 1, and Phase 2 are complete on authoritative `master`.
+## Authoritative branch state
+Repository: `DocDamage/polyfork-project`
 
-PR #7 merged `P03-T01 — Implement runtime entity scene bridge and single-selection foundation` into `master` at merge commit `95ec15bdc4d6a2b293511f724cfc4204e9ae485d`.
+Authoritative project branch: `master`
 
-P03-T02 through P03-T09 were completed continuously from that baseline on:
-`dev/phase3-runtime-placement-milestone`
+Current authoritative `master` remains:
+`e5c80c82a4a18ad0225111d15720347c5614612a`
 
-The repository default branch remains obsolete `main`; do not develop from it. The authoritative project branch remains `master`.
+Phase 4 started from that exact commit.
+
+The repository default branch `main` remains obsolete starter code. Never develop from `main`.
+
+Phase 4 milestone branch:
+`dev/phase4-universal-asset-library-milestone`
+
+Verified implementation/documentation closeout commit:
+`d0c507279cf63d6fab03a96565375763b1a1ad1c`
+
+Completion PR:
+`#9 — Phase 4 — Universal Asset Library`
+
+Target: `master`
+
+State: **OPEN / NOT MERGED**
 
 ## Milestone workflow policy
 The project uses milestone-based review gates rather than one PR per internal task.
@@ -19,141 +34,13 @@ The project uses milestone-based review gates rather than one PR per internal ta
 - Task IDs are implementation checkpoints.
 - Commit and run CI throughout a milestone.
 - Do not stop at individual task boundaries.
-- Open one PR when the authorized milestone is complete and verified, unless a genuine blocker requires an earlier review decision.
+- Open one PR only when the whole authorized milestone is complete and verified.
 - Never merge without explicit user authorization.
 
-This policy is recorded in `docs/implementation/CODEX_EXECUTION_RULES.md`.
-
 ## Completed milestone
-**Phase 3 — Runtime Placement Editor**
+**Phase 4 — Universal Asset Library**
 
 Completed internal tasks:
-- P03-T02 command-backed object placement and ghost preview
-- P03-T03 command-backed move/rotate/scale editing and transform-tool state
-- P03-T04 command-backed duplicate and delete operations
-- P03-T05 multi-select and grouping foundations
-- P03-T06 grid and angle snapping
-- P03-T07 surface/object/socket snapping and drop-to-ground
-- P03-T08 contextual placement toolbar and controller tool wheel
-- P03-T09 Phase 3 integration, gamepad, failure-path, and visual verification
-
-## Runtime editor architecture delivered
-- `src/editor/editor_session.gd` coordinates the bound project, command history, runtime bridge, multi-selection, ghost placement, snapping, transform state, and dirty-state callback.
-- `src/editor/runtime_entity_node.gd` now provides generic visible/collidable proxy geometry until Phase 4 supplies actual asset content.
-- `src/editor/editor_viewport_3d.gd` / `EditorViewport3D.tscn` provide the live 3D editor viewport, camera/lighting, ground, and physics picking.
-- `src/editor/multi_selection.gd` provides stable-ID multi-selection with one primary entity.
-- `src/editor/snapping_service.gd` provides deterministic grid, angle, surface, object, socket, and ground snapping.
-- `src/editor/placement_ghost.gd` keeps preview placement transient until commit.
-- `src/editor/transform_gizmo_state.gd` owns transform tool/axis state.
-
-## Command-backed authoring delivered
-New reversible authoring commands:
-- `src/commands/place_entity_command.gd`
-- `src/commands/set_entity_transforms_command.gd`
-- `src/commands/duplicate_entities_command.gd`
-- `src/commands/delete_entities_command.gd`
-- `src/commands/group_entities_command.gd`
-
-Successful authoring operations refresh the runtime bridge and invoke the active project's dirty-state callback. Preview-only selection/ghost operations do not dirty persisted state. Failed operations do not advance command history or intentionally persist partial edits.
-
-Delete captures descendant closure so removing a group/parent cannot leave invalid persisted child references. Grouping creates a generic stable-ID `WorldEntity` group and uses stable `parent_entity_id` relationships.
-
-## Snapping behavior
-- Grid and angle snapping are deterministic numeric editor policies.
-- Surface snapping uses hit position/normal.
-- Object and socket placement automatically discover bridged runtime entities using project-local positions.
-- Until later prefab/socket metadata exists, each bridged entity origin is exposed as a temporary generic socket candidate identified as `<entity_id>:origin`.
-- Drop-to-ground is command-backed and undoable.
-
-## Workspace and input
-The existing workspace now includes:
-- a live 3D editor viewport;
-- compact contextual placement/snapping controls;
-- existing transform toolbar wired to command-backed move/rotate/scale/duplicate/delete;
-- multi-select/grouping;
-- undo/redo controls;
-- an opt-in controller-first quick tool wheel.
-
-Keyboard/mouse and gamepad route into the same editor-session mutation path. The gamepad smoke verifies D-pad transform movement and left-shoulder tool-wheel access.
-
-## Behavioral verification
-New/expanded tests include:
-- `tests/unit/snapping_contracts.gd`
-- `tests/integration/phase3_editor_session_contracts.gd`
-- `tests/integration/phase3_placement_snapping_contracts.gd`
-- `tests/runtime/phase3_editor_smoke.gd`
-- existing P03-T01 bridge/selection tests remain active
-- all Phase 0–2 persistence/recovery tests remain active
-
-Verified behavior includes:
-- ghost preview does not mutate/dirty project state;
-- placement commit and first-cell ownership;
-- placement undo/redo;
-- stable IDs across runtime bridge and save/reopen;
-- move/rotate/scale command history;
-- duplicate with new stable UUIDs;
-- additive multi-selection;
-- grouping and group undo;
-- descendant-closure delete and restore;
-- deterministic snapping modes;
-- automatic runtime object/socket placement candidates;
-- invalid action/failure atomicity;
-- crash-safe Phase 2 repository save/reopen after Phase 3 edits;
-- real workspace/gamepad editor flow.
-
-## Defect evidence retained during milestone
-Intermediate CI runs intentionally exposed and helped repair real defects rather than weakening tests, including:
-- workspace GDScript typing and signal-wiring errors;
-- redundant SubViewport sizing while stretch was enabled;
-- strict Variant inference in command scripts;
-- P03-T01 preview/selection regression while a real project was bound;
-- typed selection-array runtime failure during placement commit;
-- invalid off-tree `global_position` use in automatic snapping.
-
-The final snapping fix changed automatic candidate coordinates to project-local `Node3D.position`, matching persisted editor transform space and eliminating off-tree engine errors.
-
-## Verified implementation evidence
-Milestone implementation/fix checkpoints include:
-- `2b3be0559042ab29cc7bf9edfff47922edefddcd` — placement editor core architecture
-- `cbc02e053184b1026779174f947cad32a9fd28cd` — parser/viewport wiring repair
-- `4c83ea779bbb7380156d240a254912c57fdee192` — strict command typing
-- `607211c0a1fe9833e9167320e41b150b10841a4c` — preview bridge regression repair
-- `6045eb10dfb09c23963b08703840aa4fb0e954b6` — full behavioral acceptance coverage
-- `34fd1d7593634f2e9f327d38f8878d1317dfc563` — typed selection-state repair
-- `3d82b423a784a554718ac1447bd07fadfb9b3b1f` — rendered Phase 3 evidence
-- `6628f70e475e3c28794f38d40566035ce7aeda7a` — project-local automatic snap candidates
-
-Godot Actions run `31521956419` used `4.7.1.stable.official.a13da4feb` and passed:
-- `runtime-smoke` — SUCCESS
-- `phase1-visual-capture` — SUCCESS
-
-Raw runtime log contains `PASS: PlayWorld Studio test harness completed.` with no `SCRIPT ERROR:` or engine `ERROR:` output.
-
-Raw visual log retains `--audio-driver Dummy` and `--disable-vsync`, contains both:
-- `PASS: Phase 1 rendered screenshots captured.`
-- `PASS: Phase 3 editor screenshots captured.`
-
-Visual evidence contains seven files:
-- `00-canonical-reference.png`
-- `01-home.png`
-- `02-new-world.png`
-- `03-workspace-clean.png`
-- `04-workspace-tools.png`
-- `05-phase3-editor.png`
-- `06-phase3-tool-wheel.png`
-
-## Scope boundaries / known limitations
-- The universal asset registry/import/browser is not fabricated in Phase 3. Runtime entities use generic proxy geometry until Phase 4 attaches real assets.
-- Generic origin sockets are temporary compatibility anchors; richer named sockets belong to later prefab/socket work.
-- Selection/tool/ghost state is editor-only and not persisted.
-- Phase 4 has not started.
-
-## Next milestone
-Only after the Phase 3 completion PR is reviewed and merged into authoritative `master`, authorize the full:
-
-**Phase 4 — Universal Asset Library milestone**
-
-Internal task range:
 - P04-T01 read-only source-folder registry and source contracts
 - P04-T02 incremental scanner, hashing, and stable asset-ID reconciliation
 - P04-T03 GLB/GLTF and Godot scene analysis/import support
@@ -161,9 +48,97 @@ Internal task range:
 - P04-T05 thumbnail generation, cache invalidation, and failure handling
 - P04-T06 large-card asset browser, search, filters, and favorites
 - P04-T07 collections, duplicate detection, source/license details, and placement handoff
-- P04-T08 Phase 4 integration, scale, gamepad, failure-path, and visual verification
+- P04-T08 integration, scale, gamepad, failure-path, raw-log, and rendered visual verification
 
-Use one Phase 4 milestone branch and one Phase 4 completion PR. Do not stop for per-task PRs unless a genuine external blocker requires a review decision.
+## Asset Library architecture delivered
+Per-project managed storage lives under:
+`<project-directory>/asset_library`
 
-## New-thread start prompt
-Verify the Phase 3 completion PR has merged into authoritative `master`; never use stale default `main`. If merged, begin the complete Phase 4 Universal Asset Library milestone (P04-T01 through P04-T08) on one focused milestone branch. Commit and verify internally as needed, but do not stop or open PRs at individual task boundaries. Open one PR only after the full Phase 4 milestone is complete and verified. Preserve stable IDs, read-only source folders, command-backed placement handoff, gamepad accessibility, and the canonical dark/playful Nintendo-forward UI direction.
+Canonical managed files:
+- `sources.json` — versioned read-only source-folder registry
+- `catalog.json` — versioned stable asset catalog/metadata
+
+Rebuildable managed data:
+- `imports/` — derived copies used for runtime loading
+- `thumbnails/` — content-addressed thumbnail cache
+
+External registered source folders are input-only. Scanner, metadata, imports, thumbnails, caches, reconciliation, duplicate detection, and placement never intentionally write into them.
+
+## Stable identity and incremental scanning
+Supported discovery types are GLTF, GLB, Godot `.tscn`, and Godot `.scn`.
+
+Scanning is deterministic and sorted. Unchanged same-path files reuse prior SHA-256 results when size and modification metadata also match. Same-path assets keep their `asset_id`. A move inside the same source retains its prior ID only when exactly one unmatched content-signature candidate proves the relationship. Duplicate source files remain separate catalog records and are never silently merged or deleted.
+
+Missing source records remain in the catalog with `missing: true`, preserving stable world references without retargeting another asset.
+
+## Analysis/import and failure behavior
+- GLTF 2.x JSON receives structural preflight.
+- GLB receives binary header/version/length preflight.
+- Godot text scenes receive scene/node structural preflight.
+- Godot binary scenes receive resource-header preflight.
+- Corrupt supported inputs remain failed-analysis catalog records and are blocked before placement.
+- Unsupported extensions are ignored rather than fabricated into supported assets.
+- GLTF local dependencies are copied to managed imports; remote dependencies and source-root escapes fail safely.
+
+## Catalog/browser delivered
+Catalog persistence includes favorites, collections, licensing/source fields, user metadata, analysis state, derived-import metadata, and thumbnail metadata.
+
+The existing Asset drawer now provides:
+- large cards by default;
+- compact density option;
+- search;
+- source/type/collection filters;
+- favorites and duplicate filters;
+- read-only source and license details;
+- collection assignment;
+- rescan and source-folder registration;
+- native keyboard/mouse/gamepad card activation;
+- keyboard `F` / gamepad `Y` favorite shortcut.
+
+The UI remains inside the existing dark, playful Nintendo-forward / Apple-clean workspace rather than becoming an enterprise dashboard.
+
+## Phase 3 placement integration
+Catalog selection enters `asset_placement_handoff.gd`, which validates the stable asset ID and managed scene import before starting the existing Phase 3 ghost.
+
+Preview carries `WorldEntity.asset_id` but does not create an entity or mark project state dirty. Commit remains the existing `PlaceEntityCommand` path. Runtime bridge rebuild resolves asset-backed entities to real managed scene visuals. Duplicate preserves `asset_id` with a new entity UUID. Save/reopen retains the reference. Missing source content falls back to a safe generic proxy instead of invalidating authored entities.
+
+No prefab/component system was fabricated for Phase 4.
+
+## Verification evidence
+Behavioral coverage includes:
+- 131 supported source fixtures in the scale/incremental scan test;
+- first scan hashes all supported fixtures;
+- unchanged rescan reuses all 131 hashes and hashes zero unchanged files;
+- source-folder before/after SHA snapshots proving scanner/catalog/import/thumbnail workflows leave source files unchanged;
+- stable ID across a uniquely proven in-source move;
+- independent IDs plus reporting for duplicate content;
+- catalog/license/favorite/collection persistence across restart;
+- thumbnail generation and content-change invalidation;
+- managed imports only under project storage;
+- valid GLTF, GLB, Godot text scene, and Godot binary scene coverage;
+- corrupt GLTF/Godot scene rejection and unsupported-extension ignore behavior;
+- real asset ghost → command-backed placement → runtime visual → duplicate → save/reopen;
+- missing-source proxy fallback;
+- search/filter/favorites/collections/duplicates/density browser behavior;
+- keyboard and gamepad browser controls;
+- existing Phase 0–3 tests retained.
+
+Final closeout Godot Actions run `31537873378` used `4.7.1.stable.official.a13da4feb` and passed:
+- `runtime-smoke` — SUCCESS
+- `phase1-visual-capture` — SUCCESS
+- `phase4-visual-capture` — SUCCESS
+
+The raw runtime log contains `PASS: PlayWorld Studio test harness completed.` and passed the workflow's strict rejection of `SCRIPT ERROR:` and engine `ERROR:` output.
+
+The raw Phase 4 visual log contains `PASS: Phase 4 rendered screenshots captured.` and passed the same strict script/engine error gate. Rendered evidence artifact `phase4-visual-evidence` contains:
+- `00-canonical-reference.png`
+- `01-asset-library-large.png`
+- `02-asset-library-compact.png`
+
+Visual inspection confirmed the Asset Library remains integrated into the canonical dark/playful workspace. A compact-density horizontal overflow exposed by that inspection was corrected and the regenerated screenshot was manually re-inspected before PR creation.
+
+## Scope boundary
+Phase 5 has not started. Terrain/streaming work is not authorized until PR #9 is merged into authoritative `master`.
+
+## Next action
+Review PR #9. Do not merge it without explicit user authorization. After it is merged, verify the new authoritative `master` commit and create the next handoff before beginning Phase 5.

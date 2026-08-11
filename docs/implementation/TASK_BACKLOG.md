@@ -30,7 +30,7 @@ Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are
 - [x] P02-T07 Complete Phase 2 integration tests and persistence hardening
 
 ## Phase 3 — Runtime Placement Editor
-Phase 3 milestone review gate: P03-T02 through P03-T09 were completed continuously on one milestone branch after merged P03-T01.
+Phase 3 is complete and merged on authoritative `master`.
 
 - [x] P03-T01 Implement runtime entity scene bridge and single-selection foundation
 - [x] P03-T02 Implement command-backed object placement and ghost preview
@@ -43,16 +43,18 @@ Phase 3 milestone review gate: P03-T02 through P03-T09 were completed continuous
 - [x] P03-T09 Complete Phase 3 integration, gamepad, failure-path, and visual verification
 
 ## Phase 4 — Universal Asset Library
-Milestone review gate: **after the Phase 3 completion PR is merged, complete P04-T01 through P04-T08 continuously on one Phase 4 milestone branch and open one Phase 4 completion PR.**
+Phase 4 implementation is complete and verified on `dev/phase4-universal-asset-library-milestone`. The milestone remains merge-gated: one Phase 4 completion PR must target authoritative `master`, and Phase 5 may not begin until that PR is explicitly merged.
 
-- [ ] P04-T01 Implement read-only source-folder registry and source contracts
-- [ ] P04-T02 Implement incremental scanner, hashing, and stable asset-ID reconciliation
-- [ ] P04-T03 Implement GLB/GLTF and Godot scene analysis/import support
-- [ ] P04-T04 Implement asset metadata, licensing, and catalog persistence contracts
-- [ ] P04-T05 Implement thumbnail generation, cache invalidation, and failure handling
-- [ ] P04-T06 Implement large-card asset browser, search, filters, and favorites
-- [ ] P04-T07 Implement collections, duplicate detection, source/license details, and placement handoff
-- [ ] P04-T08 Complete Phase 4 integration, scale, gamepad, failure-path, and visual verification
+- [x] P04-T01 Implement read-only source-folder registry and source contracts
+- [x] P04-T02 Implement incremental scanner, hashing, and stable asset-ID reconciliation
+- [x] P04-T03 Implement GLB/GLTF and Godot scene analysis/import support
+- [x] P04-T04 Implement asset metadata, licensing, and catalog persistence contracts
+- [x] P04-T05 Implement thumbnail generation, cache invalidation, and failure handling
+- [x] P04-T06 Implement large-card asset browser, search, filters, and favorites
+- [x] P04-T07 Implement collections, duplicate detection, source/license details, and placement handoff
+- [x] P04-T08 Complete Phase 4 integration, scale, gamepad, failure-path, and visual verification
 
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. The handoff should authorize a meaningful milestone range—normally a full phase when dependencies permit—rather than forcing one PR per task. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
+
+Phase 5 is not authorized while the Phase 4 completion PR remains unmerged.

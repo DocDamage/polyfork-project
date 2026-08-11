@@ -7,6 +7,11 @@ const RuntimeEntityNode = preload("res://src/editor/runtime_entity_node.gd")
 
 var _runtime_nodes: Dictionary = {}
 var _records: Dictionary = {}
+var _asset_resolver := Callable()
+
+
+func bind_asset_resolver(resolver: Callable) -> void:
+    _asset_resolver = resolver
 
 
 func rebuild(records: Array) -> Dictionary:
@@ -36,6 +41,7 @@ func rebuild(records: Array) -> Dictionary:
             runtime_node.free()
             _free_staged(staged_nodes)
             return {"ok": false, "errors": node_errors}
+        _apply_asset_visual(runtime_node, record)
 
         staged_nodes[entity_id] = runtime_node
         staged_records[entity_id] = record.duplicate(true)
@@ -43,8 +49,7 @@ func rebuild(records: Array) -> Dictionary:
 
     for entity_id in staged_nodes.keys():
         var parent_id: String = str(parent_ids[entity_id])
-        if parent_id.is_empty():
-            continue
+        if parent_id.is_empty(): continue
         if parent_id == entity_id:
             _free_staged(staged_nodes)
             return _failure("Runtime entity cannot parent itself.")
@@ -63,49 +68,33 @@ func rebuild(records: Array) -> Dictionary:
     var children_by_parent: Dictionary = {}
     for entity_id in parent_ids.keys():
         var parent_id: String = str(parent_ids[entity_id])
-        if parent_id.is_empty():
-            continue
-        if not children_by_parent.has(parent_id):
-            children_by_parent[parent_id] = []
+        if parent_id.is_empty(): continue
+        if not children_by_parent.has(parent_id): children_by_parent[parent_id] = []
         children_by_parent[parent_id].append(str(entity_id))
-
-    for child_ids in children_by_parent.values():
-        child_ids.sort()
-
+    for child_ids in children_by_parent.values(): child_ids.sort()
     for entity_id in entity_ids():
-        if str(parent_ids[entity_id]).is_empty():
-            _attach_subtree(entity_id, self, children_by_parent)
+        if str(parent_ids[entity_id]).is_empty(): _attach_subtree(entity_id, self, children_by_parent)
 
     return {"ok": true, "errors": [], "count": _runtime_nodes.size()}
 
 
-func clear_entities() -> void:
-    _clear_runtime_nodes()
-
-
-func entity_count() -> int:
-    return _runtime_nodes.size()
+func clear_entities() -> void: _clear_runtime_nodes()
+func entity_count() -> int: return _runtime_nodes.size()
 
 
 func entity_ids() -> Array[String]:
     var result: Array[String] = []
-    for entity_id in _runtime_nodes.keys():
-        result.append(str(entity_id))
+    for entity_id in _runtime_nodes.keys(): result.append(str(entity_id))
     result.sort()
     return result
 
 
-func has_entity(entity_id: String) -> bool:
-    return _runtime_nodes.has(entity_id)
-
-
-func get_entity_node(entity_id: String):
-    return _runtime_nodes.get(entity_id)
+func has_entity(entity_id: String) -> bool: return _runtime_nodes.has(entity_id)
+func get_entity_node(entity_id: String): return _runtime_nodes.get(entity_id)
 
 
 func get_entity_record(entity_id: String) -> Dictionary:
-    if not _records.has(entity_id):
-        return {}
+    if not _records.has(entity_id): return {}
     return _records[entity_id].duplicate(true)
 
 
@@ -114,17 +103,30 @@ func resolve_entity_id(node: Node) -> String:
     while current != null and current != self:
         if current.has_meta(RuntimeEntityNode.ENTITY_ID_META):
             var candidate := str(current.get_meta(RuntimeEntityNode.ENTITY_ID_META))
-            if StableId.is_valid(candidate) and _runtime_nodes.has(candidate):
-                return candidate
+            if StableId.is_valid(candidate) and _runtime_nodes.has(candidate): return candidate
         current = current.get_parent()
     return ""
+
+
+func _apply_asset_visual(runtime_node, record: Dictionary) -> void:
+    var asset_value = record.get("asset_id")
+    if asset_value == null or not _asset_resolver.is_valid(): return
+    var result: Variant = _asset_resolver.call(str(asset_value))
+    if not result is Dictionary or not result.get("ok", false):
+        runtime_node.set_meta(&"playworld_asset_load_failed", true)
+        return
+    var node_value = result.get("node")
+    if node_value is Node3D:
+        runtime_node.set_asset_visual(node_value)
+    elif node_value is Node:
+        node_value.free()
+        runtime_node.set_meta(&"playworld_asset_load_failed", true)
 
 
 func _attach_subtree(entity_id: String, parent: Node, children_by_parent: Dictionary) -> void:
     var runtime_node: Node = _runtime_nodes[entity_id]
     parent.add_child(runtime_node)
-    for child_id in children_by_parent.get(entity_id, []):
-        _attach_subtree(str(child_id), runtime_node, children_by_parent)
+    for child_id in children_by_parent.get(entity_id, []): _attach_subtree(str(child_id), runtime_node, children_by_parent)
 
 
 func _contains_parent_cycle(parent_ids: Dictionary) -> bool:
@@ -132,8 +134,7 @@ func _contains_parent_cycle(parent_ids: Dictionary) -> bool:
         var seen: Dictionary = {}
         var current := str(entity_id)
         while not current.is_empty():
-            if seen.has(current):
-                return true
+            if seen.has(current): return true
             seen[current] = true
             current = str(parent_ids.get(current, ""))
     return false
@@ -149,13 +150,8 @@ func _clear_runtime_nodes() -> void:
 
 func _free_staged(staged_nodes: Dictionary) -> void:
     for runtime_node in staged_nodes.values():
-        if is_instance_valid(runtime_node):
-            runtime_node.free()
+        if is_instance_valid(runtime_node): runtime_node.free()
 
 
-func _optional_id(value: Variant) -> String:
-    return "" if value == null else str(value)
-
-
-func _failure(message: String) -> Dictionary:
-    return {"ok": false, "errors": [message]}
+func _optional_id(value: Variant) -> String: return "" if value == null else str(value)
+func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}
