@@ -60,8 +60,6 @@ func bind_project(project, dirty_callback: Callable) -> Dictionary:
 
 
 func load_preview_records(records: Array) -> Dictionary:
-    if _project != null:
-        return refresh_runtime(true)
     _selection.clear()
     return _bridge.rebuild(records)
 
