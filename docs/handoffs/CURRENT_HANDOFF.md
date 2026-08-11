@@ -1,144 +1,172 @@
-# Current Handoff
+# POLYFORK PROJECT — PHASE 5 HANDOFF
 
-## Status
-OPEN — Phase 4 Universal Asset Library implementation is complete and verified. Completion PR #9 is open against authoritative `master` and must be explicitly merged before Phase 5 begins.
+Repository: `https://github.com/DocDamage/polyfork-project`
 
-## Authoritative branch state
-Repository: `DocDamage/polyfork-project`
+Use the GitHub connector for repository work.
 
-Authoritative project branch: `master`
+## Authoritative branch
 
-Current authoritative `master` remains:
-`e5c80c82a4a18ad0225111d15720347c5614612a`
+The real project lives on:
 
-Phase 4 started from that exact commit.
+`master`
 
-The repository default branch `main` remains obsolete starter code. Never develop from `main`.
+Current authoritative `master`:
 
-Phase 4 milestone branch:
-`dev/phase4-universal-asset-library-milestone`
+`a7788d6806375bea415cc835be71754e951229c0`
 
-Verified implementation/documentation closeout commit:
-`d0c507279cf63d6fab03a96565375763b1a1ad1c`
+PR #9 — **Phase 4 — Universal Asset Library** — is merged into that commit.
 
-Completion PR:
-`#9 — Phase 4 — Universal Asset Library`
+The repository default branch `main` remains obsolete starter code.
 
-Target: `master`
+**Never develop from `main`.**
 
-State: **OPEN / NOT MERGED**
+## Current project state
 
-## Milestone workflow policy
-The project uses milestone-based review gates rather than one PR per internal task.
+Phases 0 through 4 are complete and merged.
 
-- Task IDs are implementation checkpoints.
-- Commit and run CI throughout a milestone.
-- Do not stop at individual task boundaries.
-- Open one PR only when the whole authorized milestone is complete and verified.
-- Never merge without explicit user authorization.
+Phase 4 delivered:
 
-## Completed milestone
-**Phase 4 — Universal Asset Library**
+- strictly read-only external asset source folders
+- deterministic incremental scanning and SHA-256 indexing
+- stable asset-ID reconciliation across ordinary rescans and provable moves
+- GLTF, GLB, Godot `.tscn`, and Godot `.scn` analysis/import support
+- project-managed derived imports, thumbnails, and caches
+- source/license metadata persistence
+- favorites, collections, duplicate detection, search, and filters
+- large-card default browser plus compact density
+- keyboard/mouse and gamepad Asset Library workflows
+- real Asset Library → Phase 3 ghost → `PlaceEntityCommand` placement handoff
+- asset-backed runtime visuals with safe missing-source proxy fallback
+- 131-asset scale/incremental verification
+- rendered Phase 4 visual evidence
 
-Completed internal tasks:
-- P04-T01 read-only source-folder registry and source contracts
-- P04-T02 incremental scanner, hashing, and stable asset-ID reconciliation
-- P04-T03 GLB/GLTF and Godot scene analysis/import support
-- P04-T04 asset metadata, licensing, and catalog persistence contracts
-- P04-T05 thumbnail generation, cache invalidation, and failure handling
-- P04-T06 large-card asset browser, search, filters, and favorites
-- P04-T07 collections, duplicate detection, source/license details, and placement handoff
-- P04-T08 integration, scale, gamepad, failure-path, raw-log, and rendered visual verification
+## Development workflow
 
-## Asset Library architecture delivered
-Per-project managed storage lives under:
-`<project-directory>/asset_library`
+The project uses **milestone-based development**, not one PR per small task.
 
-Canonical managed files:
-- `sources.json` — versioned read-only source-folder registry
-- `catalog.json` — versioned stable asset catalog/metadata
+For an authorized milestone:
 
-Rebuildable managed data:
-- `imports/` — derived copies used for runtime loading
-- `thumbnails/` — content-addressed thumbnail cache
+1. Start from current authoritative `master`.
+2. Create one focused milestone branch.
+3. Work continuously through the entire authorized task range.
+4. Make internal commits and run CI whenever useful.
+5. Do **not** stop at individual task boundaries.
+6. Do **not** open per-task PRs.
+7. Fix failures without weakening tests.
+8. Update architecture, backlog, and handoff documentation during milestone closeout.
+9. Open **one PR only when the entire milestone is complete and verified**.
+10. Never merge the milestone PR without explicit user authorization.
 
-External registered source folders are input-only. Scanner, metadata, imports, thumbnails, caches, reconciliation, duplicate detection, and placement never intentionally write into them.
+A genuine external blocker may justify an earlier review point, but ordinary implementation failures do not.
 
-## Stable identity and incremental scanning
-Supported discovery types are GLTF, GLB, Godot `.tscn`, and Godot `.scn`.
+# NEXT AUTHORIZED MILESTONE
 
-Scanning is deterministic and sorted. Unchanged same-path files reuse prior SHA-256 results when size and modification metadata also match. Same-path assets keep their `asset_id`. A move inside the same source retains its prior ID only when exactly one unmatched content-signature candidate proves the relationship. Duplicate source files remain separate catalog records and are never silently merged or deleted.
+## Phase 5 — Terrain + Streaming
 
-Missing source records remain in the catalog with `missing: true`, preserving stable world references without retargeting another asset.
+Milestone branch already created from authoritative `master`:
 
-## Analysis/import and failure behavior
-- GLTF 2.x JSON receives structural preflight.
-- GLB receives binary header/version/length preflight.
-- Godot text scenes receive scene/node structural preflight.
-- Godot binary scenes receive resource-header preflight.
-- Corrupt supported inputs remain failed-analysis catalog records and are blocked before placement.
-- Unsupported extensions are ignored rather than fabricated into supported assets.
-- GLTF local dependencies are copied to managed imports; remote dependencies and source-root escapes fail safely.
+`dev/phase5-terrain-streaming-milestone`
 
-## Catalog/browser delivered
-Catalog persistence includes favorites, collections, licensing/source fields, user metadata, analysis state, derived-import metadata, and thumbnail metadata.
+Complete the entire Phase 5 range continuously:
 
-The existing Asset drawer now provides:
-- large cards by default;
-- compact density option;
-- search;
-- source/type/collection filters;
-- favorites and duplicate filters;
-- read-only source and license details;
-- collection assignment;
-- rescan and source-folder registration;
-- native keyboard/mouse/gamepad card activation;
-- keyboard `F` / gamepad `Y` favorite shortcut.
+- **P05-T01** — Versioned terrain/biome/cell persistence contracts and stable cell identity
+- **P05-T02** — Deterministic runtime terrain chunk mesh generation and editor viewport integration
+- **P05-T03** — Command-backed runtime terrain sculpt brushes with undo/redo and dirty-state integration
+- **P05-T04** — World partition topology derived from Small/Medium/Large world profiles
+- **P05-T05** — Crash-safe dirty-cell persistence, reload, checkpoint, and corruption recovery behavior
+- **P05-T06** — Deterministic streaming manager load/unload policy with stable cross-cell references
+- **P05-T07** — Biome rule-set data, terrain material hooks, and biome assignment/editing foundations
+- **P05-T08** — Phase 5 integration, scale/performance, gamepad, failure-path, persistence, streaming, and rendered visual verification
 
-The UI remains inside the existing dark, playful Nintendo-forward / Apple-clean workspace rather than becoming an enterprise dashboard.
+Use **one Phase 5 milestone branch** and **one Phase 5 completion PR**.
 
-## Phase 3 placement integration
-Catalog selection enters `asset_placement_handoff.gd`, which validates the stable asset ID and managed scene import before starting the existing Phase 3 ghost.
+Do not stop for PR review between P05-T01 and P05-T08.
 
-Preview carries `WorldEntity.asset_id` but does not create an entity or mark project state dirty. Commit remains the existing `PlaceEntityCommand` path. Runtime bridge rebuild resolves asset-backed entities to real managed scene visuals. Duplicate preserves `asset_id` with a new entity UUID. Save/reopen retains the reference. Missing source content falls back to a safe generic proxy instead of invalidating authored entities.
+## Phase 5 product requirements
 
-No prefab/component system was fabricated for Phase 4.
+Phase 5 must satisfy the existing product requirements:
 
-## Verification evidence
-Behavioral coverage includes:
-- 131 supported source fixtures in the scale/incremental scan test;
-- first scan hashes all supported fixtures;
-- unchanged rescan reuses all 131 hashes and hashes zero unchanged files;
-- source-folder before/after SHA snapshots proving scanner/catalog/import/thumbnail workflows leave source files unchanged;
-- stable ID across a uniquely proven in-source move;
-- independent IDs plus reporting for duplicate content;
-- catalog/license/favorite/collection persistence across restart;
-- thumbnail generation and content-change invalidation;
-- managed imports only under project storage;
-- valid GLTF, GLB, Godot text scene, and Godot binary scene coverage;
-- corrupt GLTF/Godot scene rejection and unsupported-extension ignore behavior;
-- real asset ghost → command-backed placement → runtime visual → duplicate → save/reopen;
-- missing-source proxy fallback;
-- search/filter/favorites/collections/duplicates/density browser behavior;
-- keyboard and gamepad browser controls;
-- existing Phase 0–3 tests retained.
+- Small worlds represent the existing 1–2 km² profile.
+- Medium worlds represent the existing 4–16 km² profile.
+- Large worlds start at 16+ km² and are streamed.
+- World size remains chosen before terrain creation.
+- Terrain must be sculptable at runtime.
+- Large worlds must be partitioned into streamable cells/chunks.
+- Biomes are rule sets, not baked art dependencies.
+- Biome presets may configure terrain material hooks and future foliage/environment defaults without prematurely implementing later foliage/environment phases.
+- Representative medium-world work must preserve the 60 FPS target on an RTX 3060-class desktop at 1080p using the standard preset.
 
-Final closeout Godot Actions run `31537873378` used `4.7.1.stable.official.a13da4feb` and passed:
-- `runtime-smoke` — SUCCESS
-- `phase1-visual-capture` — SUCCESS
-- `phase4-visual-capture` — SUCCESS
+## Phase 5 architecture constraints
 
-The raw runtime log contains `PASS: PlayWorld Studio test harness completed.` and passed the workflow's strict rejection of `SCRIPT ERROR:` and engine `ERROR:` output.
+- Terrain persistence must use stable IDs and versioned schemas; never use scene-tree paths, node names, or array positions as persistent identity.
+- Terrain/chunk/cell identity must remain deterministic across save/reopen and streaming unload/reload.
+- Do not represent terrain chunks as ordinary placed asset entities merely to reuse Phase 3 systems.
+- Existing world entities must keep their stable entity IDs and owning cell references while cells stream in and out.
+- Streaming must not assume a referenced parent/entity is currently loaded.
+- Large-world streaming must be bounded and deterministic; tests must prove which cells load/unload around a focus position.
+- Small and Medium profiles must remain usable without forcing Large-world streaming behavior.
+- Terrain sculpting is authored state and must run through reversible commands/transactions; preview-only brush state must not dirty persistence.
+- Undo/redo must restore terrain data and runtime mesh state together.
+- Dirty terrain/cell persistence must be incremental; unchanged cells must not be rewritten merely because another cell changed.
+- Terrain/cell writes must use the existing crash-safe persistence principles: write/flush/validate/promote, preserving previous known-good canonical data on failure.
+- Corrupt, missing, unsupported-version, or incomplete terrain/cell data must fail safely and must not silently replace known-good authored terrain.
+- Streaming unload must never discard unsaved dirty authored terrain.
+- Cross-cell references remain stable-ID references and may resolve lazily when the target cell is not loaded.
+- Biome records must be data-driven and versioned. Do not bake specific art packs, foliage systems, weather systems, or gameplay semantics into the terrain core.
+- Phase 5 may expose terrain material slots/hooks, but full foliage/procedural scatter belongs to Phase 9 and full environment/weather belongs to Phase 11.
+- Preserve Phase 4 external asset source-folder read-only guarantees.
+- Preserve Phase 4 Asset Library placement behavior and Phase 3 command-backed entity editing.
+- Core terrain workflows must support keyboard/mouse and gamepad.
+- Preserve the canonical dark, playful, Nintendo-forward / Apple-clean UI direction.
+- Keep production files around 300 LOC where practical and split by responsibility.
+- Never weaken tests to make broken behavior pass.
+- CI must continue rejecting `SCRIPT ERROR:` and engine `ERROR:` output even when Godot exits successfully.
+- Continue using Godot **4.7.1**.
 
-The raw Phase 4 visual log contains `PASS: Phase 4 rendered screenshots captured.` and passed the same strict script/engine error gate. Rendered evidence artifact `phase4-visual-evidence` contains:
-- `00-canonical-reference.png`
-- `01-asset-library-large.png`
-- `02-asset-library-compact.png`
+## Phase 5 verification expectations
 
-Visual inspection confirmed the Asset Library remains integrated into the canonical dark/playful workspace. A compact-density horizontal overflow exposed by that inspection was corrected and the regenerated screenshot was manually re-inspected before PR creation.
+The Phase 5 completion gate must include real behavioral verification for at least:
 
-## Scope boundary
-Phase 5 has not started. Terrain/streaming work is not authorized until PR #9 is merged into authoritative `master`.
+- terrain schema validation and stable IDs
+- deterministic height/mesh generation
+- runtime sculpt add/subtract/smooth/flatten behavior
+- brush preview versus committed authored state
+- command-backed sculpt undo/redo
+- project dirty/autosave integration
+- Small/Medium/Large partition topology
+- stable owning-cell relationships for existing world entities
+- dirty-cell incremental save behavior
+- save/reopen terrain persistence
+- checkpoint/recovery interaction where applicable
+- corrupt/missing/future-version terrain/cell failure paths
+- deterministic streaming load/unload sets
+- dirty-cell protection during unload
+- cross-cell stable-reference behavior when targets are unloaded
+- biome schema/preset/assignment persistence
+- representative scale/performance tests
+- keyboard/mouse terrain authoring
+- gamepad terrain authoring
+- rendered terrain/streaming UI evidence against the canonical visual direction
+- strict inspection of raw Godot CI logs
 
-## Next action
-Review PR #9. Do not merge it without explicit user authorization. After it is merged, verify the new authoritative `master` commit and create the next handoff before beginning Phase 5.
+## Completion gate
+
+Phase 5 is complete only when P05-T01 through P05-T08 are implemented together and verified through:
+
+- behavioral unit tests
+- integration tests
+- real Godot runtime tests
+- persistence/restart tests
+- dirty-cell incremental persistence tests
+- corruption/recovery failure paths
+- deterministic streaming tests
+- stable identity/reference verification
+- keyboard/mouse verification
+- gamepad verification
+- representative performance/scale verification
+- rendered visual evidence
+- strict raw Godot log inspection
+
+Then update the backlog, architecture docs, and `CURRENT_HANDOFF.md`, and open **one Phase 5 completion PR targeting `master`**.
+
+Do not begin Phase 6 until that Phase 5 milestone PR is merged.
