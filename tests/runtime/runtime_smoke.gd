@@ -86,6 +86,7 @@ func _exercise_routes(
     _check_workspace_route(home, new_world, workspace, errors)
     _check_mode_switch(workspace, errors)
     _check_inspector(workspace, errors)
+    _check_bottom_dock(workspace, errors)
 
     workspace.emit_signal("home_requested")
     if not home.visible or workspace.visible:
@@ -172,3 +173,45 @@ func _check_inspector(workspace: Control, errors: Array[String]) -> void:
     workspace.call("hide_inspector")
     if inspector.visible:
         errors.append("Inspector clear/hide must remove it from the workspace.")
+
+
+func _check_bottom_dock(workspace: Control, errors: Array[String]) -> void:
+    var required_tools := [
+        "TerrainButton",
+        "AssetsButton",
+        "FoliageButton",
+        "RoadsButton",
+        "WaterButton",
+        "GameplayButton",
+        "AIButton",
+        "MoreButton"
+    ]
+    for node_name in required_tools:
+        if workspace.find_child(node_name, true, false) == null:
+            errors.append("Bottom dock is missing %s." % node_name)
+
+    var assets_button := workspace.find_child("AssetsButton", true, false) as Button
+    var drawer := workspace.find_child("AssetDrawer", true, false) as Control
+    var density_button := workspace.find_child("DensityButton", true, false) as Button
+    var search_edit := workspace.find_child("AssetSearch", true, false) as LineEdit
+
+    if assets_button == null or drawer == null or density_button == null or search_edit == null:
+        errors.append("Asset drawer shell is incomplete.")
+        return
+
+    if drawer.visible:
+        errors.append("Asset drawer must start closed.")
+    if density_button.text != "Large Cards":
+        errors.append("Asset drawer must default to large-card density.")
+
+    assets_button.emit_signal("pressed")
+    if not drawer.visible:
+        errors.append("Assets tool must open the Asset drawer.")
+
+    density_button.emit_signal("pressed")
+    if density_button.text != "Compact":
+        errors.append("Asset density toggle must change from large to compact.")
+
+    assets_button.emit_signal("pressed")
+    if drawer.visible:
+        errors.append("Assets tool must toggle the Asset drawer closed.")
