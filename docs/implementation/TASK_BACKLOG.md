@@ -7,7 +7,7 @@ Task IDs use `P##-T##`.
 - [x] P00-T02 Add coding/documentation rules
 - [x] P00-T03 Define persistent ID and schema-version conventions
 - [x] P00-T04 Implement test harness and runtime smoke-test scene
-- [ ] P00-T05 Add canonical UI visual reference and comparison checklist
+- [x] P00-T05 Add canonical UI visual reference and comparison checklist
 
 ## Phase 1
 - [ ] P01-T01 Implement theme/tokens
