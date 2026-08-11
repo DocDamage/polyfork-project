@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "id": "uuid",
+  "display_name": "Wooden Cottage A",
+  "source_path": "D:/Assets/Pack/model.glb",
+  "hash": "sha256...",
+  "type": "model_3d",
+  "source_pack": "Example Pack",
+  "author": "Unknown",
+  "license": "Unknown",
+  "source_url": "",
+  "commercial_use": "unknown",
+  "attribution_required": "unknown",
+  "tags": [
+    "house",
+    "wooden"
+  ],
+  "categories": [
+    "Buildings"
+  ],
+  "dimensions_m": [
+    6.2,
+    4.8,
+    7.1
+  ],
+  "thumbnail": "cache://...",
+  "import_status": "indexed",
+  "warnings": [
+    "license_unknown"
+  ]
+}

@@ -1,0 +1,22 @@
+# Godot
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+
+# Generated project caches
+.cache/
+cache/
+thumbnails/
+asset_index/
+
+# Credentials
+.env
+.env.*
+secrets/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

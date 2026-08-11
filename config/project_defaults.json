@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "engine_target": "Godot 4.7.x",
+  "quality_preset": "standard_3060",
+  "ui_theme": "dark_playful",
+  "canonical_ui_reference": "assets/reference/CANONICAL_UI_REFERENCE.png",
+  "world_profiles": {
+    "small": {
+      "label": "Small",
+      "approx_km2": "1-2"
+    },
+    "medium": {
+      "label": "Medium",
+      "approx_km2": "4-16"
+    },
+    "large": {
+      "label": "Large",
+      "approx_km2": "16+",
+      "streaming": true
+    }
+  },
+  "asset_sources_read_only": true,
+  "undo_redo_required": true
+}

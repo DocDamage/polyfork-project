@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "project_id": "uuid",
+  "title": "Sunset Valley",
+  "world_profile": "medium",
+  "template": "third_person_adventure",
+  "cells": [],
+  "environment": {
+    "time_of_day": 12.75,
+    "weather_profile": "clear"
+  },
+  "registries": {
+    "prefabs": [],
+    "archetypes": [],
+    "visual_graphs": []
+  },
+  "editor": {
+    "last_mode": "build"
+  }
+}

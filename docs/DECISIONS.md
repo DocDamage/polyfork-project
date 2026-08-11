@@ -1,0 +1,32 @@
+# Locked Product Decisions
+
+- Engine: Godot 4.7.x.
+- Initial platform strategy: desktop first, broader exports later.
+- Baseline GPU: RTX 3060 12 GB class; scalable quality presets.
+- Runtime editing is primary; not a Godot-editor-only tool.
+- World size chosen before creation: Small, Medium, Large/streamed.
+- Terrain: runtime sculptable.
+- Placement: full snapping/manipulation suite.
+- Asset browsing: visual large cards by default + density toggle.
+- Asset indexing: automatic folder scan, multiple external roots, originals untouched, duplicate detection.
+- Gameplay model: components + archetypes + full prefab/blueprint-style reusable system.
+- Visual gameplay: node-based.
+- NPC direction: start basic, architect for schedules/dialogue/factions/combat/needs/jobs.
+- Roads: spline-based.
+- Buildings: support seamless, loaded, and purpose-built interior approaches.
+- Vehicles: smart archetype with optional manual socket/wheel setup.
+- Templates include starter mechanics.
+- Undo/redo: mandatory.
+- Thumbnail studio: automatic.
+- Asset inspection: detailed metrics.
+- AI: provider agnostic, catalog-aware, Suggest/Preview/Execute, transactional.
+- Procedural tools: nondestructive until baked.
+- Reusable world chunks: yes.
+- Multiplayer direction: co-op, competitive, and future collaborative editing.
+- Environment: day/night and weather.
+- Water/biome/world art: system must integrate the user's owned asset libraries rather than assume one built-in art set.
+- Foliage: dedicated instanced system.
+- Floating origin: architect for it, implement when scale tests justify it.
+- End state: reusable game-creation platform.
+- UI: dark playful, ~70/30 Nintendo/Apple, context-sensitive tool colors, minimal hidden menus, smart defaults with Advanced controls, gamepad-usable, touch-ready.
+- Canonical visual target: `assets/reference/CANONICAL_UI_REFERENCE.png`.
