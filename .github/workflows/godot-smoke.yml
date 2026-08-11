@@ -1,0 +1,39 @@
+name: Godot Smoke
+
+on:
+  push:
+    branches:
+      - "dev/**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+          ./Godot_v4.7.1-stable_linux.x86_64 --version
+
+      - name: Run runtime smoke harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./Godot_v4.7.1-stable_linux.x86_64 \
+            --headless \
+            --path . \
+            --script res://tests/test_runner.gd
