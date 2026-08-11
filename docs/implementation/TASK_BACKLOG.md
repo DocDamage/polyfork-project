@@ -11,7 +11,7 @@ Task IDs use `P##-T##`.
 
 ## Phase 1
 - [x] P01-T01 Implement theme/tokens
-- [ ] P01-T02 Implement Home screen
+- [x] P01-T02 Implement Home screen
 - [ ] P01-T03 Implement Create New World flow
 - [ ] P01-T04 Implement main workspace shell
 - [ ] P01-T05 Implement Build|Play switch UI
