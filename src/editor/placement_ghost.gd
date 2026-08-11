@@ -1,6 +1,8 @@
 class_name PlayWorldPlacementGhost
 extends Node3D
 
+const StableId = preload("res://src/world/stable_id.gd")
+
 var _record: Dictionary = {}
 var _mesh: MeshInstance3D
 var _asset_visual: Node3D
@@ -34,28 +36,27 @@ func update_transform(position_value: Vector3, rotation_value: Vector3 = Vector3
         }
 
 
+func set_cell_id(cell_id: String) -> Dictionary:
+    if not is_active(): return {"ok": false, "errors": ["Placement ghost is not active."]}
+    if not StableId.is_valid(cell_id): return {"ok": false, "errors": ["Placement ghost cell_id must be a stable UUID."]}
+    _record["cell_id"] = cell_id
+    return {"ok": true, "errors": []}
+
+
 func hide_preview() -> void:
     visible = false
     _record.clear()
     _replace_asset_visual(null)
 
 
-func is_active() -> bool:
-    return visible and not _record.is_empty()
-
-
-func get_record() -> Dictionary:
-    return _record.duplicate(true)
-
-
-func has_asset_visual() -> bool:
-    return _asset_visual != null
+func is_active() -> bool: return visible and not _record.is_empty()
+func get_record() -> Dictionary: return _record.duplicate(true)
+func has_asset_visual() -> bool: return _asset_visual != null
 
 
 func _replace_asset_visual(value: Node3D) -> void:
     if _asset_visual != null and is_instance_valid(_asset_visual):
-        if _asset_visual.get_parent() == self:
-            remove_child(_asset_visual)
+        if _asset_visual.get_parent() == self: remove_child(_asset_visual)
         _asset_visual.free()
     _asset_visual = value
     _mesh.visible = value == null
@@ -65,8 +66,7 @@ func _replace_asset_visual(value: Node3D) -> void:
 
 
 func _ensure_mesh() -> void:
-    if _mesh != null:
-        return
+    if _mesh != null: return
     _mesh = MeshInstance3D.new()
     _mesh.name = "GhostMesh"
     var box := BoxMesh.new()
