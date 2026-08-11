@@ -78,13 +78,13 @@ func get_write_counts() -> Dictionary: return _write_counts.duplicate(true)
 func _load_or_seed(section: String) -> Dictionary:
     var path := get_path(section)
     if FileAccess.file_exists(path):
-        var read := writer.read_dictionary(path)
+        var read: Dictionary = writer.read_dictionary(path)
         if not read.get("ok", false): return _failure("Gameplay %s document is corrupt or unreadable." % section)
-        var errors := _validate_document(section, read.get("data", {}))
+        var errors: Array[String] = _validate_document(section, read.get("data", {}))
         if not errors.is_empty(): return {"ok": false, "errors": errors}
         return {"ok": true, "errors": [], "records": read["data"].get(str(DOCUMENTS[section][2]), []).duplicate(true), "created": false}
     var records: Array = _seed_records(section)
-    var write := _write_section(section, records)
+    var write: Dictionary = _write_section(section, records)
     if not write.get("ok", false): return write
     return {"ok": true, "errors": [], "records": records.duplicate(true), "created": true}
 
