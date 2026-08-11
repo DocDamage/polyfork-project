@@ -19,7 +19,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.043, 0.051, 0.078, 1)
+color = Color(0.031, 0.051, 0.071, 1)
 
 [node name="SafeArea" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -28,29 +28,30 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 72
-theme_override_constants/margin_top = 48
-theme_override_constants/margin_right = 72
-theme_override_constants/margin_bottom = 48
+theme_override_constants/margin_left = 92
+theme_override_constants/margin_top = 44
+theme_override_constants/margin_right = 92
+theme_override_constants/margin_bottom = 44
 
 [node name="Content" type="VBoxContainer" parent="SafeArea"]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 18
 
 [node name="TopRow" type="HBoxContainer" parent="SafeArea/Content"]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 16
 
 [node name="BackButton" type="Button" parent="SafeArea/Content/TopRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 48)
+custom_minimum_size = Vector2(100, 46)
 layout_mode = 2
-text = "←  Back"
+theme_type_variation = &"ToolButton"
+text = "Back"
 
 [node name="Header" type="VBoxContainer" parent="SafeArea/Content/TopRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 
 [node name="Title" type="Label" parent="SafeArea/Content/TopRow/Header"]
 layout_mode = 2
@@ -60,12 +61,12 @@ text = "Create New World"
 [node name="Subtitle" type="Label" parent="SafeArea/Content/TopRow/Header"]
 layout_mode = 2
 theme_type_variation = &"SecondaryLabel"
-text = "Pick the scale first. You can change almost everything else later."
+text = "Pick the scale first. Smart defaults handle the rest."
 
 [node name="Form" type="PanelContainer" parent="SafeArea/Content"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_type_variation = &"ElevatedPanel"
+theme_type_variation = &"DrawerPanel"
 
 [node name="FormMargin" type="MarginContainer" parent="SafeArea/Content/Form"]
 layout_mode = 2
@@ -76,7 +77,7 @@ theme_override_constants/margin_bottom = 24
 
 [node name="Fields" type="VBoxContainer" parent="SafeArea/Content/Form/FormMargin"]
 layout_mode = 2
-theme_override_constants/separation = 22
+theme_override_constants/separation = 16
 
 [node name="NameLabel" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields"]
 layout_mode = 2
@@ -85,66 +86,84 @@ text = "World name"
 
 [node name="WorldNameEdit" type="LineEdit" parent="SafeArea/Content/Form/FormMargin/Fields"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 placeholder_text = "My World"
 text = "My World"
 
-[node name="SizeHeading" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields"]
+[node name="SizeRow" type="HBoxContainer" parent="SafeArea/Content/Form/FormMargin/Fields"]
 layout_mode = 2
+
+[node name="SizeHeading" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields/SizeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"HeadingLabel"
 text = "World size"
 
-[node name="SizeHint" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields"]
+[node name="SizeHint" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields/SizeRow"]
 layout_mode = 2
-theme_type_variation = &"SecondaryLabel"
-text = "This choice sets the initial terrain and streaming profile."
+theme_type_variation = &"CaptionLabel"
+text = "Chosen before terrain creation"
 
 [node name="SizeCards" type="HBoxContainer" parent="SafeArea/Content/Form/FormMargin/Fields"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="SmallButton" type="Button" parent="SafeArea/Content/Form/FormMargin/Fields/SizeCards"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 128)
+custom_minimum_size = Vector2(0, 118)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"CardButton"
-text = "Small\n1–2 km²\nFastest to build"
-alignment = 0
+text = "Small\n1–2 km²\nFastest"
+alignment = 1
 
 [node name="MediumButton" type="Button" parent="SafeArea/Content/Form/FormMargin/Fields/SizeCards"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 128)
+custom_minimum_size = Vector2(0, 118)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"CardButton"
 text = "Medium\n4–16 km²\nRecommended"
-alignment = 0
+alignment = 1
 
 [node name="LargeButton" type="Button" parent="SafeArea/Content/Form/FormMargin/Fields/SizeCards"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 128)
+custom_minimum_size = Vector2(0, 118)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"CardButton"
-text = "Large\n16+ km²\nStreamed world"
-alignment = 0
+text = "Large\n16+ km²\nStreamed"
+alignment = 1
 
-[node name="TemplateHeading" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields"]
+[node name="TemplateRow" type="HBoxContainer" parent="SafeArea/Content/Form/FormMargin/Fields"]
 layout_mode = 2
+
+[node name="TemplateHeading" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields/TemplateRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"HeadingLabel"
 text = "Start from"
 
-[node name="TemplateOption" type="OptionButton" parent="SafeArea/Content/Form/FormMargin/Fields"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-
-[node name="TemplateHint" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields"]
+[node name="TemplateHint" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields/TemplateRow"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
-text = "Templates are starting points, not permanent genre locks."
+text = "Templates never lock your genre"
+
+[node name="TemplateOption" type="OptionButton" parent="SafeArea/Content/Form/FormMargin/Fields"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="InfoPanel" type="PanelContainer" parent="SafeArea/Content/Form/FormMargin/Fields"]
+layout_mode = 2
+theme_type_variation = &"AccentPanel"
+
+[node name="InfoText" type="Label" parent="SafeArea/Content/Form/FormMargin/Fields/InfoPanel"]
+layout_mode = 2
+theme_type_variation = &"SecondaryLabel"
+text = "Advanced terrain, biome, streaming, and quality tuning stays hidden until the world exists."
+autowrap_mode = 2
 
 [node name="BottomRow" type="HBoxContainer" parent="SafeArea/Content"]
 layout_mode = 2
@@ -155,12 +174,12 @@ theme_override_constants/separation = 12
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"SecondaryLabel"
-text = "Smart defaults are ready. Advanced world tuning comes after creation."
+text = "Ready with smart defaults."
 vertical_alignment = 1
 
 [node name="CreateButton" type="Button" parent="SafeArea/Content/BottomRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(190, 54)
+custom_minimum_size = Vector2(210, 54)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
-text = "Create World  →"
+text = "Create World"

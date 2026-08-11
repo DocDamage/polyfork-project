@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource path="res://src/app/workspace/workspace_screen.gd" type="Script" id="1"]
 [ext_resource path="res://src/app/workspace/ModeSwitch.tscn" type="PackedScene" id="2"]
 [ext_resource path="res://src/app/workspace/InspectorPanel.tscn" type="PackedScene" id="3"]
 [ext_resource path="res://src/app/workspace/BottomToolDock.tscn" type="PackedScene" id="4"]
+[ext_resource path="res://src/app/workspace/TransformToolbar.tscn" type="PackedScene" id="5"]
 
 [node name="WorkspaceScreen" type="Control"]
 layout_mode = 3
@@ -22,41 +23,43 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.043, 0.051, 0.078, 1)
+color = Color(0.031, 0.051, 0.071, 1)
 
 [node name="TopBar" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 10
+anchor_left = 0.0
+anchor_top = 0.0
 anchor_right = 1.0
-offset_left = 20.0
-offset_top = 18.0
-offset_right = -20.0
-offset_bottom = 82.0
+anchor_bottom = 0.0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = 66.0
 grow_horizontal = 2
-theme_type_variation = &"ElevatedPanel"
+theme_type_variation = &"DrawerPanel"
 
 [node name="TopMargin" type="MarginContainer" parent="TopBar"]
 layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
 
 [node name="TopRow" type="HBoxContainer" parent="TopBar/TopMargin"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
 [node name="HomeButton" type="Button" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(68, 44)
 layout_mode = 2
 theme_type_variation = &"ToolButton"
-text = "⌂"
+text = "Home"
 
 [node name="WorldStack" type="VBoxContainer" parent="TopBar/TopMargin/TopRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(300, 0)
-theme_override_constants/separation = 2
+theme_override_constants/separation = 1
 
 [node name="WorldTitle" type="Label" parent="TopBar/TopMargin/TopRow/WorldStack"]
 unique_name_in_owner = true
@@ -76,7 +79,7 @@ size_flags_horizontal = 3
 
 [node name="ModeSlot" type="CenterContainer" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 48)
+custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 
 [node name="ModeSwitch" parent="TopBar/TopMargin/TopRow/ModeSlot" instance=ExtResource("2")]
@@ -86,29 +89,66 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="UtilityHint" type="Label" parent="TopBar/TopMargin/TopRow"]
+[node name="SessionBadge" type="PanelContainer" parent="TopBar/TopMargin/TopRow"]
+layout_mode = 2
+theme_type_variation = &"AccentPanel"
+
+[node name="SessionText" type="Label" parent="TopBar/TopMargin/TopRow/SessionBadge"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
-text = "Runtime workspace"
-vertical_alignment = 1
+text = "SESSION ONLY"
 
 [node name="ViewportFrame" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 96.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = 12.0
+offset_top = 74.0
+offset_right = -12.0
+offset_bottom = -46.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_type_variation = &"ElevatedPanel"
+theme_type_variation = &"DrawerPanel"
 
 [node name="ViewportBackdrop" type="ColorRect" parent="ViewportFrame"]
 layout_mode = 2
 mouse_filter = 2
-color = Color(0.075, 0.098, 0.135, 1)
+color = Color(0.09, 0.24, 0.29, 1)
+
+[node name="SkyGlow" type="ColorRect" parent="ViewportFrame/ViewportBackdrop"]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.58
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.14, 0.35, 0.43, 1)
+
+[node name="Land" type="ColorRect" parent="ViewportFrame/ViewportBackdrop"]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.58
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.12, 0.27, 0.17, 1)
+
+[node name="Horizon" type="ColorRect" parent="ViewportFrame/ViewportBackdrop"]
+layout_mode = 1
+anchor_left = 0.08
+anchor_top = 0.52
+anchor_right = 0.92
+anchor_bottom = 0.61
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.18, 0.36, 0.24, 1)
 
 [node name="ViewportCenter" type="CenterContainer" parent="ViewportFrame/ViewportBackdrop"]
 layout_mode = 1
@@ -117,41 +157,48 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="ViewportStack" type="VBoxContainer" parent="ViewportFrame/ViewportBackdrop/ViewportCenter"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="ViewportTitle" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportCenter/ViewportStack"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "World Viewport"
+text = "WORLD VIEWPORT"
 horizontal_alignment = 1
 
 [node name="ViewportHint" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportCenter/ViewportStack"]
 layout_mode = 2
 theme_type_variation = &"SecondaryLabel"
-text = "World rendering and authoring tools attach here."
+text = "Rendering and authoring systems attach to this live surface."
 horizontal_alignment = 1
 
 [node name="ViewportBadge" type="PanelContainer" parent="ViewportFrame/ViewportBackdrop"]
 layout_mode = 1
-anchors_preset = 0
-offset_left = 18.0
-offset_top = 18.0
-offset_right = 180.0
-offset_bottom = 58.0
-theme_type_variation = &"ElevatedPanel"
+offset_left = 102.0
+offset_top = 16.0
+offset_right = 238.0
+offset_bottom = 54.0
+theme_type_variation = &"AccentPanel"
 
-[node name="BadgeText" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportBadge"]
+[node name="ModeBadge" type="Label" parent="ViewportFrame/ViewportBackdrop/ViewportBadge"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
 text = "BUILD MODE"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="TransformToolbar" parent="." instance=ExtResource("5")]
+layout_mode = 1
+offset_left = 24.0
+offset_top = 94.0
+offset_right = 102.0
+offset_bottom = 418.0
+
 [node name="InspectorLayer" type="Control" parent="."]
-unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -166,15 +213,14 @@ anchor_left = 1.0
 anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -380.0
-offset_top = 96.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = -354.0
+offset_top = 74.0
+offset_right = -12.0
+offset_bottom = -46.0
 grow_horizontal = 0
 grow_vertical = 2
 
 [node name="BottomDockLayer" type="Control" parent="."]
-unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -190,3 +236,46 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="StatusBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -39.0
+offset_right = -12.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_type_variation = &"ElevatedPanel"
+
+[node name="StatusMargin" type="MarginContainer" parent="StatusBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_right = 10
+
+[node name="StatusRow" type="HBoxContainer" parent="StatusBar/StatusMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="StatusWorld" type="Label" parent="StatusBar/StatusMargin/StatusRow"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "PlayWorld Studio"
+
+[node name="StatusMode" type="Label" parent="StatusBar/StatusMargin/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"AccentCaption"
+text = "Build"
+
+[node name="StatusSpacer" type="Control" parent="StatusBar/StatusMargin/StatusRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatusState" type="Label" parent="StatusBar/StatusMargin/StatusRow"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Session only • persistence begins in Phase 2"

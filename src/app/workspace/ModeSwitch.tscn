@@ -3,7 +3,7 @@
 [ext_resource path="res://src/app/workspace/mode_switch.gd" type="Script" id="1"]
 
 [node name="ModeSwitch" type="PanelContainer"]
-custom_minimum_size = Vector2(240, 48)
+custom_minimum_size = Vector2(220, 44)
 theme_type_variation = &"ElevatedPanel"
 script = ExtResource("1")
 
@@ -13,18 +13,18 @@ theme_override_constants/separation = 4
 
 [node name="BuildButton" type="Button" parent="Buttons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(116, 40)
+custom_minimum_size = Vector2(106, 38)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"ToolButton"
+theme_type_variation = &"SegmentButton"
 toggle_mode = true
 text = "Build"
 
 [node name="PlayButton" type="Button" parent="Buttons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(116, 40)
+custom_minimum_size = Vector2(106, 38)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"ToolButton"
+theme_type_variation = &"SegmentButton"
 toggle_mode = true
 text = "Play"

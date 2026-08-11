@@ -7,6 +7,9 @@ signal closed
 @onready var title_label: Label = %InspectorTitle
 @onready var type_label: Label = %TypeValue
 @onready var summary_label: Label = %SummaryValue
+@onready var position_value: Label = %PositionValue
+@onready var rotation_value: Label = %RotationValue
+@onready var scale_value: Label = %ScaleValue
 @onready var advanced_button: Button = %AdvancedButton
 @onready var advanced_panel: Control = %AdvancedPanel
 @onready var advanced_summary: Label = %AdvancedSummary
@@ -30,6 +33,9 @@ func show_context(context: Dictionary) -> void:
     title_label.text = str(_context.get("title", "Selection"))
     type_label.text = str(_context.get("type", "Generic object"))
     summary_label.text = str(_context.get("summary", "No basic properties available yet."))
+    position_value.text = str(_context.get("position", "—"))
+    rotation_value.text = str(_context.get("rotation", "—"))
+    scale_value.text = str(_context.get("scale", "—"))
     advanced_summary.text = str(
         _context.get("advanced_summary", "Advanced properties are not available for this context yet.")
     )
@@ -58,7 +64,7 @@ func focus_primary() -> void:
 
 func _on_advanced_toggled(enabled: bool) -> void:
     advanced_panel.visible = enabled
-    advanced_button.text = "Advanced  ▴" if enabled else "Advanced  ▾"
+    advanced_button.text = "Advanced  ^" if enabled else "Advanced"
 
 
 func _close() -> void:
