@@ -23,7 +23,17 @@ func _ready() -> void:
     templates_button.pressed.connect(_request_route.bind(ROUTE_TEMPLATES))
     asset_library_button.pressed.connect(_request_route.bind(ROUTE_ASSET_LIBRARY))
     _configure_focus_navigation()
+    set_recent_project("", false)
     focus_primary()
+
+
+func set_recent_project(project_title: String, available: bool) -> void:
+    continue_button.disabled = not available
+    continue_button.text = (
+        "Continue\n%s" % project_title
+        if available
+        else "Continue\nNo recent world yet"
+    )
 
 
 func focus_primary() -> void:
