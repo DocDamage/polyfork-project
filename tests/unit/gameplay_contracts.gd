@@ -24,7 +24,9 @@ static func run_checks() -> Array[String]:
     if not ids.has(Components.id_for("network_identity_stub")): errors.append("NetworkIdentityStub must be part of the initial component set.")
 
     var state = GameplayState.new(); state.definitions = definitions; state.archetypes = Archetypes.definitions()
-    var project = WorldProject.new(); project.initialize_new("Gameplay Contracts", &"small", "blank_sandbox"); project.cell_ids = [StableId.generate()]
+    var project = WorldProject.new(); project.initialize_new("Gameplay Contracts", &"small", "blank_sandbox")
+    var test_cells: Array[String] = [StableId.generate()]
+    project.cell_ids = test_cells
     var state_errors := state.validate(project)
     if not state_errors.is_empty(): errors.append("Seed component/archetype state must cross-validate: %s" % state_errors)
     if state.archetypes.size() != 9: errors.append("Initial archetype registry must contain the nine documented presets.")
