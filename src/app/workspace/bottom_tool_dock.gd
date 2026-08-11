@@ -42,6 +42,7 @@ func _ready() -> void:
         _apply_tool_color(button, TOOL_COLORS[tool])
 
     density_button.pressed.connect(_toggle_density)
+    _configure_focus_navigation()
     asset_drawer.hide()
     _apply_density_label()
 
@@ -71,6 +72,39 @@ func toggle_asset_drawer() -> void:
 func focus_primary() -> void:
     var button: Button = buttons[&"assets"]
     button.grab_focus()
+
+
+func get_primary_button() -> Button:
+    return buttons[&"assets"]
+
+
+func _configure_focus_navigation() -> void:
+    var ordered_tools := [
+        buttons[&"terrain"],
+        buttons[&"assets"],
+        buttons[&"foliage"],
+        buttons[&"roads"],
+        buttons[&"water"],
+        buttons[&"gameplay"],
+        buttons[&"ai"],
+        buttons[&"more"]
+    ]
+
+    for index in range(ordered_tools.size()):
+        var current: Control = ordered_tools[index]
+        var left: Control = ordered_tools[(index - 1 + ordered_tools.size()) % ordered_tools.size()]
+        var right: Control = ordered_tools[(index + 1) % ordered_tools.size()]
+        current.focus_neighbor_left = current.get_path_to(left)
+        current.focus_neighbor_right = current.get_path_to(right)
+
+    for index in range(ordered_tools.size() - 1):
+        var current: Control = ordered_tools[index]
+        var next: Control = ordered_tools[index + 1]
+        current.focus_next = current.get_path_to(next)
+        next.focus_previous = next.get_path_to(current)
+
+    search_edit.focus_neighbor_right = search_edit.get_path_to(density_button)
+    density_button.focus_neighbor_left = density_button.get_path_to(search_edit)
 
 
 func _select_tool(tool: StringName) -> void:
