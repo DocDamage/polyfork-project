@@ -25,7 +25,7 @@ Task IDs use `P##-T##`.
 - [x] P02-T02 Implement world-project model and atomic create/open/save repository
 - [x] P02-T03 Integrate New World creation with persistent projects and project reopening
 - [x] P02-T04 Implement stable world-entity record and registry foundation
-- [ ] P02-T05 Implement command, transaction, undo, and redo framework
+- [x] P02-T05 Implement command, transaction, undo, and redo framework
 - [ ] P02-T06 Implement crash-safe autosave and checkpoint recovery
 - [ ] P02-T07 Complete Phase 2 integration tests and persistence hardening
 
