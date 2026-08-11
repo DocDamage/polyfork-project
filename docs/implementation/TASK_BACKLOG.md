@@ -10,7 +10,7 @@ Task IDs use `P##-T##`.
 - [x] P00-T05 Add canonical UI visual reference and comparison checklist
 
 ## Phase 1
-- [ ] P01-T01 Implement theme/tokens
+- [x] P01-T01 Implement theme/tokens
 - [ ] P01-T02 Implement Home screen
 - [ ] P01-T03 Implement Create New World flow
 - [ ] P01-T04 Implement main workspace shell
