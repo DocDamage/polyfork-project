@@ -18,7 +18,16 @@ Task IDs use `P##-T##`.
 - [x] P01-T06 Implement right inspector shell
 - [x] P01-T07 Implement bottom category dock and asset drawer shell
 - [x] P01-T08 Implement keyboard/mouse + gamepad navigation
-- [ ] P01-T09 Screenshot parity review against canonical reference
+- [x] P01-T09 Screenshot parity review against canonical reference
+
+## Phase 2 — World project + save foundation
+- [ ] P02-T01 Implement stable ID utility and Small/Medium/Large world-profile contracts
+- [ ] P02-T02 Implement world-project model and atomic create/open/save repository
+- [ ] P02-T03 Integrate New World creation with persistent projects and project reopening
+- [ ] P02-T04 Implement stable world-entity record and registry foundation
+- [ ] P02-T05 Implement command, transaction, undo, and redo framework
+- [ ] P02-T06 Implement crash-safe autosave and checkpoint recovery
+- [ ] P02-T07 Complete Phase 2 integration tests and persistence hardening
 
 ## Later phases
 Decompose each phase in `MASTER_IMPLEMENTATION_PLAN.md` into similarly sized tasks before starting that phase. Each task must have acceptance evidence and a new handoff.
