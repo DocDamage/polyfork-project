@@ -9,6 +9,7 @@ signal mode_changed(mode: StringName)
 @onready var world_context: Label = %WorldContext
 @onready var mode_switch: Control = $TopBar/TopMargin/TopRow/ModeSlot/ModeSwitch
 @onready var mode_badge: Label = $ViewportFrame/ViewportBackdrop/ViewportBadge/BadgeText
+@onready var inspector_panel: Control = $InspectorLayer/InspectorPanel
 
 var _configuration: Dictionary = {}
 var _mode: StringName = &"build"
@@ -35,6 +36,18 @@ func get_configuration() -> Dictionary:
 
 func get_mode() -> StringName:
     return _mode
+
+
+func show_inspector(context: Dictionary) -> void:
+    inspector_panel.show_context(context)
+
+
+func hide_inspector() -> void:
+    inspector_panel.clear_context()
+
+
+func is_inspector_open() -> bool:
+    return inspector_panel.is_open()
 
 
 func focus_primary() -> void:
