@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource path="res://src/app/workspace/workspace_screen.gd" type="Script" id="1"]
 [ext_resource path="res://src/app/workspace/ModeSwitch.tscn" type="PackedScene" id="2"]
 [ext_resource path="res://src/app/workspace/InspectorPanel.tscn" type="PackedScene" id="3"]
+[ext_resource path="res://src/app/workspace/BottomToolDock.tscn" type="PackedScene" id="4"]
 
 [node name="WorkspaceScreen" type="Control"]
 layout_mode = 3
@@ -181,3 +182,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="BottomToolDock" parent="BottomDockLayer" instance=ExtResource("4")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
