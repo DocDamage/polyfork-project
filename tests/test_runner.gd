@@ -4,6 +4,7 @@ const WorldFoundationContracts = preload("res://tests/unit/world_foundation_cont
 const CommandHistoryContracts = preload("res://tests/unit/command_history_contracts.gd")
 const RuntimeEntityBridgeContracts = preload("res://tests/unit/runtime_entity_bridge_contracts.gd")
 const SnappingContracts = preload("res://tests/unit/snapping_contracts.gd")
+const AssetLibraryContracts = preload("res://tests/unit/asset_library_contracts.gd")
 const ProjectRepositoryContracts = preload("res://tests/integration/project_repository_contracts.gd")
 const AutosaveCheckpointContracts = preload("res://tests/integration/autosave_checkpoint_contracts.gd")
 const Phase2LifecycleContracts = preload("res://tests/integration/phase2_lifecycle_contracts.gd")
@@ -42,6 +43,7 @@ func _run_unit_checks() -> void:
     for error in CommandHistoryContracts.run_checks(): _failures.append(error)
     for error in RuntimeEntityBridgeContracts.run_checks(): _failures.append(error)
     for error in SnappingContracts.run_checks(): _failures.append(error)
+    for error in AssetLibraryContracts.run_checks(): _failures.append(error)
 
 
 func _run_integration_checks() -> void:
