@@ -11,6 +11,7 @@ const Phase2LifecycleContracts = preload("res://tests/integration/phase2_lifecyc
 const Phase2PersistenceHardeningContracts = preload("res://tests/integration/phase2_persistence_hardening_contracts.gd")
 const Phase3EditorSessionContracts = preload("res://tests/integration/phase3_editor_session_contracts.gd")
 const Phase3PlacementSnappingContracts = preload("res://tests/integration/phase3_placement_snapping_contracts.gd")
+const Phase4PlacementContracts = preload("res://tests/integration/phase4_placement_contracts.gd")
 const ContinueReopenSmoke = preload("res://tests/runtime/continue_reopen_smoke.gd")
 const Phase3EditorSmoke = preload("res://tests/runtime/phase3_editor_smoke.gd")
 const RUNTIME_SMOKE_SCENE := "res://tests/runtime/RuntimeSmoke.tscn"
@@ -33,8 +34,7 @@ func _run() -> void:
         print("PASS: PlayWorld Studio test harness completed.")
         quit(0)
         return
-    for failure in _failures:
-        push_error("FAIL: %s" % failure)
+    for failure in _failures: push_error("FAIL: %s" % failure)
     quit(1)
 
 
@@ -53,6 +53,7 @@ func _run_integration_checks() -> void:
     for error in Phase2PersistenceHardeningContracts.run_checks(): _failures.append(error)
     for error in Phase3EditorSessionContracts.run_checks(): _failures.append(error)
     for error in Phase3PlacementSnappingContracts.run_checks(): _failures.append(error)
+    for error in Phase4PlacementContracts.run_checks(): _failures.append(error)
 
 
 func _run_runtime_smoke() -> void:

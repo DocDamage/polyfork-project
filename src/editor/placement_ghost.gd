@@ -3,6 +3,7 @@ extends Node3D
 
 var _record: Dictionary = {}
 var _mesh: MeshInstance3D
+var _asset_visual: Node3D
 
 
 func _init() -> void:
@@ -11,8 +12,9 @@ func _init() -> void:
     _ensure_mesh()
 
 
-func show_record(record: Dictionary) -> void:
+func show_record(record: Dictionary, asset_visual: Node3D = null) -> void:
     _record = record.duplicate(true)
+    _replace_asset_visual(asset_visual)
     var transform_data: Dictionary = _record.get("transform", {})
     position = _vector3(transform_data.get("position", [0.0, 0.0, 0.0]))
     rotation_degrees = _vector3(transform_data.get("rotation_degrees", [0.0, 0.0, 0.0]))
@@ -35,6 +37,7 @@ func update_transform(position_value: Vector3, rotation_value: Vector3 = Vector3
 func hide_preview() -> void:
     visible = false
     _record.clear()
+    _replace_asset_visual(null)
 
 
 func is_active() -> bool:
@@ -43,6 +46,22 @@ func is_active() -> bool:
 
 func get_record() -> Dictionary:
     return _record.duplicate(true)
+
+
+func has_asset_visual() -> bool:
+    return _asset_visual != null
+
+
+func _replace_asset_visual(value: Node3D) -> void:
+    if _asset_visual != null and is_instance_valid(_asset_visual):
+        if _asset_visual.get_parent() == self:
+            remove_child(_asset_visual)
+        _asset_visual.free()
+    _asset_visual = value
+    _mesh.visible = value == null
+    if value != null:
+        value.name = "AssetPreview"
+        add_child(value)
 
 
 func _ensure_mesh() -> void:
