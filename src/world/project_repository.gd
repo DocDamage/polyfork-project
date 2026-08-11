@@ -14,7 +14,8 @@ func _init(storage_root: String = "user://projects") -> void:
 
 
 func create_project(title: String, profile_id: StringName, template_id: String) -> Dictionary:
-    var project = WorldProject.create_new(title, profile_id, template_id)
+    var project = WorldProject.new()
+    project.initialize_new(title, profile_id, template_id)
     var errors: Array[String] = project.validate()
     if not errors.is_empty():
         return {"ok": false, "errors": errors, "project": null, "manifest_path": ""}
@@ -94,16 +95,16 @@ func open_project(project_id: String) -> Dictionary:
     if not parsed is Dictionary:
         return _failure("Project manifest is not valid JSON.")
 
-    var decoded: Dictionary = WorldProject.from_dictionary(parsed)
-    if not decoded.get("ok", false):
+    var project = WorldProject.new()
+    var load_errors: Array[String] = project.load_dictionary(parsed)
+    if not load_errors.is_empty():
         return {
             "ok": false,
-            "errors": decoded.get("errors", []),
+            "errors": load_errors,
             "project": null,
             "manifest_path": manifest_path
         }
 
-    var project = decoded["project"]
     if project.project_id != project_id:
         return _failure("Project manifest ID does not match its directory.")
 
