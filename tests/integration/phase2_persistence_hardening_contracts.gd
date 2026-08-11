@@ -73,7 +73,8 @@ static func _check_unresolved_entity_reference_rejected(errors: Array[String]) -
     var entity = WorldEntity.new()
     entity.initialize_new("Broken Child", cell_id)
     entity.parent_entity_id = StableId.generate()
-    project.entity_records = [entity.to_dictionary()]
+    project.entity_records.clear()
+    project.entity_records.append(entity.to_dictionary())
     var canonical_text := FileAccess.get_file_as_string(created["manifest_path"])
     var result: Dictionary = repository.save_project(project)
     if result.get("ok", false):
@@ -93,8 +94,10 @@ static func _check_duplicate_entity_identity_rejected(errors: Array[String]) -> 
     project.cell_ids.append(cell_id)
     var entity = WorldEntity.new()
     entity.initialize_new("Duplicate", cell_id)
-    var record := entity.to_dictionary()
-    project.entity_records = [record, record.duplicate(true)]
+    var record: Dictionary = entity.to_dictionary()
+    project.entity_records.clear()
+    project.entity_records.append(record)
+    project.entity_records.append(record.duplicate(true))
     var result: Dictionary = repository.save_project(project)
     if result.get("ok", false):
         errors.append("World project must reject duplicate persisted entity identities.")
