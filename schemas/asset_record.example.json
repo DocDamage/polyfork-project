@@ -1,9 +1,11 @@
 {
+  "document_type": "asset_record",
   "schema_version": 1,
-  "id": "uuid",
+  "id": "3c556aec-86e3-49aa-bcb6-506a91c86f39",
   "display_name": "Wooden Cottage A",
   "source_path": "D:/Assets/Pack/model.glb",
-  "hash": "sha256...",
+  "canonical_path": "D:/Assets/Pack/model.glb",
+  "hash": "sha256:example",
   "type": "model_3d",
   "source_pack": "Example Pack",
   "author": "Unknown",
@@ -23,7 +25,7 @@
     4.8,
     7.1
   ],
-  "thumbnail": "cache://...",
+  "thumbnail_cache_key": "sha256:example",
   "import_status": "indexed",
   "warnings": [
     "license_unknown"

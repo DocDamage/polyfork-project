@@ -1,0 +1,138 @@
+class_name PlayWorldNewWorldScreen
+extends Control
+
+signal back_requested
+signal create_requested(configuration: Dictionary)
+
+const TEMPLATES := [
+    {"id": "blank_sandbox", "name": "Blank Sandbox"},
+    {"id": "third_person_adventure", "name": "Third-Person Adventure"},
+    {"id": "fps", "name": "FPS"},
+    {"id": "survival", "name": "Survival"},
+    {"id": "rpg", "name": "RPG"},
+    {"id": "driving", "name": "Driving"},
+    {"id": "walking_simulator", "name": "Walking Simulator"}
+]
+
+@onready var back_button: Button = %BackButton
+@onready var world_name_edit: LineEdit = %WorldNameEdit
+@onready var small_button: Button = %SmallButton
+@onready var medium_button: Button = %MediumButton
+@onready var large_button: Button = %LargeButton
+@onready var template_option: OptionButton = %TemplateOption
+@onready var create_button: Button = %CreateButton
+@onready var create_hint: Label = $SafeArea/Content/BottomRow/CreateHint
+
+var _selected_world_size: StringName = &"medium"
+
+
+func _ready() -> void:
+    _configure_world_size_buttons()
+    _populate_templates()
+    _configure_focus_navigation()
+    back_button.pressed.connect(_request_back)
+    create_button.pressed.connect(_request_create)
+
+
+func focus_primary() -> void:
+    world_name_edit.grab_focus()
+
+
+func set_error_message(message: String) -> void:
+    create_hint.text = message
+    create_hint.add_theme_color_override("font_color", Color("ff665f"))
+
+
+func clear_error_message() -> void:
+    create_hint.text = "Ready with smart defaults."
+    create_hint.remove_theme_color_override("font_color")
+
+
+func _configure_world_size_buttons() -> void:
+    var group := ButtonGroup.new()
+    group.allow_unpress = false
+
+    for button in [small_button, medium_button, large_button]:
+        button.toggle_mode = true
+        button.button_group = group
+
+    small_button.pressed.connect(_select_world_size.bind(&"small"))
+    medium_button.pressed.connect(_select_world_size.bind(&"medium"))
+    large_button.pressed.connect(_select_world_size.bind(&"large"))
+    medium_button.button_pressed = true
+
+
+func _populate_templates() -> void:
+    template_option.clear()
+    for template in TEMPLATES:
+        var index := template_option.item_count
+        template_option.add_item(template["name"])
+        template_option.set_item_metadata(index, template["id"])
+    template_option.select(1)
+
+
+func _configure_focus_navigation() -> void:
+    back_button.focus_neighbor_bottom = back_button.get_path_to(world_name_edit)
+    world_name_edit.focus_neighbor_top = world_name_edit.get_path_to(back_button)
+    world_name_edit.focus_neighbor_bottom = world_name_edit.get_path_to(medium_button)
+
+    small_button.focus_neighbor_top = small_button.get_path_to(world_name_edit)
+    small_button.focus_neighbor_right = small_button.get_path_to(medium_button)
+    small_button.focus_neighbor_bottom = small_button.get_path_to(template_option)
+
+    medium_button.focus_neighbor_top = medium_button.get_path_to(world_name_edit)
+    medium_button.focus_neighbor_left = medium_button.get_path_to(small_button)
+    medium_button.focus_neighbor_right = medium_button.get_path_to(large_button)
+    medium_button.focus_neighbor_bottom = medium_button.get_path_to(template_option)
+
+    large_button.focus_neighbor_top = large_button.get_path_to(world_name_edit)
+    large_button.focus_neighbor_left = large_button.get_path_to(medium_button)
+    large_button.focus_neighbor_bottom = large_button.get_path_to(template_option)
+
+    template_option.focus_neighbor_top = template_option.get_path_to(medium_button)
+    template_option.focus_neighbor_bottom = template_option.get_path_to(create_button)
+    create_button.focus_neighbor_top = create_button.get_path_to(template_option)
+
+    _set_tab_order([
+        back_button,
+        world_name_edit,
+        small_button,
+        medium_button,
+        large_button,
+        template_option,
+        create_button
+    ])
+
+
+func _set_tab_order(controls: Array) -> void:
+    for index in range(controls.size() - 1):
+        var current: Control = controls[index]
+        var next: Control = controls[index + 1]
+        current.focus_next = current.get_path_to(next)
+        next.focus_previous = next.get_path_to(current)
+
+
+func _select_world_size(world_size: StringName) -> void:
+    _selected_world_size = world_size
+    clear_error_message()
+
+
+func _request_back() -> void:
+    back_requested.emit()
+
+
+func _request_create() -> void:
+    clear_error_message()
+    var clean_name := world_name_edit.text.strip_edges()
+    if clean_name.is_empty():
+        set_error_message("Enter a world name before creating the project.")
+        world_name_edit.grab_focus()
+        return
+
+    var template_index := template_option.selected
+    var configuration := {
+        "title": clean_name,
+        "world_profile": str(_selected_world_size),
+        "template_id": str(template_option.get_item_metadata(template_index))
+    }
+    create_requested.emit(configuration)

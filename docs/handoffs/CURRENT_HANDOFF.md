@@ -4,28 +4,27 @@
 OPEN
 
 ## Project state
-P00-T01 is complete. The Godot 4.7.x starter scaffold remains intentionally neutral, and the repository now contains the initial modular source and test directory structure required by `docs/implementation/REPO_STRUCTURE.md`. No gameplay or editor architecture has been prematurely implemented.
-
-## Canonical UI
-`assets/reference/CANONICAL_UI_REFERENCE.png`
+Phase 0, Phase 1, P02-T01, and P02-T02 are complete. Versioned world-project manifests can now be created, validated, atomically saved, reopened, and safely rejected when malformed. The hardened Godot CI gate rejects script/engine errors even when Godot returns exit code zero.
 
 ## Completed task
-`P00-T01 — Create Godot 4.7.x project and repository structure`
+`P02-T02 — Implement world-project model and atomic create/open/save repository`
 
-## P00-T01 implementation evidence
-- `project.godot` exists and declares `res://src/main/Main.tscn` as the main scene.
-- `src/main/Main.tscn` exists, references `res://src/main/main.gd`, and remains a minimal neutral scaffold.
-- Required initial source roots are tracked: `src/app`, `src/editor`, `src/commands`, `src/world`, `src/assets`, `src/gameplay`, `src/visual_script`, `src/terrain`, `src/foliage`, `src/splines`, `src/environment`, `src/ai`, `src/export`, `src/input`, and `src/diagnostics`.
-- Required test roots are tracked: `tests/unit`, `tests/integration`, and `tests/runtime`.
-- GitHub comparison of `master...dev/p00-t01-project-structure` confirmed the implementation commit added only the 18 expected directory marker files before the backlog/handoff closeout updates; no unrelated production systems were added.
-- Runtime launch verification could not be executed in the current agent environment because no Godot executable is installed. This limitation is recorded rather than reported as a pass.
-- The automated test harness and runtime smoke-test scene remain explicitly scheduled for `P00-T04`; they were not pulled forward into P00-T01.
+## Evidence
+- Added `src/world/world_project.gd` with schema-versioned project data, stable project ID, profile/template identity, registries, environment/editor/export data, and timestamps.
+- Added `src/world/project_repository.gd` with create/open/save, validated sibling temporary writes, flush/re-read validation, and atomic replacement of `project.json`.
+- Added `tests/integration/project_repository_contracts.gd` covering creation, reopening, update persistence, malformed ID rejection, malformed JSON rejection, rejected-save preservation, and temporary-file cleanup.
+- Updated `schemas/world_project.example.json` with the implemented timestamp fields.
+- Hardened `.github/workflows/godot-smoke.yml` so Godot `SCRIPT ERROR` or engine `ERROR` output fails CI even if the engine process exits zero.
+- GitHub Actions run `31494765859`, runtime-smoke job `93789603111`: SUCCESS on Godot `4.7.1.stable.official.a13da4feb` with a clean log and explicit `PASS: PlayWorld Studio test harness completed.`
+
+## Known limitations
+The user-facing New World/Continue flows are not connected to this repository yet. World entities, commands, and recovery saves remain unimplemented.
 
 ## Next authorized task
-`P00-T02 — Add coding/documentation rules`
+`P02-T03 — Integrate New World creation with persistent projects and project reopening`
 
-## P00-T02 boundary
-Implement only P00-T02. Do not start P00-T03 or later work. Preserve the modular architecture and neutral main scene unless P00-T02 documentation rules explicitly require a documentation-only clarification.
+## Task boundary
+Connect the existing New World UI to real project creation and make Continue reopen the most recently updated valid project. Add the minimum project-list/recent-project repository API needed for this flow. Do not implement a full project-management browser, entities, commands, or recovery saves.
 
 ## New-thread start prompt
-Read `README.md`, `docs/PRODUCT_REQUIREMENTS.md`, `docs/implementation/MASTER_IMPLEMENTATION_PLAN.md`, `docs/implementation/CODEX_EXECUTION_RULES.md`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P00-T02. Verify the exact documentation/rule changes against the Phase 0 architecture constraints. Then update this handoff with evidence and authorize only P00-T03.
+Read the Home/New World/Workspace scripts, `src/world/project_repository.gd`, `src/world/world_project.gd`, and this file. Implement only P02-T03 with isolated test storage, real create/reopen flow coverage, and no fake project labels. Then authorize only P02-T04.
