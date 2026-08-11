@@ -8,6 +8,7 @@ const AssetLibraryContracts = preload("res://tests/unit/asset_library_contracts.
 const AssetFormatContracts = preload("res://tests/unit/asset_format_contracts.gd")
 const TerrainContracts = preload("res://tests/unit/terrain_contracts.gd")
 const TerrainRuntimeContracts = preload("res://tests/unit/terrain_runtime_contracts.gd")
+const GameplayContracts = preload("res://tests/unit/gameplay_contracts.gd")
 const ProjectRepositoryContracts = preload("res://tests/integration/project_repository_contracts.gd")
 const AutosaveCheckpointContracts = preload("res://tests/integration/autosave_checkpoint_contracts.gd")
 const Phase2LifecycleContracts = preload("res://tests/integration/phase2_lifecycle_contracts.gd")
@@ -57,6 +58,7 @@ func _run_unit_checks() -> void:
     for error in AssetFormatContracts.run_checks(): _failures.append(error)
     for error in TerrainContracts.run_checks(): _failures.append(error)
     for error in TerrainRuntimeContracts.run_checks(): _failures.append(error)
+    for error in GameplayContracts.run_checks(): _failures.append(error)
 
 
 func _run_integration_checks() -> void:
