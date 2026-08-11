@@ -31,7 +31,8 @@ static func run_checks() -> Array[String]:
     child.initialize_new("Far Child", far_cell)
     child.parent_entity_id = parent.entity_id
     child.transform["position"] = [2048.0, 0.5, 0.0]
-    project.entity_records = [parent.to_dictionary(), child.to_dictionary()]
+    var entity_records: Array[Dictionary] = [parent.to_dictionary(), child.to_dictionary()]
+    project.entity_records = entity_records
     if not project.validate().is_empty():
         errors.append("Cross-cell parent/child fixture must be a valid persisted project before streaming.")
         return errors
@@ -69,7 +70,8 @@ static func run_checks() -> Array[String]:
 
     var invalid_far: Dictionary = child.to_dictionary()
     invalid_far["parent_entity_id"] = StableId.generate()
-    var rejected: Dictionary = bridge.rebuild([parent.to_dictionary(), invalid_far])
+    var invalid_records: Array[Dictionary] = [parent.to_dictionary(), invalid_far]
+    var rejected: Dictionary = bridge.rebuild(invalid_records)
     if rejected.get("ok", false) or not bridge.has_entity(parent.entity_id):
         errors.append("Cell filtering must still validate references in unloaded records and preserve the prior known-good runtime mapping on failure.")
 
