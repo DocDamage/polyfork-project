@@ -11,7 +11,7 @@ static func run_checks() -> Array[String]:
 
     var create_result: Dictionary = repository.create_project("Repository Test", &"small", "blank_sandbox")
     if not create_result.get("ok", false):
-        errors.append("Project repository must create a valid project: %s" % create_result.get("errors", []))
+        errors.append("Project repository must create a valid project: " + str(create_result.get("errors", [])))
         return errors
 
     var project = create_result["project"]
@@ -27,14 +27,14 @@ static func run_checks() -> Array[String]:
 
     var open_result: Dictionary = repository.open_project(project.project_id)
     if not open_result.get("ok", false):
-        errors.append("Persisted project must reopen successfully: %s" % open_result.get("errors", []))
+        errors.append("Persisted project must reopen successfully: " + str(open_result.get("errors", [])))
     elif open_result["project"].title != "Repository Test":
         errors.append("Reopened project must preserve its title.")
 
     project.title = "Repository Test Renamed"
     var save_result: Dictionary = repository.save_project(project)
     if not save_result.get("ok", false):
-        errors.append("Valid project update must save successfully: %s" % save_result.get("errors", []))
+        errors.append("Valid project update must save successfully: " + str(save_result.get("errors", [])))
     else:
         var reopened: Dictionary = repository.open_project(project.project_id)
         if not reopened.get("ok", false) or reopened["project"].title != "Repository Test Renamed":
