@@ -1,11 +1,12 @@
 class_name PlayWorldCommandTransaction
 extends RefCounted
 
+const Command = preload("res://src/commands/command.gd")
 const StableId = preload("res://src/world/stable_id.gd")
 
 var transaction_id: String
 var label: String
-var _commands: Array[PlayWorldCommand] = []
+var _commands: Array[RefCounted] = []
 var _error_message := ""
 
 
@@ -16,9 +17,11 @@ func _init(transaction_label: String = "Edit") -> void:
         label = "Edit"
 
 
-func add_command(command: PlayWorldCommand) -> Dictionary:
+func add_command(command: RefCounted) -> Dictionary:
     if command == null:
         return _failure("Transaction commands cannot be null.")
+    if not command is Command:
+        return _failure("Transaction entries must implement the PlayWorldCommand contract.")
     _commands.append(command)
     return {"ok": true}
 
@@ -47,7 +50,7 @@ func execute() -> Dictionary:
             var rollback_errors := _rollback_applied(applied_count)
             var message := command_error
             if not rollback_errors.is_empty():
-                message += " Rollback also failed: %s" % "; ".join(rollback_errors)
+                message += " Rollback also failed: %s" % _format_errors(rollback_errors)
             return _failure(message, rollback_errors)
         applied_count += 1
 
@@ -59,7 +62,7 @@ func undo() -> Dictionary:
     if _commands.is_empty():
         return _failure("Cannot undo an empty transaction.")
 
-    var undone_commands: Array[PlayWorldCommand] = []
+    var undone_commands: Array[RefCounted] = []
     for index in range(_commands.size() - 1, -1, -1):
         var command := _commands[index]
         if not command.undo():
@@ -67,7 +70,7 @@ func undo() -> Dictionary:
             var restore_errors := _restore_undone(undone_commands)
             var message := command_error
             if not restore_errors.is_empty():
-                message += " Restore also failed: %s" % "; ".join(restore_errors)
+                message += " Restore also failed: %s" % _format_errors(restore_errors)
             return _failure(message, restore_errors)
         undone_commands.append(command)
 
@@ -83,7 +86,7 @@ func _rollback_applied(applied_count: int) -> Array[String]:
     return errors
 
 
-func _restore_undone(undone_commands: Array[PlayWorldCommand]) -> Array[String]:
+func _restore_undone(undone_commands: Array[RefCounted]) -> Array[String]:
     var errors: Array[String] = []
     for index in range(undone_commands.size() - 1, -1, -1):
         var command := undone_commands[index]
@@ -92,9 +95,18 @@ func _restore_undone(undone_commands: Array[PlayWorldCommand]) -> Array[String]:
     return errors
 
 
-func _command_error(command: PlayWorldCommand, fallback: String) -> String:
-    var message := command.get_error_message().strip_edges()
+func _command_error(command: RefCounted, fallback: String) -> String:
+    var message := str(command.get_error_message()).strip_edges()
     return fallback if message.is_empty() else message
+
+
+func _format_errors(errors: Array[String]) -> String:
+    var result := ""
+    for error in errors:
+        if not result.is_empty():
+            result += "; "
+        result += error
+    return result
 
 
 func _failure(message: String, secondary_errors: Array[String] = []) -> Dictionary:
