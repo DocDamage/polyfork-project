@@ -21,6 +21,7 @@ const Phase5SculptStreamingContracts = preload("res://tests/integration/phase5_s
 const Phase5EntityStreamingContracts = preload("res://tests/integration/phase5_entity_streaming_contracts.gd")
 const Phase5EntityCellOwnershipContracts = preload("res://tests/integration/phase5_entity_cell_ownership_contracts.gd")
 const Phase5ScalePerformanceContracts = preload("res://tests/integration/phase5_scale_performance_contracts.gd")
+const Phase6ComponentArchetypeContracts = preload("res://tests/integration/phase6_component_archetype_contracts.gd")
 const ContinueReopenSmoke = preload("res://tests/runtime/continue_reopen_smoke.gd")
 const Phase3EditorSmoke = preload("res://tests/runtime/phase3_editor_smoke.gd")
 const Phase4AssetBrowserSmoke = preload("res://tests/runtime/phase4_asset_browser_smoke.gd")
@@ -74,6 +75,7 @@ func _run_integration_checks() -> void:
     for error in Phase5EntityStreamingContracts.run_checks(): _failures.append(error)
     for error in Phase5EntityCellOwnershipContracts.run_checks(): _failures.append(error)
     for error in Phase5ScalePerformanceContracts.run_checks(): _failures.append(error)
+    for error in Phase6ComponentArchetypeContracts.run_checks(): _failures.append(error)
 
 
 func _run_runtime_smoke() -> void:
