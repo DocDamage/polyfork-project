@@ -111,6 +111,40 @@ func open_project(project_id: String) -> Dictionary:
     return {"ok": true, "errors": [], "project": project, "manifest_path": manifest_path}
 
 
+func list_projects() -> Array:
+    var projects: Array = []
+    var directory := DirAccess.open(root_path)
+    if directory == null:
+        return projects
+
+    directory.list_dir_begin()
+    var entry := directory.get_next()
+    while not entry.is_empty():
+        if directory.current_is_dir() and StableId.is_valid(entry):
+            var open_result := open_project(entry)
+            if open_result.get("ok", false):
+                projects.append(open_result["project"])
+        entry = directory.get_next()
+    directory.list_dir_end()
+
+    projects.sort_custom(func(a, b): return a.updated_at_unix > b.updated_at_unix)
+    return projects
+
+
+func get_recent_project() -> Dictionary:
+    var projects := list_projects()
+    if projects.is_empty():
+        return {"ok": true, "errors": [], "project": null, "manifest_path": ""}
+
+    var project = projects[0]
+    return {
+        "ok": true,
+        "errors": [],
+        "project": project,
+        "manifest_path": get_manifest_path(project.project_id)
+    }
+
+
 func get_project_directory(project_id: String) -> String:
     return "%s/%s" % [root_path, project_id]
 
