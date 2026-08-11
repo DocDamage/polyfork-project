@@ -16,6 +16,7 @@ var _panel
 var _transform_toolbar: Control
 var _placement_toolbar: Control
 var _bottom_dock: Control
+var _viewport_center: Control
 var _bound := false
 
 
@@ -32,6 +33,7 @@ func _ready() -> void:
 func bind_workspace(workspace: Control) -> Dictionary:
     _workspace = workspace
     _editor_viewport = workspace.get_node_or_null("ViewportFrame/ViewportBackdrop/EditorViewport3D")
+    _viewport_center = workspace.get_node_or_null("ViewportFrame/ViewportBackdrop/ViewportCenter")
     _transform_toolbar = workspace.get_node_or_null("TransformToolbar")
     _placement_toolbar = workspace.get_node_or_null("PlacementToolbar")
     _bottom_dock = workspace.get_node_or_null("BottomDockLayer/BottomToolDock")
@@ -73,6 +75,7 @@ func open_tool() -> void:
     if _session != null and _session.is_placement_active(): _session.cancel_placement()
     if _workspace.has_method("close_asset_drawer"): _workspace.close_asset_drawer()
     if _session != null: _session.clear_selection()
+    if _viewport_center != null: _viewport_center.hide()
     _panel.open_panel()
     _controller.set_cursor_visible(true)
     _controller.set_cursor(_controller.get_brush_state().get("cursor", Vector3.ZERO))
@@ -85,6 +88,7 @@ func close_tool() -> void:
     if _panel != null: _panel.close_panel()
     if _controller != null: _controller.set_cursor_visible(false)
     if _editor_viewport != null: _editor_viewport.set_terrain_view(false)
+    _restore_empty_state()
     _sync_editor_controls()
     open_changed.emit(false)
 
@@ -168,6 +172,16 @@ func _sync_selected_biome() -> void:
     var cell_id: String = str(_controller.get_brush_state().get("cell_id", ""))
     var cell: Dictionary = state.get_cell(cell_id)
     if not cell.is_empty(): _panel.select_biome(str(cell.get("biome_id", "")))
+
+
+func _restore_empty_state() -> void:
+    if _viewport_center == null or _workspace == null: return
+    var should_show := true
+    if _workspace.has_method("get_runtime_entity_count"):
+        should_show = int(_workspace.call("get_runtime_entity_count")) == 0
+    if _workspace.has_method("is_placement_active") and bool(_workspace.call("is_placement_active")):
+        should_show = false
+    _viewport_center.visible = should_show
 
 
 func _sync_editor_controls() -> void:
