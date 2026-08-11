@@ -22,10 +22,24 @@ func run_checks() -> Dictionary:
         errors.append("Main scene root must be a Control.")
 
     var home := main_instance.get_node_or_null("HomeScreen") as Control
+    var new_world := main_instance.get_node_or_null("NewWorldScreen") as Control
+
     if home == null:
         errors.append("Home screen must be the initial application view.")
     else:
         _check_home(home, errors)
+
+    if new_world == null:
+        errors.append("New World screen must exist as an app route target.")
+    elif new_world.visible:
+        errors.append("New World screen must start hidden while Home is active.")
+
+    if home != null and new_world != null:
+        home.emit_signal("route_requested", &"new_world")
+        _check_new_world_route(home, new_world, errors)
+        new_world.emit_signal("back_requested")
+        if not home.visible or new_world.visible:
+            errors.append("Back from New World must return to Home.")
 
     main_instance.queue_free()
     return {"ok": errors.is_empty(), "errors": errors}
@@ -50,3 +64,12 @@ func _check_home(home: Control, errors: Array[String]) -> void:
             errors.append("Home screen is missing %s." % required_buttons[node_name])
         elif not button.text.contains(required_buttons[node_name]):
             errors.append("Home action %s has unexpected text." % required_buttons[node_name])
+
+
+func _check_new_world_route(home: Control, new_world: Control, errors: Array[String]) -> void:
+    if home.visible or not new_world.visible:
+        errors.append("Create New World route must hide Home and show New World.")
+
+    for node_name in ["SmallButton", "MediumButton", "LargeButton", "TemplateOption", "CreateButton"]:
+        if new_world.find_child(node_name, true, false) == null:
+            errors.append("New World screen is missing %s." % node_name)
