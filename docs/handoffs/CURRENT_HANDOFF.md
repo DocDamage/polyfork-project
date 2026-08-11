@@ -4,28 +4,30 @@
 OPEN
 
 ## Project state
-P00-T01 and P00-T02 are complete. The repository has the required modular Godot scaffold plus explicit coding and documentation standards. No gameplay/editor systems beyond the neutral starter shell are implemented yet.
+P00-T01 through P00-T03 are complete. The repository now has the modular scaffold, coding/documentation standards, and explicit persistent identity/schema-version contracts. No command/persistence engine or user-facing editor systems are implemented yet.
 
 ## Canonical UI
 `assets/reference/CANONICAL_UI_REFERENCE.png`
 
 ## Completed task
-`P00-T02 — Add coding/documentation rules`
-
-## P00-T02 implementation evidence
-- Added `docs/implementation/CODING_STANDARDS.md` with Godot/GDScript conventions, module boundaries, mutation rules, UI constraints, error handling, testing expectations, and completion standards.
-- Added `docs/implementation/DOCUMENTATION_RULES.md` with canonical-document precedence, required documentation updates, handoff requirements, schema documentation expectations, UI evidence rules, and strict evidence language.
-- Preserved the existing modular repository structure and neutral main scene.
-- No production gameplay/editor code changed during P00-T02.
-
-## Known limitations
-- Godot runtime execution remains unavailable in the current agent environment; no runtime behavior was claimed for this documentation-only task.
-
-## Next authorized task
 `P00-T03 — Define persistent ID and schema-version conventions`
 
-## P00-T03 boundary
-Implement only persistent identity and schema/version contracts. Do not implement the command system, runtime test harness, UI, persistence engine, or migrations beyond contract-level examples/conventions.
+## P00-T03 implementation evidence
+- Added `docs/architecture/PERSISTENT_ID_SCHEMA_CONVENTIONS.md` defining lowercase canonical UUID identities, UUID v4 initial generation, ID lifecycle, stable-reference rules, schema-version increments, migration behavior, document typing, ownership, editor/runtime boundaries, and validation expectations.
+- Updated `docs/architecture/FILE_FORMATS_VERSIONING.md` to reference and enforce the identity/schema contract.
+- Updated `docs/architecture/DATA_MODEL.md` with version/ID ownership and stable-reference expectations for core persisted records.
+- Updated `schemas/world_project.example.json` and `schemas/asset_record.example.json` to use concrete UUIDs, `document_type`, positive `schema_version`, explicit ID reference fields, and `null` optional references.
+- No runtime persistence or migration implementation was introduced; this task remains contract-only as required.
+
+## Known limitations
+- Runtime validation of the contracts will be added with later persistence/test tasks.
+- Godot executable remains unavailable in the current agent environment.
+
+## Next authorized task
+`P00-T04 — Implement test harness and runtime smoke-test scene`
+
+## P00-T04 boundary
+Implement a minimal real Godot-native test harness and runtime smoke scene sufficient to exercise project launch/scene loading without pulling future gameplay/editor features forward. Do not implement Phase 1 UI features yet.
 
 ## New-thread start prompt
-Read `README.md`, `docs/PRODUCT_REQUIREMENTS.md`, `docs/architecture/SYSTEM_ARCHITECTURE.md`, `docs/architecture/DATA_MODEL.md`, `docs/architecture/FILE_FORMATS_VERSIONING.md`, `docs/implementation/CODING_STANDARDS.md`, `docs/implementation/DOCUMENTATION_RULES.md`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P00-T03. Verify stable-ID and schema-version conventions are internally consistent, update examples/docs, then update this handoff and authorize only P00-T04.
+Read `docs/implementation/CODING_STANDARDS.md`, `docs/qa/TEST_MATRIX.md`, `docs/qa/QUALITY_GATES.md`, `project.godot`, `src/main/Main.tscn`, and this file. Implement only P00-T04 with a minimal deterministic Godot test runner and runtime smoke scene. Document the exact command to run it; if Godot CLI is unavailable, verify structure statically and record that limitation. Then update the handoff and authorize only P00-T05.
