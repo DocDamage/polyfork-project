@@ -44,15 +44,28 @@ Commands may be grouped into a transaction. Each transaction receives a stable U
 The command history owns bounded undo and redo stacks. A successful new edit after an undo clears the redo stack. Failed execution, undo, or redo attempts do not advance the corresponding history stacks. Command history is in-memory editor infrastructure; persistence observes authored state rather than becoming an authoring mutation.
 
 ## Runtime entity scene bridge and selection
-`src/editor/runtime_entity_node.gd` is the generic runtime `Node3D` wrapper for a persisted `WorldEntity`. It copies the stable entity UUID into runtime metadata and applies persisted position, rotation, and scale. The wrapper is an anchor for later asset/prefab scene content; P03-T01 does not invent asset loading before the asset-library phase exists.
+`src/editor/runtime_entity_node.gd` is the generic runtime `Node3D` wrapper for a persisted `WorldEntity`. It copies the stable entity UUID into runtime metadata, applies persisted position/rotation/scale, and supplies generic proxy mesh/collision geometry for runtime placement editing until the universal asset library can attach real asset content.
 
 `src/editor/runtime_entity_bridge.gd` rebuilds the runtime entity hierarchy from validated entity records. Runtime node names and tree locations are disposable implementation details; lookup and parent relationships are resolved only through stable entity IDs. The bridge rejects duplicate IDs, unresolved parents, self-parenting, and parent cycles. A rejected rebuild leaves the previous known-good runtime mapping intact.
 
-The bridge can resolve any descendant runtime node back to the owning stable entity ID by walking runtime metadata. This gives future raycast/picking code a stable boundary without persisting scene-tree paths.
+The bridge can resolve descendant runtime nodes back to the owning stable entity ID by walking runtime metadata. This provides the stable boundary for editor viewport picking without persisting scene-tree paths.
 
-`src/editor/single_selection.gd` owns exactly one editor selection at a time. Selection may be requested by stable entity ID or by a descendant runtime node resolved through the bridge. Switching selection clears the prior runtime selected state; invalid selection attempts preserve the current selection. Selection state is editor-only and does not mutate persistent project data, enter command history, or mark the project dirty.
+`src/editor/multi_selection.gd` owns editor selection as a stable-ID set with one primary entity. Single selection, additive selection, runtime-node selection, and selection clearing only affect editor/runtime presentation and never alter persisted project data.
 
-The workspace binds this selection model to the existing right inspector. Selecting a bridged entity shows its display name, stable identity, ownership cell, parent reference, and persisted transform values. Closing the inspector clears entity selection. P03-T01 intentionally does not implement placement, ghost preview, transform authoring, duplicate/delete, multi-select, snapping, or gameplay-specific semantics.
+## Runtime placement editor
+`src/editor/editor_session.gd` is the Phase 3 editor coordinator. It owns the runtime bridge, command history, multi-selection, placement ghost, snapping service, transform-tool state, and the callback used to mark the bound project dirty. The session keeps authored `WorldProject` state and transient runtime nodes synchronized after every successful authoring command.
+
+Placement begins as a transient generic ghost. Moving or cancelling the ghost does not mutate the project and does not mark it dirty. Committing placement executes a `PlayWorldPlaceEntityCommand`; the first placement can establish the project's first stable owning cell, and undo removes that cell again only when no entity still owns it.
+
+Move/rotate/scale edits execute through `PlayWorldSetEntityTransformsCommand`. Duplicate, delete, and group operations have dedicated reversible commands. Delete captures the selected descendant closure so a parent/group cannot be removed while leaving invalid persisted child references. Grouping creates a generic stable-ID `WorldEntity` group and persists children through `parent_entity_id`; it does not invent a gameplay-specific group type.
+
+After a successful authoring mutation, the session rebuilds the runtime bridge from persisted project records, restores surviving selection when appropriate, then calls the active project's dirty-state entrypoint. Failed command execution does not advance history, rebuild known-good runtime state, or mark the project dirty.
+
+`src/editor/snapping_service.gd` keeps snapping deterministic and separate from persistent identity. Grid and angle snapping are numeric editor policies. Surface snapping consumes a hit position/normal. Object and socket snapping use deterministic candidate IDs and project-local positions. During Phase 3, bridged entity origins act as generic object targets and temporary origin sockets; richer prefab/socket metadata is deferred to the later prefab/socket system without changing entity identity.
+
+`src/editor/editor_viewport_3d.gd` and `EditorViewport3D.tscn` provide the live editor viewport, generic ground, camera/lighting, physics picking, and runtime proxy rendering. Picking resolves the collider back through stable runtime entity metadata before selection changes.
+
+The existing workspace integrates this editor through a compact placement/snapping toolbar, the existing transform toolbar, right inspector, and an opt-in controller tool wheel. Keyboard/mouse and gamepad actions route to the same command-backed editor session rather than maintaining separate authoring paths.
 
 ## Streaming
 Large worlds use partition cells. World objects declare owning cell and optional cross-cell references through stable IDs. Streaming must never depend on parent node being currently loaded.
@@ -66,4 +79,4 @@ Project checkpoints are owned by `src/world`, stored under the stable project di
 
 Recovery inspection distinguishes a valid newer checkpoint from corrupted checkpoint data, unsupported checkpoint schemas, incomplete temporary writes, older/equal checkpoints, and missing checkpoints. Recovery never replaces canonical project state until the selected checkpoint has been loaded and validated and the normal crash-safe project-save path succeeds.
 
-`PlayWorldAutosaveService` coordinates checkpoint timing separately from UI and repository internals. It requires an explicit dirty signal, does not rewrite unchanged projects simply because its timer elapsed, and clears dirty state only after checkpoint creation succeeds. This is intentionally compatible with future command-driven dirty tracking without introducing Phase 3 authoring commands.
+`PlayWorldAutosaveService` coordinates checkpoint timing separately from UI and repository internals. It requires an explicit dirty signal, does not rewrite unchanged projects simply because its timer elapsed, and clears dirty state only after checkpoint creation succeeds. Phase 3 authoring commands use that dirty-state entrypoint only after successful mutations.
