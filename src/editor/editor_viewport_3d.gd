@@ -30,12 +30,14 @@ func set_terrain_view(enabled: bool) -> void:
     _terrain_view = enabled
     if camera == null: return
     if enabled:
-        camera.position = Vector3(420.0, 340.0, 520.0)
-        camera.rotation_degrees = Vector3(-25.0, 38.0, 0.0)
+        camera.position = Vector3(720.0, 520.0, 820.0)
+        camera.fov = 58.0
         camera.far = 10000.0
+        camera.look_at(Vector3(0.0, 24.0, 0.0), Vector3.UP)
     else:
         camera.position = Vector3(8.0, 7.0, 10.0)
         camera.rotation_degrees = Vector3(-25.0, 38.0, 0.0)
+        camera.fov = 75.0
         camera.far = 4000.0
 
 
