@@ -132,6 +132,7 @@ func _check_mode_switch(workspace: Control, errors: Array[String]) -> void:
     if not build_button.button_pressed or play_button.button_pressed:
         errors.append("Workspace mode switch must default to Build.")
 
+    play_button.button_pressed = true
     play_button.emit_signal("pressed")
     if not play_button.button_pressed or build_button.button_pressed:
         errors.append("Play selection must update segmented-control state.")
