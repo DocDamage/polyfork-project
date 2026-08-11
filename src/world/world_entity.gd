@@ -34,9 +34,9 @@ func load_dictionary(data: Dictionary) -> Array[String]:
     entity_id = str(data["entity_id"])
     display_name = str(data["display_name"])
     cell_id = str(data["cell_id"])
-    asset_id = str(data.get("asset_id", ""))
-    prefab_id = str(data.get("prefab_id", ""))
-    parent_entity_id = str(data.get("parent_entity_id", ""))
+    asset_id = _optional_id(data.get("asset_id"))
+    prefab_id = _optional_id(data.get("prefab_id"))
+    parent_entity_id = _optional_id(data.get("parent_entity_id"))
     component_instance_ids = _string_array(data.get("component_instance_ids", []))
     transform = data.get("transform", {}).duplicate(true)
     return []
@@ -113,3 +113,7 @@ static func _string_array(value: Array) -> Array[String]:
     for item in value:
         result.append(str(item))
     return result
+
+
+static func _optional_id(value: Variant) -> String:
+    return "" if value == null else str(value)
