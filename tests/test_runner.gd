@@ -6,6 +6,7 @@ const ProjectRepositoryContracts = preload("res://tests/integration/project_repo
 const AutosaveCheckpointContracts = preload("res://tests/integration/autosave_checkpoint_contracts.gd")
 const Phase2LifecycleContracts = preload("res://tests/integration/phase2_lifecycle_contracts.gd")
 const Phase2PersistenceHardeningContracts = preload("res://tests/integration/phase2_persistence_hardening_contracts.gd")
+const ContinueReopenSmoke = preload("res://tests/runtime/continue_reopen_smoke.gd")
 const RUNTIME_SMOKE_SCENE := "res://tests/runtime/RuntimeSmoke.tscn"
 
 var _failures: Array[String] = []
@@ -19,6 +20,7 @@ func _run() -> void:
     _run_unit_checks()
     _run_integration_checks()
     await _run_runtime_smoke()
+    _run_continue_reopen_smoke()
 
     if _failures.is_empty():
         print("PASS: PlayWorld Studio test harness completed.")
@@ -76,6 +78,14 @@ func _run_smoke_checks(smoke_instance: Node) -> void:
     for error in errors:
         _failures.append(str(error))
     _expect(bool(result.get("ok", false)), "Runtime smoke scene reported failure.")
+
+
+func _run_continue_reopen_smoke() -> void:
+    var smoke := ContinueReopenSmoke.new()
+    root.add_child(smoke)
+    for error in smoke.run_checks():
+        _failures.append(error)
+    smoke.queue_free()
 
 
 func _expect(condition: bool, message: String) -> void:
