@@ -1,6 +1,7 @@
 extends SceneTree
 
 const WorldFoundationContracts = preload("res://tests/unit/world_foundation_contracts.gd")
+const ProjectRepositoryContracts = preload("res://tests/integration/project_repository_contracts.gd")
 const RUNTIME_SMOKE_SCENE := "res://tests/runtime/RuntimeSmoke.tscn"
 
 var _failures: Array[String] = []
@@ -12,6 +13,7 @@ func _init() -> void:
 
 func _run() -> void:
     _run_unit_checks()
+    _run_integration_checks()
     await _run_runtime_smoke()
 
     if _failures.is_empty():
@@ -26,6 +28,11 @@ func _run() -> void:
 
 func _run_unit_checks() -> void:
     for error in WorldFoundationContracts.run_checks():
+        _failures.append(error)
+
+
+func _run_integration_checks() -> void:
+    for error in ProjectRepositoryContracts.run_checks():
         _failures.append(error)
 
 
