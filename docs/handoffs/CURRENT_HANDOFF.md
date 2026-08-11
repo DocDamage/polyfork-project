@@ -4,27 +4,45 @@
 OPEN
 
 ## Project state
-Phase 0, Phase 1, P02-T01, and P02-T02 are complete. Versioned world-project manifests can now be created, validated, atomically saved, reopened, and safely rejected when malformed. The hardened Godot CI gate rejects script/engine errors even when Godot returns exit code zero.
+Phase 0 and Phase 1 are complete on `master`. Phase 2 is complete through P02-T04. The merged code includes stable IDs/world profiles, atomic world-project persistence, real New World + Continue reopening, and stable world-entity/registry foundations. P02-T05 through P02-T07 are not implemented in the merged branch.
+
+## Repository branch state
+- PR #2 was merged into `master` at merge commit `464e34efda77cbf5d72edf20a8a30ed4cad25b60`.
+- The repository's current default branch is `main`.
+- `main` is still the starter branch and does not contain the implementation/docs currently present on `master`.
+- Until that branch mismatch is intentionally resolved, implementation work must explicitly target `master` or a branch created from `master`.
 
 ## Completed task
-`P02-T02 — Implement world-project model and atomic create/open/save repository`
+`P02-T04 — Implement stable world-entity record and registry foundation`
 
-## Evidence
-- Added `src/world/world_project.gd` with schema-versioned project data, stable project ID, profile/template identity, registries, environment/editor/export data, and timestamps.
-- Added `src/world/project_repository.gd` with create/open/save, validated sibling temporary writes, flush/re-read validation, and atomic replacement of `project.json`.
-- Added `tests/integration/project_repository_contracts.gd` covering creation, reopening, update persistence, malformed ID rejection, malformed JSON rejection, rejected-save preservation, and temporary-file cleanup.
-- Updated `schemas/world_project.example.json` with the implemented timestamp fields.
-- Hardened `.github/workflows/godot-smoke.yml` so Godot `SCRIPT ERROR` or engine `ERROR` output fails CI even if the engine process exits zero.
-- GitHub Actions run `31494765859`, runtime-smoke job `93789603111`: SUCCESS on Godot `4.7.1.stable.official.a13da4feb` with a clean log and explicit `PASS: PlayWorld Studio test harness completed.`
+## Evidence for P02-T03
+- `src/main/main.gd` now creates `PlayWorldProjectRepository` from the configured projects root.
+- New World creation calls the real repository before entering the workspace.
+- The workspace receives persisted project data, including the stable project ID.
+- Home/Continue resolves the most recently updated valid project through the repository and reopens it instead of using a hard-coded project label.
+- New World surfaces repository creation failures rather than pretending a project was created.
 
-## Known limitations
-The user-facing New World/Continue flows are not connected to this repository yet. World entities, commands, and recovery saves remain unimplemented.
+## Evidence for P02-T04
+- `src/world/world_entity.gd` defines a schema-versioned stable world-entity record with UUID identity, stable cell/asset/prefab/parent/component references, and serializable transform data.
+- Entity persistence does not use scene-tree paths, node names, or array indexes as identity.
+- `src/world/entity_registry.gd` enforces entity validation and unique stable IDs while supporting lookup, removal, enumeration, and clear operations.
+- `tests/unit/entity_registry_contracts.gd` is present in the merged branch and covers the entity/registry contract.
+
+## Existing persistence/CI foundation
+- `src/world/world_project.gd` and `src/world/project_repository.gd` provide versioned project manifests and validated atomic replacement.
+- `.github/workflows/godot-smoke.yml` runs the Godot test harness and is designed to reject script/engine errors instead of relying only on the process exit code.
+
+## Not implemented yet
+- P02-T05 command/transaction/undo/redo framework.
+- P02-T06 crash-safe autosave/checkpoint recovery.
+- P02-T07 Phase 2 lifecycle closeout and persistence hardening.
+- Phase 3 runtime placement/editor behavior.
 
 ## Next authorized task
-`P02-T03 — Integrate New World creation with persistent projects and project reopening`
+`P02-T05 — Implement command, transaction, undo, and redo framework`
 
-## Task boundary
-Connect the existing New World UI to real project creation and make Continue reopen the most recently updated valid project. Add the minimum project-list/recent-project repository API needed for this flow. Do not implement a full project-management browser, entities, commands, or recovery saves.
+## P02-T05 boundary
+Implement only the generic mutation framework: command interface/base contract, grouped transactions, one history entry per successful transaction, rollback on partial transaction failure, undo/redo stacks, redo invalidation after a divergent edit, and bounded history. Do not implement autosave/checkpoint recovery or Phase 3 placement behavior in this task.
 
 ## New-thread start prompt
-Read the Home/New World/Workspace scripts, `src/world/project_repository.gd`, `src/world/world_project.gd`, and this file. Implement only P02-T03 with isolated test storage, real create/reopen flow coverage, and no fake project labels. Then authorize only P02-T04.
+Work from `master` (not the stale `main` branch). Read `docs/implementation/CODEX_EXECUTION_RULES.md`, `docs/implementation/CODING_STANDARDS.md`, `docs/architecture/PERSISTENT_ID_SCHEMA_CONVENTIONS.md`, `docs/architecture/DATA_MODEL.md`, `docs/implementation/TASK_BACKLOG.md`, and this file. Implement only P02-T05 with real Godot tests for execute, grouped transaction success, rollback on failure, undo, redo, redo invalidation, and bounded history. Then update the handoff and authorize only P02-T06.
