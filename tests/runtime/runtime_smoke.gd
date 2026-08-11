@@ -132,13 +132,15 @@ func _check_workspace_route(
         errors.append("Workspace must reserve an inspector layer.")
     if workspace.find_child("BottomDockLayer", true, false) == null:
         errors.append("Workspace must reserve a bottom-dock layer.")
+    if workspace.find_child("TransformToolbar", true, false) == null:
+        errors.append("Workspace must expose the compact transform toolbar shell.")
 
 
 func _check_mode_switch(workspace: Control, errors: Array[String]) -> void:
     var mode_switch := workspace.find_child("ModeSwitch", true, false) as Control
     var build_button := workspace.find_child("BuildButton", true, false) as Button
     var play_button := workspace.find_child("PlayButton", true, false) as Button
-    var badge := workspace.find_child("BadgeText", true, false) as Label
+    var badge := workspace.find_child("ModeBadge", true, false) as Label
 
     if mode_switch == null or build_button == null or play_button == null:
         errors.append("Workspace must expose a Build | Play segmented control.")
