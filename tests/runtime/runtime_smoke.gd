@@ -19,17 +19,34 @@ func run_checks() -> Dictionary:
     add_child(main_instance)
 
     if not main_instance is Control:
-        errors.append("Main scene root must remain a Control during the Phase 0 scaffold.")
+        errors.append("Main scene root must be a Control.")
 
-    var title := main_instance.get_node_or_null("Center/VBox/Title") as Label
-    if title == null:
-        errors.append("Main scene title label is missing.")
-    elif title.text != "PlayWorld Studio":
-        errors.append("Main scene title must identify PlayWorld Studio.")
-
-    var subtitle := main_instance.get_node_or_null("Center/VBox/Subtitle") as Label
-    if subtitle == null:
-        errors.append("Main scene scaffold subtitle is missing.")
+    var home := main_instance.get_node_or_null("HomeScreen") as Control
+    if home == null:
+        errors.append("Home screen must be the initial application view.")
+    else:
+        _check_home(home, errors)
 
     main_instance.queue_free()
     return {"ok": errors.is_empty(), "errors": errors}
+
+
+func _check_home(home: Control, errors: Array[String]) -> void:
+    var title := home.get_node_or_null("SafeArea/Content/Header/TitleStack/Title") as Label
+    if title == null or title.text != "PlayWorld Studio":
+        errors.append("Home screen must display the PlayWorld Studio title.")
+
+    var required_buttons := {
+        "CreateButton": "Create New World",
+        "ContinueButton": "Continue",
+        "WorldsButton": "My Worlds",
+        "TemplatesButton": "Templates",
+        "AssetLibraryButton": "Asset Library"
+    }
+
+    for node_name: String in required_buttons:
+        var button := home.find_child(node_name, true, false) as Button
+        if button == null:
+            errors.append("Home screen is missing %s." % required_buttons[node_name])
+        elif not button.text.contains(required_buttons[node_name]):
+            errors.append("Home action %s has unexpected text." % required_buttons[node_name])
