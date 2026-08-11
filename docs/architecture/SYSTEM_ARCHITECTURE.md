@@ -32,7 +32,7 @@ The editor must not hard-code world semantics such as "door", "car", or "enemy" 
 Editor metadata must be separable from runtime game data. Export builds strip editor-only metadata where possible while preserving gameplay state and authored resources.
 
 ## IDs
-Every world object, prefab, component instance, graph, asset registry entry, terrain cell, procedural generator, and transaction receives a stable UUID. Never use scene-tree paths as persistent identity.
+Every world object, prefab, component instance, graph, asset registry entry, terrain cell, procedural generator, transaction, and retained checkpoint receives a stable UUID. Never use scene-tree paths as persistent identity.
 
 ## Commands
 All authored mutations flow through commands. Examples: PlaceObject, DeleteObject, SetTransform, AddComponent, ChangeProperty, SculptTerrainStroke, GenerateScatter, ExecuteAIPlan. Gameplay-specific commands are implemented by the owning feature module on top of the generic command contract.
@@ -41,10 +41,18 @@ A command exposes deterministic `execute()` and `undo()` operations. Returning `
 
 Commands may be grouped into a transaction. Each transaction receives a stable UUID, executes its commands in order, and becomes exactly one undoable history entry only after every command succeeds. If a later command fails, the transaction rolls back already-applied commands in reverse order. Undo reverses a committed transaction in reverse command order; redo executes it again in forward order. If an undo operation itself fails after earlier commands were reversed, the transaction attempts to restore those earlier commands so history is not advanced from a partially reversed entry.
 
-The command history owns bounded undo and redo stacks. A successful new edit after an undo clears the redo stack. Failed execution, undo, or redo attempts do not advance the corresponding history stacks. P02-T05 history is in-memory editor infrastructure; crash-safe autosave/checkpoint persistence is a separate Phase 2 responsibility.
+The command history owns bounded undo and redo stacks. A successful new edit after an undo clears the redo stack. Failed execution, undo, or redo attempts do not advance the corresponding history stacks. Command history is in-memory editor infrastructure; persistence observes authored state rather than becoming an authoring mutation.
 
 ## Streaming
 Large worlds use partition cells. World objects declare owning cell and optional cross-cell references through stable IDs. Streaming must never depend on parent node being currently loaded.
 
 ## Persistence
-Use versioned JSON/resource metadata for editor-facing data and Godot resources/scenes where appropriate for runtime content. Every persisted structure carries schema/version information and migration path.
+Use versioned JSON/resource metadata for editor-facing data and Godot resources/scenes where appropriate for runtime content. Every persisted structure carries schema/version information and migration responsibility.
+
+P02-T06 centralizes crash-safe JSON promotion in `PlayWorldSafeJsonWriter`. Canonical project manifests and checkpoints are serialized to unique temporary files, flushed and closed, parsed back, semantically validated, and only then promoted to the requested final path. A failed write or failed promotion removes the temporary candidate and leaves the prior canonical file untouched.
+
+Project checkpoints are owned by `src/world`, stored under the stable project directory, and represented by versioned `world_checkpoint` documents. Each retained checkpoint has its own stable UUID, the owning `project_id`, a millisecond creation timestamp, and a validated `WorldProject` snapshot. Checkpoint retention is bounded and deterministic; pruning occurs only after a newer checkpoint has been successfully written and validated.
+
+Recovery inspection distinguishes a valid newer checkpoint from corrupted checkpoint data, unsupported checkpoint schemas, incomplete temporary writes, older/equal checkpoints, and missing checkpoints. Recovery never replaces canonical project state until the selected checkpoint has been loaded and validated and the normal crash-safe project-save path succeeds.
+
+`PlayWorldAutosaveService` coordinates checkpoint timing separately from UI and repository internals. It requires an explicit dirty signal, does not rewrite unchanged projects simply because its timer elapsed, and clears dirty state only after checkpoint creation succeeds. This is intentionally compatible with future command-driven dirty tracking without introducing Phase 3 authoring commands.
