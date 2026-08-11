@@ -379,7 +379,12 @@ func _wire_card_focus() -> void:
 
 
 func _compact_label(record: Dictionary) -> String:
-    return ("★ " if bool(record.get("favorite", false)) else "") + str(record.get("display_name", "Asset"))
+    var prefix := "★ " if bool(record.get("favorite", false)) else ""
+    var label := str(record.get("display_name", "Asset"))
+    var max_name_length := 12 if not prefix.is_empty() else 10
+    if label.length() > max_name_length:
+        label = label.substr(0, max_name_length - 1) + "…"
+    return prefix + label
 
 
 func _option(label: String, width: float) -> OptionButton:
