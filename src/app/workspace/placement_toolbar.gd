@@ -15,15 +15,15 @@ signal action_requested(action: StringName, enabled: bool)
 
 
 func _ready() -> void:
-    place_button.pressed.connect(_emit_action.bind(&"place", true))
-    ground_button.pressed.connect(_emit_action.bind(&"ground", true))
-    group_button.pressed.connect(_emit_action.bind(&"group", true))
-    undo_button.pressed.connect(_emit_action.bind(&"undo", true))
-    redo_button.pressed.connect(_emit_action.bind(&"redo", true))
-    grid_button.toggled.connect(_emit_action.bind(&"grid"))
-    surface_button.toggled.connect(_emit_action.bind(&"surface"))
-    object_button.toggled.connect(_emit_action.bind(&"object"))
-    socket_button.toggled.connect(_emit_action.bind(&"socket"))
+    place_button.pressed.connect(_emit_action.bind(&"place"))
+    ground_button.pressed.connect(_emit_action.bind(&"ground"))
+    group_button.pressed.connect(_emit_action.bind(&"group"))
+    undo_button.pressed.connect(_emit_action.bind(&"undo"))
+    redo_button.pressed.connect(_emit_action.bind(&"redo"))
+    grid_button.toggled.connect(_emit_toggle.bind(&"grid"))
+    surface_button.toggled.connect(_emit_toggle.bind(&"surface"))
+    object_button.toggled.connect(_emit_toggle.bind(&"object"))
+    socket_button.toggled.connect(_emit_toggle.bind(&"socket"))
     grid_button.button_pressed = true
     _configure_focus()
 
@@ -41,12 +41,16 @@ func set_group_enabled(enabled: bool) -> void:
     group_button.disabled = not enabled
 
 
-func _emit_action(action: StringName, enabled: bool = true) -> void:
+func _emit_action(action: StringName) -> void:
+    action_requested.emit(action, true)
+
+
+func _emit_toggle(enabled: bool, action: StringName) -> void:
     action_requested.emit(action, enabled)
 
 
 func _configure_focus() -> void:
-    var buttons := [place_button, grid_button, surface_button, object_button, socket_button, ground_button, group_button, undo_button, redo_button]
+    var buttons: Array[Button] = [place_button, grid_button, surface_button, object_button, socket_button, ground_button, group_button, undo_button, redo_button]
     for index in range(buttons.size()):
         var button: Button = buttons[index]
         var left: Button = buttons[(index - 1 + buttons.size()) % buttons.size()]

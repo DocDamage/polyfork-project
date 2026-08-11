@@ -14,10 +14,10 @@ const EditorSession = preload("res://src/editor/editor_session.gd")
 @onready var mode_badge: Label = %ModeBadge
 @onready var inspector_panel: Control = $InspectorLayer/InspectorPanel
 @onready var bottom_dock: Control = $BottomDockLayer/BottomToolDock
-@onready var transform_toolbar: Control = $TransformToolbar
-@onready var placement_toolbar: Control = $PlacementToolbar
-@onready var tool_wheel: Control = $ToolWheelLayer/ToolWheel
-@onready var editor_viewport: Control = $ViewportFrame/ViewportBackdrop/EditorViewport3D
+@onready var transform_toolbar = $TransformToolbar
+@onready var placement_toolbar = $PlacementToolbar
+@onready var tool_wheel = $ToolWheelLayer/ToolWheel
+@onready var editor_viewport = $ViewportFrame/ViewportBackdrop/EditorViewport3D
 @onready var viewport_center: Control = $ViewportFrame/ViewportBackdrop/ViewportCenter
 @onready var status_mode: Label = %StatusMode
 @onready var status_state: Label = $StatusBar/StatusMargin/StatusRow/StatusState
@@ -34,7 +34,6 @@ func _ready() -> void:
     _session.selection_changed.connect(_on_selection_changed)
     _session.project_changed.connect(_on_project_changed)
     _session.placement_changed.connect(_on_placement_changed)
-
     home_button.pressed.connect(_request_home)
     mode_switch.mode_changed.connect(_on_mode_changed)
     bottom_dock.tool_selected.connect(_on_tool_selected)
@@ -49,7 +48,7 @@ func _ready() -> void:
 
 
 func bind_project(project, dirty_callback: Callable) -> Dictionary:
-    var result := _session.bind_project(project, dirty_callback)
+    var result: Dictionary = _session.bind_project(project, dirty_callback)
     if not result.get("ok", false):
         status_state.text = "Editor project bind failed"
         return result
@@ -62,12 +61,10 @@ func set_configuration(configuration: Dictionary) -> Dictionary:
     var profile := str(_configuration.get("world_profile", "medium")).capitalize()
     var template := str(_configuration.get("template_id", "blank_sandbox")).replace("_", " ").capitalize()
     world_context.text = "%s world  •  %s" % [profile, template]
-
-    var bridge_result: Dictionary = _session.load_preview_records(_configuration.get("entities", []))
-    if not bridge_result.get("ok", false):
+    var result: Dictionary = _session.load_preview_records(_configuration.get("entities", []))
+    if not result.get("ok", false):
         status_state.text = "Entity load failed"
-        return bridge_result
-
+        return result
     _update_project_status()
     _update_editor_controls()
     return {"ok": true, "errors": [], "entity_count": _session.get_bridge().entity_count()}
@@ -86,10 +83,10 @@ func show_inspector(context: Dictionary) -> void:
 
 
 func hide_inspector() -> void:
-    if _session.get_selected_ids().size() > 0:
+    if not _session.get_selected_ids().is_empty():
         _session.clear_selection()
-        return
-    inspector_panel.clear_context()
+    else:
+        inspector_panel.clear_context()
 
 
 func is_inspector_open() -> bool:
@@ -153,9 +150,7 @@ func get_runtime_entity_ids() -> Array[String]:
 
 
 func begin_proxy_placement(display_name: String = "Proxy Object") -> Dictionary:
-    var result := _session.begin_proxy_placement(display_name)
-    _report_action(result, "Placement preview ready")
-    return result
+    return _report_result(_session.begin_proxy_placement(display_name), "Placement preview ready")
 
 
 func update_placement_preview(position_value: Vector3, context: Dictionary = {}) -> Dictionary:
@@ -163,51 +158,37 @@ func update_placement_preview(position_value: Vector3, context: Dictionary = {})
 
 
 func commit_placement() -> Dictionary:
-    var result := _session.commit_placement()
-    _report_action(result, "Object placed")
-    return result
+    return _report_result(_session.commit_placement(), "Object placed")
 
 
 func cancel_placement() -> Dictionary:
-    var result := _session.cancel_placement()
+    var result: Dictionary = _session.cancel_placement()
     _update_editor_controls()
     return result
 
 
 func nudge_selection(mode: StringName, delta: Vector3) -> Dictionary:
-    var result := _session.nudge_selected(mode, delta)
-    _report_action(result, "Transform applied")
-    return result
+    return _report_result(_session.nudge_selected(mode, delta), "Transform applied")
 
 
 func duplicate_selection() -> Dictionary:
-    var result := _session.duplicate_selected()
-    _report_action(result, "Selection duplicated")
-    return result
+    return _report_result(_session.duplicate_selected(), "Selection duplicated")
 
 
 func delete_selection() -> Dictionary:
-    var result := _session.delete_selected()
-    _report_action(result, "Selection deleted")
-    return result
+    return _report_result(_session.delete_selected(), "Selection deleted")
 
 
 func group_selection() -> Dictionary:
-    var result := _session.group_selected()
-    _report_action(result, "Selection grouped")
-    return result
+    return _report_result(_session.group_selected(), "Selection grouped")
 
 
 func undo_edit() -> Dictionary:
-    var result := _session.undo_edit()
-    _report_action(result, "Undo")
-    return result
+    return _report_result(_session.undo_edit(), "Undo")
 
 
 func redo_edit() -> Dictionary:
-    var result := _session.redo_edit()
-    _report_action(result, "Redo")
-    return result
+    return _report_result(_session.redo_edit(), "Redo")
 
 
 func set_snap_enabled(mode: StringName, enabled: bool) -> Dictionary:
@@ -215,27 +196,19 @@ func set_snap_enabled(mode: StringName, enabled: bool) -> Dictionary:
 
 
 func drop_selection_to_ground() -> Dictionary:
-    var result := _session.drop_selection_to_ground()
-    _report_action(result, "Dropped to ground")
-    return result
+    return _report_result(_session.drop_selection_to_ground(), "Dropped to ground")
 
 
 func snap_selection_to_surface(position_value: Vector3, normal: Vector3) -> Dictionary:
-    var result := _session.snap_selection_to_surface(position_value, normal)
-    _report_action(result, "Surface snapped")
-    return result
+    return _report_result(_session.snap_selection_to_surface(position_value, normal), "Surface snapped")
 
 
 func snap_selection_to_object(candidates: Array) -> Dictionary:
-    var result := _session.snap_selection_to_object(candidates)
-    _report_action(result, "Object snapped")
-    return result
+    return _report_result(_session.snap_selection_to_object(candidates), "Object snapped")
 
 
 func snap_selection_to_socket(candidates: Array) -> Dictionary:
-    var result := _session.snap_selection_to_socket(candidates)
-    _report_action(result, "Socket snapped")
-    return result
+    return _report_result(_session.snap_selection_to_socket(candidates), "Socket snapped")
 
 
 func is_placement_active() -> bool:
@@ -249,19 +222,15 @@ func get_history_counts() -> Dictionary:
 func handle_cancel() -> bool:
     if tool_wheel.is_open():
         tool_wheel.close_wheel()
-        call_deferred("focus_primary")
         return true
     if _session.is_placement_active():
         _session.cancel_placement()
-        call_deferred("focus_primary")
         return true
     if is_asset_drawer_open():
         close_asset_drawer()
-        call_deferred("focus_bottom_dock")
         return true
     if is_inspector_open():
         hide_inspector()
-        call_deferred("focus_primary")
         return true
     return false
 
@@ -287,16 +256,15 @@ func _unhandled_input(event: InputEvent) -> void:
         commit_placement()
         get_viewport().set_input_as_handled()
         return
-    var direction := _direction_from_event(event)
+    var direction: Vector2 = _direction_from_event(event)
     if direction != Vector2.ZERO and _apply_direction(direction):
         get_viewport().set_input_as_handled()
 
 
 func _apply_direction(direction: Vector2) -> bool:
     if _session.is_placement_active():
-        var ghost = _session.get_ghost()
-        _session.update_placement_preview(ghost.position + Vector3(direction.x, 0.0, direction.y))
-        return true
+        var ghost: Node3D = _session.get_ghost()
+        return _session.update_placement_preview(ghost.position + Vector3(direction.x, 0.0, direction.y)).get("ok", false)
     if _session.get_selected_ids().is_empty():
         return false
     match _active_transform_tool:
@@ -313,19 +281,17 @@ func _on_selection_changed(entity_ids: Array, primary_entity_id: String, runtime
         _update_editor_controls()
         return
     var record: Dictionary = _session.get_bridge().get_entity_record(primary_entity_id)
-    if record.is_empty():
-        inspector_panel.clear_context()
-        return
-    inspector_panel.show_context(_entity_inspector_context(record, entity_ids.size()))
+    if not record.is_empty():
+        inspector_panel.show_context(_entity_inspector_context(record, entity_ids.size()))
     _update_editor_controls()
 
 
 func _on_project_changed(project_data: Dictionary) -> void:
     _configuration = project_data.duplicate(true)
     _update_project_status()
-    var primary := _session.get_primary_entity_id()
+    var primary: String = _session.get_primary_entity_id()
     if not primary.is_empty():
-        var record := _session.get_bridge().get_entity_record(primary)
+        var record: Dictionary = _session.get_bridge().get_entity_record(primary)
         if not record.is_empty():
             inspector_panel.show_context(_entity_inspector_context(record, _session.get_selected_ids().size()))
     _update_editor_controls()
@@ -338,12 +304,10 @@ func _on_placement_changed(active: bool, _preview_record: Dictionary) -> void:
 
 func _on_viewport_node_pressed(node: Node, hit_position: Vector3, hit_normal: Vector3) -> void:
     if _session.is_placement_active():
-        var context := {"surface_position": hit_position, "surface_normal": hit_normal}
-        _session.update_placement_preview(hit_position, context)
+        _session.update_placement_preview(hit_position, {"surface_position": hit_position, "surface_normal": hit_normal})
         commit_placement()
         return
-    var additive := Input.is_key_pressed(KEY_SHIFT)
-    var result := _session.select_runtime_node(node, additive)
+    var result: Dictionary = _session.select_runtime_node(node, Input.is_key_pressed(KEY_SHIFT))
     if not result.get("ok", false):
         _session.clear_selection()
 
@@ -412,21 +376,14 @@ func _entity_inspector_context(record: Dictionary, selected_count: int) -> Dicti
     var title := str(record.get("display_name", "Entity"))
     if selected_count > 1:
         title += "  •  %d selected" % selected_count
-    return {
-        "source": "entity_selection",
-        "title": title,
-        "type": "World entity",
-        "summary": "Stable entity • %s" % entity_id.substr(0, 8),
-        "position": _format_vector(transform_data.get("position", [])),
-        "rotation": _format_vector(transform_data.get("rotation_degrees", [])),
-        "scale": _format_vector(transform_data.get("scale", [])),
-        "advanced_summary": "Entity ID: %s\nCell ID: %s\nParent: %s" % [entity_id, cell_id, "None" if parent_id.is_empty() else parent_id]
-    }
+    return {"source": "entity_selection", "title": title, "type": "World entity", "summary": "Stable entity • %s" % entity_id.substr(0, 8), "position": _format_vector(transform_data.get("position", [])), "rotation": _format_vector(transform_data.get("rotation_degrees", [])), "scale": _format_vector(transform_data.get("scale", [])), "advanced_summary": "Entity ID: %s\nCell ID: %s\nParent: %s" % [entity_id, cell_id, "None" if parent_id.is_empty() else parent_id]}
 
 
-func _report_action(result: Dictionary, success_text: String) -> void:
+func _report_result(value: Variant, success_text: String) -> Dictionary:
+    var result: Dictionary = value
     status_state.text = success_text if result.get("ok", false) else str(result.get("errors", ["Edit failed"])[0])
     _update_editor_controls()
+    return result
 
 
 func _update_project_status() -> void:
@@ -435,7 +392,7 @@ func _update_project_status() -> void:
 
 
 func _update_editor_controls() -> void:
-    var counts := _session.get_history_counts()
+    var counts: Dictionary = _session.get_history_counts()
     placement_toolbar.set_history_state(int(counts.get("undo", 0)) > 0, int(counts.get("redo", 0)) > 0)
     placement_toolbar.set_group_enabled(_session.get_selected_ids().size() >= 2)
     viewport_center.visible = not _session.is_placement_active() and get_runtime_entity_count() == 0
