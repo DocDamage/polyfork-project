@@ -14,6 +14,7 @@ var _terrain_view := false
 
 func _ready() -> void:
     stretch = true
+    world_viewport.transparent_bg = true
     gui_input.connect(_on_gui_input)
 
 
