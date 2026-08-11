@@ -33,12 +33,10 @@ static func run_checks() -> Array[String]:
     if not service_bind.get("ok", false): errors.append("Gameplay service must bind seeded registries: %s" % [service_bind.get("errors", [])]); session.free(); return errors
 
     var add: Dictionary = service.add_component(entity_id, Components.id_for("damageable"), {"armor": 12.0})
-    if not add.get("ok", false) or service.components_for_entity(entity_id).size() != 2:
-        errors.append("Adding Damageable must atomically add its Health dependency and target component.")
+    if not add.get("ok", false) or service.components_for_entity(entity_id).size() != 2: errors.append("Adding Damageable must atomically add its Health dependency and target component.")
     var definition_ids: Array[String] = []
     for record in service.components_for_entity(entity_id): definition_ids.append(str(record.get("definition_id", "")))
-    if not definition_ids.has(Components.id_for("health")) or not definition_ids.has(Components.id_for("damageable")):
-        errors.append("Dependency addition must preserve stable component-definition identity.")
+    if not definition_ids.has(Components.id_for("health")) or not definition_ids.has(Components.id_for("damageable")): errors.append("Dependency addition must preserve stable component-definition identity.")
     var authored_ids: Array = _entity(project, entity_id).get("component_instance_ids", [])
     if authored_ids.size() != 2: errors.append("World entity component_instance_ids must stay synchronized with gameplay instances.")
 
@@ -46,44 +44,33 @@ static func run_checks() -> Array[String]:
     for record in service.components_for_entity(entity_id): stable_instance_ids.append(str(record.get("instance_id", "")))
     stable_instance_ids.sort()
     var undo_add: Dictionary = session.undo_edit()
-    if not undo_add.get("ok", false) or not service.components_for_entity(entity_id).is_empty() or not _entity(project, entity_id).get("component_instance_ids", []).is_empty():
-        errors.append("Universal Undo must restore both gameplay instances and world entity component references.")
-    var redo_add: Dictionary = session.redo_edit()
-    var redo_ids: Array[String] = []
+    if not undo_add.get("ok", false) or not service.components_for_entity(entity_id).is_empty() or not _entity(project, entity_id).get("component_instance_ids", []).is_empty(): errors.append("Universal Undo must restore both gameplay instances and world entity component references.")
+    var redo_add: Dictionary = session.redo_edit(); var redo_ids: Array[String] = []
     for record in service.components_for_entity(entity_id): redo_ids.append(str(record.get("instance_id", "")))
     redo_ids.sort()
-    if not redo_add.get("ok", false) or redo_ids != stable_instance_ids:
-        errors.append("Universal Redo must restore the same stable component instance IDs, not allocate replacements.")
+    if not redo_add.get("ok", false) or redo_ids != stable_instance_ids: errors.append("Universal Redo must restore the same stable component instance IDs, not allocate replacements.")
 
-    var health := _component(service, entity_id, Components.id_for("health"))
-    var damageable := _component(service, entity_id, Components.id_for("damageable"))
+    var health := _component(service, entity_id, Components.id_for("health")); var damageable := _component(service, entity_id, Components.id_for("damageable"))
     var configure: Dictionary = service.configure_component(str(health.get("instance_id", "")), {"max_health": 240.0, "current_health": 180.0})
-    var configured := service.get_state().get_instance(str(health.get("instance_id", "")))
-    if not configure.get("ok", false) or float(configured.get("values", {}).get("max_health", 0.0)) != 240.0:
-        errors.append("Component configuration must persist validated typed property values.")
+    var configured: Dictionary = service.get_state().get_instance(str(health.get("instance_id", "")))
+    if not configure.get("ok", false) or float(configured.get("values", {}).get("max_health", 0.0)) != 240.0: errors.append("Component configuration must persist validated typed property values.")
     var invalid_configure: Dictionary = service.configure_component(str(health.get("instance_id", "")), {"max_health": -2.0})
-    if invalid_configure.get("ok", false) or float(service.get_state().get_instance(str(health.get("instance_id", ""))).get("values", {}).get("max_health", 0.0)) != 240.0:
-        errors.append("Invalid component property edits must fail without partial authored mutation.")
+    if invalid_configure.get("ok", false) or float(service.get_state().get_instance(str(health.get("instance_id", ""))).get("values", {}).get("max_health", 0.0)) != 240.0: errors.append("Invalid component property edits must fail without partial authored mutation.")
     var remove_required: Dictionary = service.remove_component(entity_id, str(health.get("instance_id", "")))
     if remove_required.get("ok", false): errors.append("A component required by another authored component must reject independent removal.")
     var remove_damageable: Dictionary = service.remove_component(entity_id, str(damageable.get("instance_id", "")))
-    if not remove_damageable.get("ok", false) or service.components_for_entity(entity_id).size() != 1:
-        errors.append("Removing a non-required component must leave unrelated/dependency components intact.")
+    if not remove_damageable.get("ok", false) or service.components_for_entity(entity_id).size() != 1: errors.append("Removing a non-required component must leave unrelated/dependency components intact.")
 
-    var before_archetype_count := service.components_for_entity(entity_id).size()
-    var apply: Dictionary = service.apply_archetype(entity_id, Archetypes.id_for("door"))
-    if not apply.get("ok", false) or entity_id != original_id:
-        errors.append("Archetype application must retain world entity stable identity.")
+    var before_archetype_count := service.components_for_entity(entity_id).size(); var apply: Dictionary = service.apply_archetype(entity_id, Archetypes.id_for("door"))
+    if not apply.get("ok", false) or entity_id != original_id: errors.append("Archetype application must retain world entity stable identity.")
     var after_defs: Array[String] = []
     for record in service.components_for_entity(entity_id): after_defs.append(str(record.get("definition_id", "")))
     for expected in [Components.id_for("health"), Components.id_for("door"), Components.id_for("interactable"), Components.id_for("collision"), Components.id_for("save_state")]:
         if not after_defs.has(expected): errors.append("Door archetype must add required components while preserving unrelated Health.")
     var undo_archetype: Dictionary = session.undo_edit()
-    if not undo_archetype.get("ok", false) or service.components_for_entity(entity_id).size() != before_archetype_count:
-        errors.append("Undo archetype must remove only its authored changes and preserve pre-existing components.")
+    if not undo_archetype.get("ok", false) or service.components_for_entity(entity_id).size() != before_archetype_count: errors.append("Undo archetype must remove only its authored changes and preserve pre-existing components.")
 
-    var state_before_reopen = service.get_state()
-    var flush: Dictionary = service.get_repository().flush_all(state_before_reopen)
+    var state_before_reopen = service.get_state(); var flush: Dictionary = service.get_repository().flush_all(state_before_reopen)
     if not flush.get("ok", false): errors.append("Gameplay registries must support full crash-safe persistence.")
     var reopened: Dictionary = GameplayRepository.new(root.path_join("project")).open_or_create(project)
     if not reopened.get("ok", false): errors.append("Component gameplay state must reopen after save: %s" % [reopened.get("errors", [])])
@@ -91,9 +78,7 @@ static func run_checks() -> Array[String]:
         var reopened_ids: Array[String] = []
         for record in reopened.get("state").instances_for_entity(entity_id): reopened_ids.append(str(record.get("instance_id", "")))
         if reopened_ids.size() != 1 or not StableId.is_valid(reopened_ids[0]): errors.append("Component instance identity must survive gameplay repository restart.")
-
-    session.free()
-    return errors
+    session.free(); return errors
 
 
 static func _entity(project, entity_id: String) -> Dictionary:
