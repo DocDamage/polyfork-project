@@ -14,6 +14,7 @@ signal tool_selected(tool: StringName)
 @onready var bottom_dock: Control = $BottomDockLayer/BottomToolDock
 @onready var transform_toolbar: Control = $TransformToolbar
 @onready var status_mode: Label = %StatusMode
+@onready var status_state: Label = $StatusBar/StatusMargin/StatusRow/StatusState
 
 var _configuration: Dictionary = {}
 var _mode: StringName = &"build"
@@ -34,6 +35,12 @@ func set_configuration(configuration: Dictionary) -> void:
     var profile := str(_configuration.get("world_profile", "medium")).capitalize()
     var template := str(_configuration.get("template_id", "blank_sandbox")).replace("_", " ").capitalize()
     world_context.text = "%s world  •  %s" % [profile, template]
+
+    var project_id := str(_configuration.get("project_id", ""))
+    if project_id.length() >= 8:
+        status_state.text = "Saved project • %s" % project_id.substr(0, 8)
+    else:
+        status_state.text = "Session only • persistence not attached"
 
 
 func get_configuration() -> Dictionary:
