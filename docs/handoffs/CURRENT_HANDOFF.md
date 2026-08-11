@@ -4,33 +4,38 @@
 OPEN
 
 ## Project state
-Phase 0 and P01-T01 through P01-T07 are complete. The workspace now includes the themed shell, Build | Play state, right inspector shell, eight-category bottom dock, and an Asset drawer with search, large-card default density, density toggle, and empty state. Asset indexing remains deferred.
+Phase 0 and P01-T01 through P01-T08 are complete. Home, New World, and Workspace now have deterministic keyboard/gamepad focus entry and navigation. Workspace Back/Cancel priority closes the Asset drawer first, then inspector, then leaves the workspace. The real Godot 4.7.1 smoke workflow passes.
 
 ## Canonical UI
 `assets/reference/CANONICAL_UI_REFERENCE.png`
 
 ## Completed task
-`P01-T07 — Implement bottom category dock and asset drawer shell`
-
-## P01-T07 implementation evidence
-- Added `src/app/workspace/BottomToolDock.tscn` and `src/app/workspace/bottom_tool_dock.gd`.
-- Bottom dock exposes Terrain, Assets, Foliage, Roads, Water, Gameplay, AI, and More with semantic accent colors.
-- Asset drawer starts closed, opens above the dock, includes search, defaults to Large Cards, includes a density toggle, and has a non-destructive external-library empty state.
-- Workspace exposes neutral drawer state/focus methods and re-emits tool selection without implementing asset indexing or placement.
-- Runtime smoke behavior checks all eight tools, drawer closed default, Assets open/close toggle, search presence, large-card default, and density toggle state.
-
-## Tests/commands run
-- Static scene/script/reference review only; Godot runtime execution remains unavailable in the current environment.
-
-## Known limitations
-- Asset folders, indexing, cards, filtering, thumbnails, and placement belong to Phase 4 and later editor tasks.
-- Final layout density and drawer proportions still require runtime screenshot comparison.
-
-## Next authorized task
 `P01-T08 — Implement keyboard/mouse + gamepad navigation`
 
-## P01-T08 boundary
-Implement deterministic focus entry, directional focus relationships for core Phase 1 screens, standard `ui_*` keyboard/gamepad navigation, and prioritized Back/Cancel behavior for transient workspace panels and routes. Do not add gameplay controls or controller-only feature shortcuts beyond Phase 1 UI navigation.
+## P01-T08 implementation evidence
+- Home has deterministic focus entry plus explicit directional and tab-order relationships across all five primary cards.
+- New World has explicit focus relationships across Back, name, three size cards, template choice, and Create.
+- Workspace links Home, Build | Play, and the bottom tool dock into one focus graph.
+- Bottom dock supports deterministic horizontal traversal across all eight tool categories; opening Assets moves focus into Search.
+- Inspector focuses its close control when opened and provides reachable Advanced disclosure controls.
+- `src/main/main.gd` handles semantic `ui_cancel`: New World returns Home; Workspace closes Asset drawer first, inspector second, then returns Home.
+- Updated `docs/systems/INPUT_GAMEPAD_TOUCH.md` with the Phase 1 navigation baseline.
+- Added `.github/workflows/godot-smoke.yml` so the actual repository runs the Godot-native smoke harness on official Godot 4.7.1.
+
+## Tests/commands run
+- GitHub Actions run `31492160584`, job `93781001574`: SUCCESS.
+- Engine reported `4.7.1.stable.official.a13da4feb`.
+- Runtime log reached `PASS: PlayWorld Studio runtime smoke checks completed.` after loading the real app shell and exercising the Phase 1 routes and controls.
+
+## Known limitations
+- Input testing proves deterministic UI state/focus contracts and semantic `ui_cancel` behavior in the runtime harness; physical-device matrix testing can expand later.
+- Visual parity is not yet accepted until running-app screenshots are compared against the canonical reference.
+
+## Next authorized task
+`P01-T09 — Screenshot parity review against canonical reference`
+
+## P01-T09 boundary
+Capture the real running Phase 1 application at the target aspect ratio, compare it against `assets/reference/CANONICAL_UI_REFERENCE.png` using `docs/qa/UI_VISUAL_ACCEPTANCE.md`, correct material Phase 1 visual defects, and preserve evidence. Do not begin Phase 2 until the Phase 1 visual gate is passed or explicitly documented as blocked.
 
 ## New-thread start prompt
-Read `docs/systems/INPUT_GAMEPAD_TOUCH.md`, `docs/design/UI_SCREEN_INVENTORY.md`, all Phase 1 UI scripts/scenes, `src/main/main.gd`, and this file. Implement only P01-T08: deterministic keyboard/mouse/gamepad UI focus/navigation and Back/Cancel handling across Home, New World, and Workspace, including inspector/drawer priority. Then update the handoff and authorize only P01-T09.
+Read `docs/qa/UI_VISUAL_ACCEPTANCE.md`, `docs/design/UI_UX_CANONICAL_SPEC.md`, `assets/reference/CANONICAL_UI_REFERENCE.png`, all Phase 1 UI scenes/theme resources, and this file. Implement only P01-T09: automate/capture running-app screenshots, compare against the canonical reference, correct Phase 1 visual defects, document evidence, and then authorize Phase 2 only if the visual gate is genuinely satisfied.
