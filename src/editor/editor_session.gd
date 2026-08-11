@@ -101,7 +101,12 @@ func begin_proxy_placement(display_name: String = "Proxy Object") -> Dictionary:
 func update_placement_preview(position_value: Vector3, context: Dictionary = {}) -> Dictionary:
     if not _ghost.is_active():
         return _failure("No placement preview is active.")
-    var snap_result: Dictionary = _snapping.resolve_position(position_value, context)
+    var resolved_context: Dictionary = context.duplicate(true)
+    if not resolved_context.has("object_candidates"):
+        resolved_context["object_candidates"] = _runtime_snap_candidates(false)
+    if not resolved_context.has("socket_candidates"):
+        resolved_context["socket_candidates"] = _runtime_snap_candidates(true)
+    var snap_result: Dictionary = _snapping.resolve_position(position_value, resolved_context)
     var record: Dictionary = _ghost.get_record()
     var transform_data: Dictionary = record.get("transform", {}).duplicate(true)
     var rotation_value: Vector3 = _vector3(transform_data.get("rotation_degrees", [0.0, 0.0, 0.0]))
@@ -319,6 +324,19 @@ func _snap_selection_to_candidates(candidates: Array, socket: bool) -> Dictionar
     if move_result.get("ok", false):
         move_result["snap_id"] = result["id"]
     return move_result
+
+
+func _runtime_snap_candidates(socket: bool) -> Array[Dictionary]:
+    var result: Array[Dictionary] = []
+    for entity_id in _bridge.entity_ids():
+        var node: Node3D = _bridge.get_entity_node(entity_id)
+        if node == null:
+            continue
+        result.append({
+            "id": "%s:origin" % entity_id if socket else entity_id,
+            "position": node.global_position
+        })
+    return result
 
 
 func _can_mutate() -> bool:
