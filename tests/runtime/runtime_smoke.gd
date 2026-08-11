@@ -85,6 +85,7 @@ func _exercise_routes(
     })
     _check_workspace_route(home, new_world, workspace, errors)
     _check_mode_switch(workspace, errors)
+    _check_inspector(workspace, errors)
 
     workspace.emit_signal("home_requested")
     if not home.visible or workspace.visible:
@@ -138,3 +139,36 @@ func _check_mode_switch(workspace: Control, errors: Array[String]) -> void:
         errors.append("Play selection must update segmented-control state.")
     if badge == null or badge.text != "PLAY MODE":
         errors.append("Workspace must reflect Play selection in mode status.")
+
+
+func _check_inspector(workspace: Control, errors: Array[String]) -> void:
+    var inspector := workspace.find_child("InspectorPanel", true, false) as Control
+    var advanced_button := workspace.find_child("AdvancedButton", true, false) as Button
+    var advanced_panel := workspace.find_child("AdvancedPanel", true, false) as Control
+
+    if inspector == null or advanced_button == null or advanced_panel == null:
+        errors.append("Workspace must expose the generic right inspector shell.")
+        return
+
+    if inspector.visible:
+        errors.append("Inspector must be hidden until a context is supplied.")
+
+    workspace.call("show_inspector", {
+        "title": "Smoke Selection",
+        "type": "Generic object",
+        "summary": "Basic smoke context",
+        "advanced_summary": "Advanced smoke context"
+    })
+
+    if not inspector.visible:
+        errors.append("Inspector must show when a context is supplied.")
+    if advanced_panel.visible:
+        errors.append("Inspector Advanced content must start collapsed.")
+
+    advanced_button.emit_signal("toggled", true)
+    if not advanced_panel.visible:
+        errors.append("Inspector Advanced disclosure must expand on request.")
+
+    workspace.call("hide_inspector")
+    if inspector.visible:
+        errors.append("Inspector clear/hide must remove it from the workspace.")
