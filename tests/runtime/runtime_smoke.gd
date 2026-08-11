@@ -34,7 +34,7 @@ func run_checks() -> Dictionary:
         errors.append("Workspace screen must exist as an app route target.")
 
     if home != null and new_world != null and workspace != null:
-        _exercise_routes(home, new_world, workspace, errors)
+        _exercise_routes(main_instance, home, new_world, workspace, errors)
 
     main_instance.queue_free()
     return {"ok": errors.is_empty(), "errors": errors}
@@ -60,8 +60,13 @@ func _check_home(home: Control, errors: Array[String]) -> void:
         elif not button.text.contains(required_buttons[node_name]):
             errors.append("Home action %s has unexpected text." % required_buttons[node_name])
 
+    var create_button := home.find_child("CreateButton", true, false) as Button
+    if create_button != null and create_button.focus_neighbor_right.is_empty():
+        errors.append("Home directional focus graph must be configured.")
+
 
 func _exercise_routes(
+    main_instance: Control,
     home: Control,
     new_world: Control,
     workspace: Control,
@@ -87,10 +92,14 @@ func _exercise_routes(
     _check_mode_switch(workspace, errors)
     _check_inspector(workspace, errors)
     _check_bottom_dock(workspace, errors)
+    _check_cancel_priority(workspace, errors)
 
-    workspace.emit_signal("home_requested")
+    var cancel_event := InputEventAction.new()
+    cancel_event.action = &"ui_cancel"
+    cancel_event.pressed = true
+    main_instance.call("_unhandled_input", cancel_event)
     if not home.visible or workspace.visible:
-        errors.append("Workspace Home action must return to Home.")
+        errors.append("App-level ui_cancel must leave an idle workspace and return Home.")
 
 
 func _check_new_world_route(home: Control, new_world: Control, errors: Array[String]) -> void:
@@ -100,6 +109,10 @@ func _check_new_world_route(home: Control, new_world: Control, errors: Array[Str
     for node_name in ["SmallButton", "MediumButton", "LargeButton", "TemplateOption", "CreateButton"]:
         if new_world.find_child(node_name, true, false) == null:
             errors.append("New World screen is missing %s." % node_name)
+
+    var name_edit := new_world.find_child("WorldNameEdit", true, false) as LineEdit
+    if name_edit != null and name_edit.focus_neighbor_bottom.is_empty():
+        errors.append("New World directional focus graph must be configured.")
 
 
 func _check_workspace_route(
@@ -140,6 +153,8 @@ func _check_mode_switch(workspace: Control, errors: Array[String]) -> void:
         errors.append("Play selection must update segmented-control state.")
     if badge == null or badge.text != "PLAY MODE":
         errors.append("Workspace must reflect Play selection in mode status.")
+    if build_button.focus_neighbor_bottom.is_empty():
+        errors.append("Workspace mode control must link into the dock focus graph.")
 
 
 func _check_inspector(workspace: Control, errors: Array[String]) -> void:
@@ -203,6 +218,8 @@ func _check_bottom_dock(workspace: Control, errors: Array[String]) -> void:
         errors.append("Asset drawer must start closed.")
     if density_button.text != "Large Cards":
         errors.append("Asset drawer must default to large-card density.")
+    if assets_button.focus_neighbor_left.is_empty() or assets_button.focus_neighbor_right.is_empty():
+        errors.append("Bottom dock must provide horizontal controller focus navigation.")
 
     assets_button.emit_signal("pressed")
     if not drawer.visible:
@@ -215,3 +232,23 @@ func _check_bottom_dock(workspace: Control, errors: Array[String]) -> void:
     assets_button.emit_signal("pressed")
     if drawer.visible:
         errors.append("Assets tool must toggle the Asset drawer closed.")
+
+
+func _check_cancel_priority(workspace: Control, errors: Array[String]) -> void:
+    var assets_button := workspace.find_child("AssetsButton", true, false) as Button
+    var inspector := workspace.find_child("InspectorPanel", true, false) as Control
+    if assets_button == null or inspector == null:
+        return
+
+    workspace.call("show_inspector", {"title": "Cancel Test"})
+    assets_button.emit_signal("pressed")
+
+    var handled := bool(workspace.call("handle_cancel"))
+    if not handled or workspace.call("is_asset_drawer_open"):
+        errors.append("First workspace Cancel must close the Asset drawer.")
+    if not inspector.visible:
+        errors.append("Closing the Asset drawer must not also close the inspector.")
+
+    handled = bool(workspace.call("handle_cancel"))
+    if not handled or inspector.visible:
+        errors.append("Second workspace Cancel must close the inspector.")
