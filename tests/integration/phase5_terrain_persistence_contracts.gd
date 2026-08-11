@@ -57,6 +57,22 @@ static func run_checks() -> Array[String]:
     if reopened_heights.is_empty() or float(reopened_heights[int(reopened_heights.size() / 2)]) != 5.0:
         errors.append("Saved terrain heights must survive project restart.")
 
+    var biome_ids: Array[String] = reopened_state.biome_ids()
+    if biome_ids.size() < 2:
+        errors.append("Terrain persistence fixture must expose at least two stable biome IDs.")
+    else:
+        var target_biome: String = biome_ids[1]
+        var east_cell: Dictionary = reopened_state.get_cell(east_id)
+        east_cell["biome_id"] = target_biome
+        east_cell["revision"] = int(east_cell.get("revision", 0)) + 1
+        reopened_state.set_cell(east_cell, true)
+        var biome_flush: Dictionary = reopened_repo.flush_dirty(reopened_state)
+        var biome_reopen: Dictionary = TerrainRepository.new(project_dir).open_or_create(reopened_project)
+        if not biome_flush.get("ok", false) or not biome_reopen.get("ok", false):
+            errors.append("Biome assignment must persist through the normal dirty-cell save/reopen path.")
+        elif str(biome_reopen.get("state").get_cell(east_id).get("biome_id", "")) != target_biome:
+            errors.append("A terrain cell must retain its stable biome ID across restart.")
+
     _write_text(reopened_repo.get_cell_path(center_id), "{corrupt")
     var recovery_repo = TerrainRepository.new(project_dir)
     var recovered: Dictionary = recovery_repo.open_or_create(reopened_project)
@@ -69,6 +85,19 @@ static func run_checks() -> Array[String]:
             errors.append("Terrain recovery must expose the last known-good pre-save cell data.")
         if FileAccess.get_file_as_string(recovery_repo.get_cell_path(center_id)) != "{corrupt":
             errors.append("Loading recovery data must not silently overwrite a corrupt canonical terrain file.")
+
+    var missing_root: String = "user://tests/phase5_missing_%s" % StableId.generate()
+    var missing_project = WorldProject.new()
+    missing_project.initialize_new("Missing Terrain", &"small", "blank_sandbox")
+    var missing_repo = TerrainRepository.new(missing_root.path_join("project"))
+    var missing_open: Dictionary = missing_repo.open_or_create(missing_project)
+    if missing_open.get("ok", false):
+        var missing_cell_id: String = str(missing_open.get("state").cell_ids()[0])
+        DirAccess.remove_absolute(ProjectSettings.globalize_path(missing_repo.get_cell_path(missing_cell_id)))
+        DirAccess.remove_absolute(ProjectSettings.globalize_path(missing_repo.get_recovery_path(missing_cell_id)))
+        var missing_reopen: Dictionary = TerrainRepository.new(missing_root.path_join("project")).open_or_create(missing_project)
+        if missing_reopen.get("ok", false):
+            errors.append("A missing terrain cell without a validated recovery copy must fail closed instead of silently regenerating authored data.")
 
     var fault_root: String = "user://tests/phase5_fault_%s" % StableId.generate()
     var fault_project = WorldProject.new()
