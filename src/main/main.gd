@@ -6,6 +6,7 @@ signal new_world_requested(configuration: Dictionary)
 const ThemeFactory = preload("res://src/app/theme/theme_factory.gd")
 const ProjectRepository = preload("res://src/world/project_repository.gd")
 const AutosaveService = preload("res://src/world/autosave_service.gd")
+const TerrainWorkspaceLayer = preload("res://src/app/workspace/terrain_workspace_layer.gd")
 
 @onready var home_screen: Control = $HomeScreen
 @onready var new_world_screen: Control = $NewWorldScreen
@@ -14,6 +15,7 @@ const AutosaveService = preload("res://src/world/autosave_service.gd")
 var _project_repository
 var _autosave_service
 var _active_project
+var _terrain_workspace
 
 
 func _ready() -> void:
@@ -21,6 +23,12 @@ func _ready() -> void:
     var storage_root := str(ProjectSettings.get_setting("playworld/storage/projects_root", "user://projects"))
     _project_repository = ProjectRepository.new(storage_root)
     _autosave_service = AutosaveService.new(_project_repository)
+    _terrain_workspace = TerrainWorkspaceLayer.new()
+    workspace_screen.add_child(_terrain_workspace)
+    var terrain_workspace_result: Dictionary = _terrain_workspace.bind_workspace(workspace_screen)
+    if not terrain_workspace_result.get("ok", false):
+        push_warning("Unable to attach terrain workspace layer: %s" % terrain_workspace_result.get("errors", []))
+    _terrain_workspace.status_changed.connect(_on_terrain_status)
     home_screen.route_requested.connect(_on_home_route_requested)
     new_world_screen.back_requested.connect(_show_home)
     new_world_screen.create_requested.connect(_on_new_world_create_requested)
@@ -30,15 +38,22 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-    if _autosave_service == null: return
-    var autosave_result: Dictionary = _autosave_service.advance(delta)
-    if autosave_result.get("attempted", false) and not autosave_result.get("ok", false):
-        push_warning("Autosave checkpoint failed: %s" % autosave_result.get("errors", []))
+    if _autosave_service != null:
+        var autosave_result: Dictionary = _autosave_service.advance(delta)
+        if autosave_result.get("attempted", false) and not autosave_result.get("ok", false):
+            push_warning("Autosave checkpoint failed: %s" % autosave_result.get("errors", []))
+    if _terrain_workspace != null:
+        var terrain_result: Dictionary = _terrain_workspace.advance(delta)
+        if terrain_result.get("attempted", false) and not terrain_result.get("ok", false):
+            push_warning("Terrain autosave failed: %s" % terrain_result.get("errors", []))
 
 
 func _unhandled_input(event: InputEvent) -> void:
     if not event.is_action_pressed("ui_cancel"): return
     if workspace_screen.visible:
+        if _terrain_workspace != null and _terrain_workspace.handle_cancel():
+            get_viewport().set_input_as_handled()
+            return
         if workspace_screen.handle_cancel():
             get_viewport().set_input_as_handled()
             return
@@ -54,6 +69,9 @@ func mark_project_dirty() -> Dictionary:
     return _autosave_service.mark_dirty()
 
 
+func get_terrain_workspace(): return _terrain_workspace
+
+
 func _on_home_route_requested(route: StringName) -> void:
     if route == &"new_world": _show_new_world(); return
     if route == &"continue": _open_recent_project(); return
@@ -62,11 +80,13 @@ func _on_home_route_requested(route: StringName) -> void:
 
 
 func _show_home() -> void:
+    if _terrain_workspace != null: _terrain_workspace.close_tool()
     new_world_screen.hide(); workspace_screen.hide(); home_screen.show(); _refresh_recent_project()
     if home_screen.has_method("focus_primary"): home_screen.call_deferred("focus_primary")
 
 
 func _show_new_world() -> void:
+    if _terrain_workspace != null: _terrain_workspace.close_tool()
     home_screen.hide(); workspace_screen.hide(); new_world_screen.clear_error_message(); new_world_screen.show()
     if new_world_screen.has_method("focus_primary"): new_world_screen.call_deferred("focus_primary")
 
@@ -84,9 +104,22 @@ func _activate_project(project) -> bool:
         return false
     _active_project = project
     if workspace_screen.has_method("bind_project"):
-        var editor_result: Dictionary = workspace_screen.bind_project(project, Callable(self, "mark_project_dirty"), _project_repository.get_project_directory(project.project_id))
+        var project_directory: String = _project_repository.get_project_directory(project.project_id)
+        var editor_result: Dictionary = workspace_screen.bind_project(project, Callable(self, "mark_project_dirty"), project_directory)
         if not editor_result.get("ok", false):
             push_warning("Unable to bind project editor session: %s" % editor_result.get("errors", []))
+            _active_project = null
+            return false
+        var editor_viewport = workspace_screen.get_node_or_null("ViewportFrame/ViewportBackdrop/EditorViewport3D")
+        var editor_session = null
+        if editor_viewport != null: editor_session = editor_viewport.get_world_root().get_node_or_null("EditorSession")
+        if editor_session == null:
+            push_warning("Unable to resolve editor session for terrain binding.")
+            _active_project = null
+            return false
+        var terrain_result: Dictionary = _terrain_workspace.bind_project(project, project_directory, editor_session, Callable(self, "mark_project_dirty"))
+        if not terrain_result.get("ok", false):
+            push_warning("Unable to bind terrain workspace: %s" % terrain_result.get("errors", []))
             _active_project = null
             return false
     return true
@@ -122,3 +155,8 @@ func _refresh_recent_project() -> void:
     var project = recent.get("project")
     if recent.get("ok", false) and project != null: home_screen.set_recent_project(project.title, true)
     else: home_screen.set_recent_project("", false)
+
+
+func _on_terrain_status(message: String, _is_error: bool) -> void:
+    var status_label := workspace_screen.get_node_or_null("StatusBar/StatusMargin/StatusRow/StatusState") as Label
+    if status_label != null: status_label.text = message
