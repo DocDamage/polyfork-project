@@ -25,23 +25,28 @@ func bind_project(project, project_directory: String, editor_session, dirty_call
     if not opened.get("ok", false): _clear(); return opened
     _state = opened["state"]
     if opened.get("registry_changed", false): _dirty_callback.call()
-    return {"ok":true,"errors":[],"graph_count":_state.graphs.size(),"created":opened.get("created", false)}
+    return {"ok": true, "errors": [], "graph_count": _state.graphs.size(), "created": opened.get("created", false)}
 
 func get_state(): return _state
 func get_repository(): return _repository
 func get_graphs() -> Array[Dictionary]: return [] if _state == null else _state.snapshot()
 func get_graph(graph_id: String) -> Dictionary: return {} if _state == null else _state.get_graph(graph_id)
 
+func validate_graph_references(reference_ids: Array) -> Dictionary:
+    if not _is_bound(): return _failure("Visual graph service is not bound.")
+    var errors: Array[String] = []
+    for value in reference_ids:
+        var graph_id := str(value)
+        if not StableId.is_valid(graph_id): errors.append("Template visual graph reference must be a stable UUID: %s" % graph_id)
+        elif _state.get_graph(graph_id).is_empty(): errors.append("Template visual graph reference does not resolve: %s" % graph_id)
+    return {"ok": errors.is_empty(), "errors": errors}
+
 func create_graph(display_name: String, kind: String = "event", owner_entity_id: Variant = null) -> Dictionary:
     if not _is_bound(): return _failure("Visual graph service is not bound.")
     if display_name.strip_edges().is_empty(): return _failure("Visual graph display name is required.")
     if not Contracts.GRAPH_KINDS.has(kind): return _failure("Visual graph kind is invalid.")
     if owner_entity_id != null and not str(owner_entity_id).is_empty() and not StableId.is_valid(str(owner_entity_id)): return _failure("Visual graph owner must be null or a stable entity ID.")
-    var graph_id := StableId.generate(); var graph := {
-        "document_type":Contracts.GRAPH_DOCUMENT_TYPE,"schema_version":Contracts.SCHEMA_VERSION,"graph_id":graph_id,
-        "display_name":display_name.strip_edges(),"kind":kind,"owner_entity_id":owner_entity_id,"enabled":true,
-        "nodes":[],"connections":[],"variables":[],"interface":{"inputs":[],"outputs":[]},"editor":{"zoom":1.0,"scroll":[0.0,0.0]}
-    }
+    var graph_id := StableId.generate(); var graph := {"document_type": Contracts.GRAPH_DOCUMENT_TYPE, "schema_version": Contracts.SCHEMA_VERSION, "graph_id": graph_id, "display_name": display_name.strip_edges(), "kind": kind, "owner_entity_id": owner_entity_id, "enabled": true, "nodes": [], "connections": [], "variables": [], "interface": {"inputs": [], "outputs": []}, "editor": {"zoom": 1.0, "scroll": [0.0, 0.0]}}
     var records: Array[Dictionary] = _state.snapshot(); records.append(graph); var result := _execute_records(records, "Create visual graph")
     if result.get("ok", false): result["graph_id"] = graph_id
     return result
@@ -56,7 +61,7 @@ func configure_graph(graph_id: String, patch: Dictionary) -> Dictionary:
     var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[index].duplicate(true)
-    for key in ["display_name","enabled","owner_entity_id"]:
+    for key in ["display_name", "enabled", "owner_entity_id"]:
         if patch.has(key): graph[key] = patch[key]
     records[index] = graph; return _execute_records(records, "Configure visual graph")
 
@@ -64,11 +69,9 @@ func add_node(graph_id: String, type_key: String, position: Vector2 = Vector2.ZE
     if not NodeLibrary.has_key(type_key): return _failure("Unsupported visual node type: %s" % type_key)
     var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
-    var graph: Dictionary = records[index].duplicate(true); var node_id := StableId.generate(); var definition := NodeLibrary.get_definition(type_key)
-    var merged_properties: Dictionary = definition.get("properties", {}).duplicate(true)
+    var graph: Dictionary = records[index].duplicate(true); var node_id := StableId.generate(); var definition := NodeLibrary.get_definition(type_key); var merged_properties: Dictionary = definition.get("properties", {}).duplicate(true)
     for key in properties.keys(): merged_properties[key] = properties[key]
-    graph["nodes"].append({"node_id":node_id,"type_key":type_key,"position":[position.x,position.y],"properties":merged_properties})
-    records[index] = graph; var result := _execute_records(records, "Add visual node")
+    graph["nodes"].append({"node_id": node_id, "type_key": type_key, "position": [position.x, position.y], "properties": merged_properties}); records[index] = graph; var result := _execute_records(records, "Add visual node")
     if result.get("ok", false): result["node_id"] = node_id
     return result
 
@@ -83,11 +86,10 @@ func remove_node(graph_id: String, node_id: String) -> Dictionary:
     for value in graph.get("connections", []):
         var connection: Dictionary = value
         if str(connection.get("from_node_id", "")) != node_id and str(connection.get("to_node_id", "")) != node_id: connections.append(connection.duplicate(true))
-    graph["nodes"] = nodes; graph["connections"] = connections; records[index] = graph
-    return _execute_records(records, "Remove visual node")
+    graph["nodes"] = nodes; graph["connections"] = connections; records[index] = graph; return _execute_records(records, "Remove visual node")
 
-func move_node(graph_id: String, node_id: String, position: Vector2) -> Dictionary: return _patch_node(graph_id, node_id, {"position":[position.x,position.y]}, "Move visual node")
-func configure_node(graph_id: String, node_id: String, properties: Dictionary) -> Dictionary: return _patch_node(graph_id, node_id, {"properties":properties.duplicate(true)}, "Configure visual node")
+func move_node(graph_id: String, node_id: String, position: Vector2) -> Dictionary: return _patch_node(graph_id, node_id, {"position": [position.x, position.y]}, "Move visual node")
+func configure_node(graph_id: String, node_id: String, properties: Dictionary) -> Dictionary: return _patch_node(graph_id, node_id, {"properties": properties.duplicate(true)}, "Configure visual node")
 
 func connect_nodes(graph_id: String, from_node_id: String, from_port: String, to_node_id: String, to_port: String, kind: String) -> Dictionary:
     if not Contracts.CONNECTION_KINDS.has(kind): return _failure("Visual graph connection kind is invalid.")
@@ -95,8 +97,7 @@ func connect_nodes(graph_id: String, from_node_id: String, from_port: String, to
     if index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[index].duplicate(true)
     if _node_index(graph.get("nodes", []), from_node_id) < 0 or _node_index(graph.get("nodes", []), to_node_id) < 0: return _failure("Visual graph connection endpoints must exist.")
-    var connection_id := StableId.generate(); graph["connections"].append({"connection_id":connection_id,"from_node_id":from_node_id,"from_port":from_port,"to_node_id":to_node_id,"to_port":to_port,"kind":kind})
-    records[index] = graph; var result := _execute_records(records, "Connect visual nodes")
+    var connection_id := StableId.generate(); graph["connections"].append({"connection_id": connection_id, "from_node_id": from_node_id, "from_port": from_port, "to_node_id": to_node_id, "to_port": to_port, "kind": kind}); records[index] = graph; var result := _execute_records(records, "Connect visual nodes")
     if result.get("ok", false): result["connection_id"] = connection_id
     return result
 
@@ -113,8 +114,7 @@ func add_variable(graph_id: String, name: String, type_name: String, default_val
     if name.strip_edges().is_empty() or not Contracts.VALUE_TYPES.has(type_name): return _failure("Visual graph variable name/type is invalid.")
     var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
-    var graph: Dictionary = records[index].duplicate(true); var variable_id := StableId.generate()
-    graph["variables"].append({"variable_id":variable_id,"name":name.strip_edges(),"type":type_name,"default":default_value}); records[index] = graph
+    var graph: Dictionary = records[index].duplicate(true); var variable_id := StableId.generate(); graph["variables"].append({"variable_id": variable_id, "name": name.strip_edges(), "type": type_name, "default": default_value}); records[index] = graph
     var result := _execute_records(records, "Add visual variable"); if result.get("ok", false): result["variable_id"] = variable_id
     return result
 
@@ -141,7 +141,7 @@ func _patch_node(graph_id: String, node_id: String, patch: Dictionary, label: St
 func _execute_records(records: Array[Dictionary], label: String) -> Dictionary:
     if not _is_bound(): return _failure("Visual graph service is not bound.")
     var stage = GraphState.new(); var validation: Array[String] = stage.replace_records(records)
-    if not validation.is_empty(): return {"ok":false,"errors":validation}
+    if not validation.is_empty(): return {"ok": false, "errors": validation}
     var before_registries: Dictionary = _project.registries.duplicate(true); var after_registries: Dictionary = before_registries.duplicate(true); after_registries["visual_graph_ids"] = stage.graph_ids()
     var command = SnapshotCommand.new(_project, _state, _repository, _state.snapshot(), stage.snapshot(), before_registries, after_registries)
     var history_result: Dictionary = _editor_session.get_history().execute_command(command, label)
@@ -149,19 +149,16 @@ func _execute_records(records: Array[Dictionary], label: String) -> Dictionary:
     var dirty_result: Variant = _dirty_callback.call()
     if dirty_result is Dictionary and not dirty_result.get("ok", false): return _failure("Visual graph edit succeeded but project dirty-state signaling failed.")
     _editor_session.emit_signal("project_changed", _project.to_dictionary()); graphs_changed.emit(); status_changed.emit(label, false)
-    return {"ok":true,"errors":[],"project_data":_project.to_dictionary()}
+    return {"ok": true, "errors": [], "project_data": _project.to_dictionary()}
 
 func _is_bound() -> bool: return _project != null and _editor_session != null and _state != null and _repository != null
 func _clear() -> void: _project = null; _editor_session = null; _state = null; _repository = null; _dirty_callback = Callable()
-
 static func _graph_index(records: Array, graph_id: String) -> int:
     for index in range(records.size()):
         if str(records[index].get("graph_id", "")) == graph_id: return index
     return -1
-
 static func _node_index(nodes: Array, node_id: String) -> int:
     for index in range(nodes.size()):
         if str(nodes[index].get("node_id", "")) == node_id: return index
     return -1
-
-static func _failure(message: String) -> Dictionary: return {"ok":false,"errors":[message]}
+static func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}

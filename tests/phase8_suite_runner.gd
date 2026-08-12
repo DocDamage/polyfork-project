@@ -6,6 +6,9 @@ const GraphCompiler = preload("res://tests/unit/phase8_visual_graph_compiler_con
 const GraphRuntime = preload("res://tests/integration/phase8_visual_graph_runtime_contracts.gd")
 const GraphMacros = preload("res://tests/integration/phase8_visual_graph_macro_contracts.gd")
 const GraphWorkspace = preload("res://tests/integration/phase8_visual_graph_workspace_contracts.gd")
+const GraphDebugger = preload("res://tests/integration/phase8_visual_graph_debugger_contracts.gd")
+const GraphPlay = preload("res://tests/integration/phase8_visual_graph_play_contracts.gd")
+const GraphScale = preload("res://tests/integration/phase8_visual_graph_scale_contracts.gd")
 
 func _init() -> void: call_deferred("_run")
 func _run() -> void:
@@ -18,6 +21,9 @@ func _run() -> void:
         "macros": errors.append_array(GraphMacros.run_checks())
         "workspace":
             var test := GraphWorkspace.new(); root.add_child(test); errors.append_array(test.run_checks()); test.queue_free()
+        "debugger": errors.append_array(GraphDebugger.run_checks())
+        "play": errors.append_array(GraphPlay.run_checks())
+        "scale": errors.append_array(GraphScale.run_checks())
         _: errors.append("Unknown Phase 8 suite: %s" % suite)
     if errors.is_empty(): print("PASS: Phase 8 %s contract suite completed." % suite); quit(0); return
     for error in errors: push_error(error)

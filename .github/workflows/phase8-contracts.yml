@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [foundation, authoring, compiler, runtime, macros, workspace]
+        suite: [foundation, authoring, compiler, runtime, macros, workspace, debugger, play, scale]
     name: phase8-${{ matrix.suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 8
