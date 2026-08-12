@@ -37,10 +37,22 @@ func open_or_create(project_id: String) -> Dictionary:
 
 
 func append(entry: Dictionary) -> Dictionary:
+    if not get_entry(str(entry.get("execution_id", ""))).is_empty(): return _failure("AI execution history entry already exists.")
+    return upsert(entry)
+
+
+func upsert(entry: Dictionary) -> Dictionary:
     if _history.is_empty(): return _failure("AI execution history is not open.")
+    var execution_id: String = str(entry.get("execution_id", ""))
     var staged: Dictionary = _history.duplicate(true)
     var entries: Array = staged.get("entries", []).duplicate(true)
-    entries.append(entry.duplicate(true))
+    var replaced := false
+    for index in range(entries.size()):
+        if str(entries[index].get("execution_id", "")) == execution_id:
+            entries[index] = entry.duplicate(true)
+            replaced = true
+            break
+    if not replaced: entries.append(entry.duplicate(true))
     staged["entries"] = entries
     var errors: Array[String] = Contracts.validate_history(staged)
     if not errors.is_empty(): return {"ok": false, "errors": errors}
@@ -50,7 +62,13 @@ func append(entry: Dictionary) -> Dictionary:
     if not save_result.get("ok", false):
         _history = before
         return save_result
-    return {"ok": true, "errors": [], "entry": entry.duplicate(true), "count": entries.size()}
+    return {"ok": true, "errors": [], "entry": entry.duplicate(true), "count": entries.size(), "replaced": replaced}
+
+
+func get_entry(execution_id: String) -> Dictionary:
+    for value in _history.get("entries", []):
+        if value is Dictionary and str(value.get("execution_id", "")) == execution_id: return value.duplicate(true)
+    return {}
 
 
 func get_entries() -> Array[Dictionary]:
