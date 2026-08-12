@@ -47,7 +47,7 @@
 - Stable-ID road/path/fence splines with command-backed point authoring, generated `ArrayMesh` road/path ribbons, MultiMesh fence segments, streamed geometry, keyboard/mouse and gamepad authoring, strict regression gates, and rendered evidence.
 - Merged by PR #14 at authoritative `master` commit `953d8b500beb1b65485104c85ab9bd5c4ff8224b`.
 
-## Phase 10 — Gameplay Framework Breadth — IMPLEMENTATION COMPLETE / MERGE-GATED
+## Phase 10 — Gameplay Framework Breadth — COMPLETE
 Phase 10 was developed as one continuous milestone on `dev/phase10-gameplay-framework-milestone`, created from exactly authoritative `master` commit `953d8b500beb1b65485104c85ab9bd5c4ff8224b`.
 
 The milestone extends the existing Phase 6 gameplay-component contracts and Phase 7 disposable Play runtime rather than creating parallel gameplay systems. Authored Build data remains authoritative; mutable gameplay state is session/runtime state unless explicitly saved through the Phase 10 save-state layer.
@@ -65,10 +65,26 @@ Completed milestone breadth:
 - native Gameplay workspace integration with keyboard/mouse and gamepad authoring paths;
 - strict Phase 10 contract gates, representative 256-entity/768-component scale regression coverage, Godot smoke coverage, and rendered Phase 10 visual evidence exercising real Gameplay authoring and disposable Play transitions.
 
-Phase 10 is now completion-PR gated. The milestone completion PR targets authoritative `master`; do not merge it without explicit user authorization. Phase 11 remains blocked until that PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+Phase 10 was merged by PR #15 at authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
 
-## Phase 11 — Environment
-- Day/night, weather profile framework, fog/wind, water integration hooks, biome-environment coupling.
+## Phase 11 — Environment — IN PROGRESS
+Phase 11 is developed as one continuous milestone on `dev/phase11-environment-milestone`, created from exactly authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
+
+The milestone must produce one coherent data-driven environment runtime rather than independent day/night, weather, fog, wind, water, and biome systems. Authored Build environment data remains authoritative; Play evaluation is disposable and must integrate with the existing terrain/streaming, procedural foliage, gameplay, and Visual Scripting systems.
+
+Planned milestone breadth:
+- schema-versioned authored environment state and stable-ID weather profile records with crash-safe project persistence;
+- command-backed Build-mode environment editing through the universal Undo/Redo history;
+- deterministic time-of-day evaluation layered over authored defaults;
+- weather profile switching and transition evaluation without genre-specific assumptions;
+- Godot `WorldEnvironment`/`Environment` integration for sky, ambient light, fog, and related render settings;
+- reusable wind state/hooks for foliage, particles, water, gameplay, and future consumers;
+- stable water integration descriptors/hooks rather than a hardcoded water implementation;
+- biome-driven environment overrides coupled to Phase 5 terrain cells and deterministic streaming;
+- disposable Build → Play → Build environment state with Visual Scripting-facing actions/events;
+- Environment workspace controls with keyboard/mouse and gamepad authoring, persistence/failure/scale gates, inherited regression checks, and rendered visual evidence.
+
+Phase 11 remains completion-PR gated. Open one completion PR targeting authoritative `master` only after the full milestone is implemented and verified. Do not merge it without explicit user authorization. Phase 12 remains blocked until the Phase 11 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Phase 12 — AI creation
 - Provider interface.
