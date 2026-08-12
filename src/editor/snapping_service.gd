@@ -33,7 +33,7 @@ func is_mode_enabled(mode: StringName) -> bool:
 
 func snap_position(value: Vector3) -> Vector3:
     if not grid_enabled or grid_size <= 0.0: return value
-    return Vector3(snappedf(value.x, grid_size), snappedf(value.y, grid_size), snappedf(value.z, grid_size))
+    return Vector3(snappedf(value.x, grid_size), value.y, snappedf(value.z, grid_size))
 
 func snap_rotation(value: Vector3) -> Vector3:
     if angle_step_degrees <= 0.0: return value
