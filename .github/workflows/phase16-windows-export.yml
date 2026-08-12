@@ -1,0 +1,84 @@
+name: Phase 16 Windows Export
+
+on:
+  push:
+    branches:
+      - dev/phase16-milestone
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  windows-export-regression:
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.7.1 and Windows export templates
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $godotUri = 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_win64.exe.zip'
+          $templatesUri = 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_export_templates.tpz'
+          for ($attempt = 1; $attempt -le 8; $attempt++) {
+            try { Invoke-WebRequest -Uri $godotUri -OutFile godot.zip; break }
+            catch { if ($attempt -eq 8) { throw }; Start-Sleep -Seconds (3 * $attempt) }
+          }
+          Expand-Archive godot.zip -DestinationPath godot
+          for ($attempt = 1; $attempt -le 8; $attempt++) {
+            try { Invoke-WebRequest -Uri $templatesUri -OutFile templates.tpz; break }
+            catch { if ($attempt -eq 8) { throw }; Start-Sleep -Seconds (3 * $attempt) }
+          }
+          Copy-Item templates.tpz templates.zip
+          Expand-Archive templates.zip -DestinationPath template-package
+          $templateTarget = Join-Path $env:APPDATA 'Godot\export_templates\4.7.1.stable'
+          New-Item -ItemType Directory -Force -Path $templateTarget | Out-Null
+          Copy-Item 'template-package\templates\*' $templateTarget -Recurse -Force
+          $godot = (Get-ChildItem godot -Filter '*_console.exe' | Select-Object -First 1).FullName
+          if (-not $godot) { $godot = (Get-ChildItem godot -Filter '*.exe' | Select-Object -First 1).FullName }
+          if (-not $godot) { throw 'Godot executable not found.' }
+          "GODOT_EXE=$godot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          & $godot --version
+      - name: Run Phase 16 export dependency and clean-package smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:GODOT_EXE --headless --path . --script res://tests/phase16_windows_export_runner.gd 2>&1 | Tee-Object -FilePath phase16-windows-export.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $log = Get-Content phase16-windows-export.log -Raw
+          if ($log -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Strict Phase 16 Windows export log gate failed.' }
+          if ($log -notmatch 'PASS: Phase 16 Windows export closure and clean-package launch completed.') { throw 'Phase 16 Windows completion marker missing.' }
+      - name: Run inherited Phase 14 profiled Windows export
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:GODOT_EXE --headless --path . --script res://tests/phase14_windows_export_runner.gd 2>&1 | Tee-Object -FilePath phase14-windows-export.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $log = Get-Content phase14-windows-export.log -Raw
+          if ($log -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Strict Phase 14 Windows log gate failed.' }
+          if ($log -notmatch 'PASS: Phase 14 Windows Small/Medium/Large profiled export and clean-package launch completed.') { throw 'Phase 14 completion marker missing.' }
+      - name: Run inherited Phase 15 multiplayer Windows export
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:GODOT_EXE --headless --path . --script res://tests/phase15_windows_export_runner.gd 2>&1 | Tee-Object -FilePath phase15-windows-export.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $log = Get-Content phase15-windows-export.log -Raw
+          if ($log -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Strict Phase 15 Windows log gate failed.' }
+          if ($log -notmatch 'PASS: Phase 15 Windows offline/multiplayer export and concurrent host/client completed.') { throw 'Phase 15 completion marker missing.' }
+      - name: Upload Windows evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase16-windows-export-evidence
+          path: |
+            phase16-windows-export.log
+            phase14-windows-export.log
+            phase15-windows-export.log
+            ${{ runner.temp }}/_github_home/AppData/Roaming/Godot/app_userdata/Polyfork/tests/phase16/**/exports/**
+            ${{ runner.temp }}/_github_home/AppData/Roaming/Godot/app_userdata/Polyfork/tests/phase16/**/clean-machine/**
+          if-no-files-found: warn
+          retention-days: 14
