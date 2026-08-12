@@ -47,24 +47,25 @@
 - Stable-ID road/path/fence splines with command-backed point authoring, generated `ArrayMesh` road/path ribbons, MultiMesh fence segments, streamed geometry, keyboard/mouse and gamepad authoring, strict regression gates, and rendered evidence.
 - Merged by PR #14 at authoritative `master` commit `953d8b500beb1b65485104c85ab9bd5c4ff8224b`.
 
-## Phase 10 — Gameplay Framework Breadth — IN PROGRESS
-Phase 10 is one continuous milestone on `dev/phase10-gameplay-framework-milestone`, created from exactly authoritative `master` commit `953d8b500beb1b65485104c85ab9bd5c4ff8224b`.
+## Phase 10 — Gameplay Framework Breadth — IMPLEMENTATION COMPLETE / MERGE-GATED
+Phase 10 was developed as one continuous milestone on `dev/phase10-gameplay-framework-milestone`, created from exactly authoritative `master` commit `953d8b500beb1b65485104c85ab9bd5c4ff8224b`.
 
-The implementation must extend the existing Phase 6 gameplay-component contracts and Phase 7 disposable Play runtime rather than creating parallel gameplay systems. Authored Build data remains authoritative; mutable gameplay state is session/runtime state unless explicitly saved through the Phase 10 save-state layer.
+The milestone extends the existing Phase 6 gameplay-component contracts and Phase 7 disposable Play runtime rather than creating parallel gameplay systems. Authored Build data remains authoritative; mutable gameplay state is session/runtime state unless explicitly saved through the Phase 10 save-state layer.
 
-Planned milestone breadth:
-- runtime gameplay-state service keyed by stable entity/component IDs and initialized from the existing Phase 6 gameplay registry;
-- reusable inventory/item/container operations with capacity, quantity, transfer, pickup, and missing-reference handling;
-- interaction routing for interactables, doors, pickups, seats, and other reusable interaction providers;
-- health/damage/healing/death state with reusable damage events and no genre-specific combat assumptions;
-- basic NPC navigation/AI state using reusable goals, destinations, waits, and interaction targets;
-- dialogue scaffolding with stable dialogue/conversation/line IDs and participant references;
-- quest scaffolding with stable quest/objective IDs, progress, completion/failure state, and event-driven objective updates;
-- basic reusable vehicle runtime state, seats, driver ownership, enter/exit, throttle/steer/brake semantics, and safe fallback behavior;
-- save-state components that explicitly opt runtime fields into project-managed save snapshots without silently writing Play state back into authored Build data;
-- keyboard/mouse and gamepad paths, Visual Scripting-facing gameplay events/actions, persistence/restart/failure testing, scale/performance coverage, strict-log gates, and rendered Phase 10 evidence.
+Completed milestone breadth:
+- stable-ID runtime gameplay-state service initialized from the existing Phase 6 gameplay registry, with validation, disposable Play lifecycle, runtime events, and safe missing-reference handling;
+- reusable inventory/item/container operations with capacity, quantity, transfer, pickup, and interaction routing;
+- reusable doors plus health/damage/healing/death state and event surfaces without genre-specific combat assumptions;
+- basic NPC navigation/AI goals, destinations, waits/idle behavior, target interactions, and deterministic fallback behavior;
+- dialogue scaffolding with stable dialogue/conversation/line/participant references, conditions, choices, and runtime progression;
+- quest scaffolding with stable quest/objective IDs, progress, completion/failure state, and event-driven updates;
+- reusable vehicle runtime state with stable vehicle/seat references, occupancy, enter/exit, throttle/steer/brake semantics, and semantic keyboard/gamepad input;
+- explicit save-state components and project-managed runtime snapshots that restore opted-in Play fields without silently mutating authored Build data;
+- Visual Scripting-facing gameplay actions/events integrated with the existing Phase 7 semantic input/runtime lifecycle;
+- native Gameplay workspace integration with keyboard/mouse and gamepad authoring paths;
+- strict Phase 10 contract gates, representative 256-entity/768-component scale regression coverage, Godot smoke coverage, and rendered Phase 10 visual evidence exercising real Gameplay authoring and disposable Play transitions.
 
-Phase 10 completes through one milestone PR targeting authoritative `master`. Do not merge that PR without explicit user authorization.
+Phase 10 is now completion-PR gated. The milestone completion PR targets authoritative `master`; do not merge it without explicit user authorization. Phase 11 remains blocked until that PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Phase 11 — Environment
 - Day/night, weather profile framework, fog/wind, water integration hooks, biome-environment coupling.
