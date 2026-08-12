@@ -1,149 +1,196 @@
-# POLYFORK PROJECT — PHASE 5 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 6 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
-## Status
-Phase 5 — Terrain + Streaming — is implemented and verified on its single milestone branch.
+Use the GitHub connector for repository work.
+
+## Authoritative branch
+The real project lives on:
+
+`master`
+
+Authoritative `master` before Phase 6 merge:
+
+`6007a68bf98996d8f4b7619249506c91a8a54f75`
+
+The repository default branch `main` remains obsolete starter code.
+
+**Never develop from `main`.**
+
+## Current milestone status
+Phases 0 through 5 are merged on authoritative `master`.
+
+Phase 6 — Components, Archetypes, Prefabs — is implementation-complete and verified on:
+
+`dev/phase6-components-prefabs-milestone`
+
+All internal Phase 6 checkpoints P06-T01 through P06-T08 are complete.
 
 Completion PR:
-**PR #10 — Phase 5 — Terrain + Streaming**
 
-Target: `master`
+- PR #11 — `https://github.com/DocDamage/polyfork-project/pull/11`
+- Title: `Phase 6 — Components, Archetypes, Prefabs`
+- Base: `master`
+- Head: `dev/phase6-components-prefabs-milestone`
+- Status: **OPEN — DO NOT MERGE WITHOUT EXPLICIT USER AUTHORIZATION**
 
-PR #10 must be reviewed and explicitly merged before Phase 6 begins.
+No Phase 7 work has started.
 
-## Authoritative baseline
-Authoritative project branch: `master`
+## Verified implementation/docs head before this handoff-only closeout
 
-Phase 5 started from merged authoritative `master` commit:
-`a7788d6806375bea415cc835be71754e951229c0`
+`66637197968b95ff0aff91403268af603cc19568`
 
-The repository default branch `main` remains obsolete starter code. Never develop from it.
+That head was verified green across all Phase 6 and inherited gates before the handoff-only commit.
 
-Phase 5 branch:
-`dev/phase5-terrain-streaming-milestone`
+### Green verification runs
+- Godot Smoke: `31552050248` — SUCCESS
+  - runtime smoke
+  - Phase 1 visual capture
+  - Phase 4 visual capture
+  - Phase 5 visual capture
+- Phase 6 Contracts: `31552050246` — SUCCESS
+  - components
+  - prefabs
+  - sockets
+  - persistence
+  - scale
+  - real workspace
+- Phase 6 Visual Evidence: `31552050285` — SUCCESS
+- Phase 6 visual evidence artifact: `9124608541`
 
-Verified implementation/documentation closeout commit before the PR-number-only handoff update:
-`901216cf8ed69588b129bebe5f57edb5d3546c4f`
+Strict CI rejects `SCRIPT ERROR:` and engine `ERROR:` output. Phase 6 rendered evidence was manually inspected in addition to the automated PASS gate.
 
-## Completed task range
-- P05-T01 versioned terrain/biome/cell persistence and stable cell identity
-- P05-T02 deterministic runtime terrain chunks and editor viewport integration
-- P05-T03 command-backed raise/lower/smooth/flatten sculpting with shared undo/redo
-- P05-T04 deterministic Small/Medium/Large world partition topology
-- P05-T05 incremental crash-safe dirty-cell persistence and recovery/failure paths
-- P05-T06 deterministic terrain + runtime-entity streaming with stable cross-cell references
-- P05-T07 data-driven biome registry/material hooks and command-backed assignment
-- P05-T08 real workspace integration, scale/performance proxy, keyboard/mouse/gamepad, failure paths, raw logs, and rendered visual evidence
+## Branch integrity
+Immediately before PR creation:
+- merge base: `6007a68bf98996d8f4b7619249506c91a8a54f75`
+- authoritative `master`: `6007a68bf98996d8f4b7619249506c91a8a54f75`
+- Phase 6 branch: ahead only
+- behind `master`: 0 commits
 
-## Terrain architecture delivered
-Per-project terrain storage:
-`<project-directory>/terrain`
+The completion branch therefore starts from the exact merged Phase 5 source-of-truth commit and contains no `main` ancestry drift.
 
-Canonical files:
-- `manifest.json`
-- `biomes.json`
-- `cells/<cell-id>.json`
+## Phase 6 delivered
 
-Known-good fallback files:
-- `recovery/<cell-id>.json`
+### Component and archetype foundation
+- schema-v1 component-definition and component-instance contracts
+- all 21 required initial component definitions
+- typed property defaults and validation
+- deterministic dependency closure
+- explicit conflict rejection
+- stable component instance identity
+- command-backed add/remove/configure workflows
+- nine data-driven archetype presets
+- archetype application preserving entity UUID and unrelated components
+- universal Undo/Redo integration
 
-World topology:
-- Small — 1×1 cell, non-streaming, ~1 km²
-- Medium — 3×3 cells, non-streaming, ~9 km²
-- Large — 5×5 cells, streamed, ~25 km²
+### Project-managed gameplay persistence
+Phase 6 canonical authored data lives under:
 
-All cells use stable UUIDs. The origin retains an existing valid project cell ID when available.
+```text
+<project>/gameplay/
+  definitions.json
+  instances.json
+  archetypes.json
+  prefabs.json
+  sockets.json
+  attachments.json
+  prefab_instances.json
+```
 
-## Authoring behavior
-Terrain uses its own versioned height-cell records rather than pretending chunks are placed entities.
+Persistence uses the existing crash-safe safe-JSON promotion path. Corrupt JSON and unsupported future schema versions fail closed. Failed promotion preserves prior canonical content. JSON arrays are explicitly reconstructed into typed gameplay state on reopen.
 
-Raise, lower, smooth, flatten, and biome assignment execute through the same editor command history used by Phase 3. Undo/Redo restores authored terrain and runtime meshes together.
+Phase 4 external Asset Library source folders remain read-only and are never used for generated prefab/component content.
 
-Placement ghosts and moved entities resolve their owning terrain cell by world position. Cross-cell transform commands update transform plus `cell_id` atomically; Undo/Redo restores both.
+### Prefabs and inheritance
+- save configured real world-entity hierarchies as managed prefabs
+- preserve asset references, transforms, component values, and named sockets
+- stable prefab and prefab-node UUIDs
+- fresh world-entity/component/socket UUIDs on every instantiation
+- stable prefab-instance records
+- deterministic base/derived inheritance
+- missing-base and inheritance-cycle rejection
+- explicit per-instance overrides that win over inherited values
+- Phase 5 cell resolver used for prefab placement ownership
 
-## Streaming behavior
-Small and Medium keep every terrain cell loaded.
+### Sockets and attachments
+- stable named typed socket records
+- Grip, Seat, Mount, DoorHandle, Light, LootSpawn, Wheel, Muzzle, Camera, InteractionPoint, and Custom extension support
+- command-backed socket add/edit/remove
+- command-backed attach/detach
+- attachment persistence by stable entity/socket IDs, never scene paths
+- transient runtime attachment anchors
+- safe unresolved state when participants are unavailable/streamed out
+- recovery when references become available again
+- fresh entity-owned socket IDs when a prefab is instantiated
 
-Large uses a deterministic radius-one active set. Dirty terrain cells outside that radius remain loaded and report blocked unload until safe persistence succeeds.
+### Entity lifecycle compatibility
+Generic Phase 3 duplicate no longer aliases gameplay-owned component instance IDs.
 
-Runtime world entities are filtered by their stable owning `cell_id`. The complete persisted record set is validated even when some cells/entities are unloaded. A loaded child with a valid unloaded parent temporarily attaches at the runtime bridge root without changing its persistent parent ID.
+Gameplay records may remain dormant while their world owner is temporarily absent because of delete/undo/streaming. This preserves recoverability without weakening gameplay-internal reference validation or allowing new authoring against missing targets.
 
-## Crash safety
-Dirty-cell saves are incremental. Tests prove editing one cell does not rewrite an unchanged neighbor.
+### Gameplay workspace
+The existing Gameplay dock now opens a compact contextual composition panel with:
+- archetype selector/application
+- component selector/addition
+- prefab name/save
+- prefab selector/place
+- socket name/category/add
+- two-object attachment action
 
-Before replacement, the previous validated canonical cell is saved to its recovery path. Failed promotion leaves canonical data untouched and retains dirty state. Corrupt canonical terrain can reopen from a valid prior recovery record without silently overwriting the corrupt file. Missing terrain with no valid recovery fails closed.
+The panel preserves the existing canonical dark playful Nintendo-forward / Apple-clean workspace rather than introducing a dashboard redesign.
 
-Biome IDs and height edits survive terrain restart.
+Keyboard/mouse controls use native focusable Godot controls. Gamepad X adds a component, Y applies an archetype, A activates focused native controls, and Escape closes Gameplay before leaving the workspace. Terrain, Asset Library, and the Phase 3 left-shoulder tool wheel remain available.
 
-## Workspace/input
-The existing Terrain dock button opens a compact contextual sculpt strip inside the canonical workspace.
+## Verification coverage
+Phase 6 behaviorally verifies:
+- schema/type/range/enum validation
+- unsupported/future versions
+- stable IDs and duplicate rejection
+- all 21 built-in component definitions
+- deterministic dependencies and conflicts
+- component add/remove/configure + Undo/Redo + reopen
+- archetype identity preservation + Undo/Redo
+- prefab save/reopen/instantiate
+- repeated prefab identity separation
+- inheritance/overrides/cycle/missing-base behavior
+- prefab instance references
+- socket add/edit/remove + Undo/Redo
+- attachment/detach + runtime presentation
+- unloaded/missing participant safe behavior
+- streamed references
+- duplicate/delete gameplay recovery
+- Phase 4 source-folder read-only guarantees through inherited tests
+- real keyboard/mouse and gamepad workflows
+- representative scale workload
+- rendered Phase 6 visual evidence
+- strict Godot output gate
 
-Controls include:
-- Raise / Lower / Smooth / Flatten
-- radius and strength adjustments
-- biome selector
-- active cell display
-- Sculpt action
+Representative scale verification covers 200 world entities, 600 component instances, and 50 derived-prefab inheritance chains. The time budget is a CI regression proxy, not a hardware FPS claim.
 
-Mouse terrain clicks sculpt directly. Keyboard arrows/D-pad move the brush cursor. Enter/A applies. Right shoulder cycles brush mode. The Phase 3 left-shoulder tool wheel remains intact. Phase 4 Asset Library behavior remains accessible after terrain editing.
-
-## Verification
-Final pre-PR closeout run:
-`31544495810`
-
-Godot version:
-`4.7.1.stable.official.a13da4feb`
-
-Jobs:
-- `runtime-smoke` — SUCCESS
-- `phase1-visual-capture` — SUCCESS
-- `phase4-visual-capture` — SUCCESS
-- `phase5-visual-capture` — SUCCESS
-
-Behavioral verification covers:
-- stable terrain schemas/IDs and future-version rejection
-- deterministic 1/9/25 cell topology
-- deterministic 17×17 mesh generation and triangle counts
-- raise/lower/smooth/flatten brush behavior
-- shared sculpt undo/redo
-- command-backed biome assignment/undo
-- biome restart persistence
-- one-cell-only incremental save behavior
-- failed atomic promotion
-- corrupt canonical recovery
-- missing canonical + missing recovery failure
-- Large 3×3 active stream set and no-churn repeat focus
-- dirty-cell unload blocking and post-save unload
-- stable cross-cell entity reference behavior
-- entity placement/movement cell ownership with undo/redo
-- real workspace keyboard/mouse/gamepad authoring
-- preservation of Phase 3 controller tool wheel and Phase 4 Asset Library
-- Medium/Large deterministic scale workload and repeated brush regression proxy
-
-The automated performance workload is a CI regression proxy, not an RTX 3060 hardware benchmark. The documented RTX 3060-class 1080p/60 FPS goal remains a release hardware target and has not been falsely claimed as measured by GitHub Actions.
-
-## Raw log inspection
-The raw closeout `runtime-smoke` log was inspected and contains `PASS: PlayWorld Studio test harness completed.` with no `SCRIPT ERROR:` or engine `ERROR:` output.
-
-The raw closeout Phase 5 visual log was inspected and contains `PASS: Phase 5 rendered screenshots captured.` with no `SCRIPT ERROR:` or engine `ERROR:` output. Expected runner/graphics warnings do not bypass the strict error gate.
-
-## Visual evidence
-Run `31544495810` uploaded Phase 5 artifact ID `9121952251` (`phase5-visual-evidence`).
-
-Files:
+## Rendered evidence
+The Phase 6 rendered artifact contains:
 - `00-canonical-reference.png`
-- `01-terrain-sculpt.png`
-- `02-terrain-biome.png`
+- `01-gameplay-composition.png`
+- `02-prefab-socket-attachment.png`
 
-Visual inspection was performed manually. Initial screenshots were rejected because opaque viewport clearing and stale empty-state copy obscured terrain. The implementation was corrected, then the camera/evidence sculpt was reframed. The accepted evidence visibly shows sculpted 3D relief, brush footprint, contextual Terrain controls, and a distinct biome material state while preserving the dark/playful Nintendo-forward / Apple-clean direction.
+The captures show the real workspace with gameplay composition, applied components/archetype state, a named Grip socket, managed prefab state, two selected objects, and attachment controls.
 
-## Scope boundary
-Phase 5 does not implement foliage/scatter, roads/splines, full weather/environment, prefab/component authoring, visual scripting, gameplay frameworks, AI creation, or export. Those remain later phases.
+## Documentation closeout
+Updated for actual Phase 6 implementation:
+- `docs/architecture/SYSTEM_ARCHITECTURE.md`
+- `docs/architecture/DATA_MODEL.md`
+- `docs/architecture/FILE_FORMATS_VERSIONING.md`
+- `docs/implementation/TASK_BACKLOG.md`
+- this handoff
 
-## Merge gate
-PR #10 is the only Phase 5 completion PR.
+## Next action
+The only authorized Phase 6 action is to review and explicitly merge PR #11.
 
-Do not merge without explicit user authorization.
+After PR #11 is explicitly merged:
+1. verify the resulting authoritative `master` SHA;
+2. read the master implementation plan for Phase 7 scope;
+3. create a Phase 7 milestone branch from that exact `master` commit;
+4. update the handoff/backlog on the Phase 7 branch;
+5. continue Phase 7 as one milestone with one completion PR.
 
-Do not begin Phase 6 until PR #10 is merged into authoritative `master` and the new authoritative `master` commit is verified.
+**Do not begin Phase 7 before PR #11 is explicitly merged.**

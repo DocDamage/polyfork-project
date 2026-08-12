@@ -55,7 +55,7 @@ Phase 4 is complete and merged on authoritative `master` by PR #9.
 - [x] P04-T08 Complete Phase 4 integration, scale, gamepad, failure-path, and visual verification
 
 ## Phase 5 — Terrain + Streaming
-Phase 5 is complete and verified on `dev/phase5-terrain-streaming-milestone`. The completion PR must merge before Phase 6 begins.
+Phase 5 is complete and merged on authoritative `master` by PR #10.
 
 - [x] P05-T01 Implement versioned terrain/biome/cell persistence contracts and stable cell identity
 - [x] P05-T02 Implement deterministic runtime terrain chunk mesh generation and editor viewport integration
@@ -66,7 +66,19 @@ Phase 5 is complete and verified on `dev/phase5-terrain-streaming-milestone`. Th
 - [x] P05-T07 Implement biome rule-set data, terrain material hooks, and biome assignment/editing foundations
 - [x] P05-T08 Complete Phase 5 integration, scale/performance, gamepad, failure-path, persistence, streaming, and rendered visual verification
 
+## Phase 6 — Components, Archetypes, Prefabs
+Phase 6 implementation and verification are complete on `dev/phase6-components-prefabs-milestone`. The completion PR targeting authoritative `master` is the only remaining milestone gate.
+
+- [x] P06-T01 Implement versioned component-definition, component-instance, archetype, prefab, socket, and attachment persistence contracts
+- [x] P06-T02 Implement the initial reusable component registry with defaults, dependencies, conflicts, and validation
+- [x] P06-T03 Implement command-backed add/remove/configure component workflows for existing world entities
+- [x] P06-T04 Implement data-driven archetype registry and reversible archetype conversion/application flow
+- [x] P06-T05 Implement prefab save/snapshot, managed prefab repository, and stable-ID prefab instantiation through the existing placement/runtime systems
+- [x] P06-T06 Implement prefab inheritance, derived prefabs, meaningful per-instance overrides, and deterministic effective-value resolution
+- [x] P06-T07 Implement named typed sockets, socket editing, command-backed attachments, and runtime attachment resolution without path-based identity
+- [x] P06-T08 Complete Phase 6 workspace, persistence/restart, scale, keyboard/mouse, gamepad, failure-path, inheritance, attachment, and rendered visual verification
+
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
 
-Do not begin Phase 6 until the Phase 5 completion PR is explicitly merged into authoritative `master`.
+Do not begin Phase 7 until the Phase 6 completion PR is explicitly merged into authoritative `master`.
