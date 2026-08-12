@@ -13,7 +13,8 @@ const IDS := {
     "pickup": "20000000-0000-4000-8000-000000000006",
     "light": "20000000-0000-4000-8000-000000000007",
     "destructible_prop": "20000000-0000-4000-8000-000000000008",
-    "quest_giver": "20000000-0000-4000-8000-000000000009"
+    "quest_giver": "20000000-0000-4000-8000-000000000009",
+    "player": "20000000-0000-4000-8000-00000000000a"
 }
 
 
@@ -27,7 +28,8 @@ static func definitions() -> Array[Dictionary]:
         _arch("pickup", "Pickup", ["pickup", "interactable", "collision"], {}, ["inventory", "interaction"]),
         _arch("light", "Light", ["light_source"], {}, ["presentation"]),
         _arch("destructible_prop", "Destructible Prop", ["health", "damageable", "physics_prop", "collision", "save_state"], {Components.id_for("health"): {"max_health": 50.0, "current_health": 50.0}}, ["combat", "physics"]),
-        _arch("quest_giver", "Quest Giver", ["character_controller", "npc_brain", "dialogue_participant", "quest_participant", "save_state"], {}, ["character", "dialogue", "quest"])
+        _arch("quest_giver", "Quest Giver", ["character_controller", "npc_brain", "dialogue_participant", "quest_participant", "save_state"], {}, ["character", "dialogue", "quest"]),
+        _arch("player", "Player", ["character_controller", "save_state"], {Components.id_for("character_controller"): {"move_speed": 6.0, "jump_enabled": true, "jump_strength": 6.0}}, ["character", "player"])
     ]
 
 

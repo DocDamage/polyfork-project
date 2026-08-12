@@ -6,8 +6,10 @@ const RuntimeModules = preload("res://src/templates/runtime_module_registry.gd")
 const TemplateApplication = preload("res://src/templates/template_application_service.gd")
 const WorldProject = preload("res://src/world/world_project.gd")
 const StableId = preload("res://src/world/stable_id.gd")
+const BuiltinArchetypes = preload("res://src/gameplay/builtin_archetype_library.gd")
 
 const EXPECTED_IDS := ["blank_sandbox", "third_person_adventure", "fps", "survival", "rpg", "driving", "walking_simulator"]
+const PLAYABLE_PLAYER_TEMPLATES := ["third_person_adventure", "fps", "survival", "rpg", "driving", "walking_simulator"]
 
 
 static func run_checks() -> Array[String]:
@@ -21,6 +23,9 @@ static func run_checks() -> Array[String]:
     ids.sort()
     var expected := EXPECTED_IDS.duplicate(); expected.sort()
     if ids != expected: errors.append("Template registry must expose exactly the seven documented template IDs.")
+    var player_id := BuiltinArchetypes.id_for("player")
+    if not StableId.is_valid(player_id): errors.append("Phase 7 must provide a stable reusable player archetype ID.")
+    if BuiltinArchetypes.definitions().size() != 10: errors.append("Built-in archetypes must preserve the nine Phase 6 presets and add exactly one reusable Phase 7 player preset.")
     for template_id in EXPECTED_IDS:
         var manifest := registry.get_manifest(template_id)
         if manifest.is_empty(): errors.append("Template registry is missing %s." % template_id); continue
@@ -28,6 +33,15 @@ static func run_checks() -> Array[String]:
         if not manifest_errors.is_empty(): errors.append("Template %s must validate: %s" % [template_id, manifest_errors])
         var modules := RuntimeModules.new().resolve(manifest.get("required_runtime_modules", []))
         if not modules.get("ok", false): errors.append("Template %s may require only currently available Phase 7 modules: %s" % [template_id, modules.get("errors", [])])
+        if PLAYABLE_PLAYER_TEMPLATES.has(template_id):
+            if str(manifest.get("default_player_archetype", "")) != player_id: errors.append("Playable template %s must reference the reusable player archetype." % template_id)
+            var has_player_start := false
+            for starter_value in manifest.get("starter_entities", []):
+                var starter: Dictionary = starter_value
+                if str(starter.get("role", "")) == "player_spawn":
+                    has_player_start = true
+                    if str(starter.get("archetype_key", "")) != "player": errors.append("Playable template %s player spawn must use the reusable player archetype composition." % template_id)
+            if not has_player_start: errors.append("Playable template %s must provide a real player spawn starter." % template_id)
     errors.append_array(_failure_checks(registry))
     errors.append_array(_application_contract(registry))
     errors.append_array(_stable_id_contract())
@@ -56,6 +70,7 @@ static func _application_contract(registry) -> Array[String]:
     if not result.get("ok", false): errors.append("Valid template application must succeed: %s" % result.get("errors", [])); return errors
     if project.template_id != "fps": errors.append("Template application must persist template identity.")
     if str(project.runtime_config.get("template_id", "")) != "fps": errors.append("Template application must persist runtime template configuration.")
+    if str(project.runtime_config.get("default_player_archetype", "")) != BuiltinArchetypes.id_for("player"): errors.append("Template application must persist the reusable player archetype reference.")
     if project.dependencies != result.get("resolved_modules", []): errors.append("Template application must persist resolved runtime dependencies deterministically.")
     var invalid := manifest.duplicate(true); invalid["required_runtime_modules"] = ["missing.runtime.module"]
     var untouched = WorldProject.new(); untouched.initialize_new("Untouched", &"small", "fps"); var untouched_before := untouched.to_dictionary()
