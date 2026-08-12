@@ -42,7 +42,7 @@ func enter_play(editor_session) -> Dictionary:
     _selected_ids = editor_session.get_selected_ids(); _primary_id = editor_session.get_primary_entity_id()
     _previous_camera = get_viewport().get_camera_3d()
     editor_session.clear_selection()
-    _spawn_entity_id = str(runtime_config.get("spawn_entity_id", ""))
+    _spawn_entity_id = _optional_id(runtime_config.get("spawn_entity_id"))
     var exclusion_result: Dictionary = editor_session.get_bridge().set_excluded_entity_ids([] if _spawn_entity_id.is_empty() else [_spawn_entity_id])
     if not exclusion_result.get("ok", false): _rollback_startup(); return exclusion_result
 
@@ -99,7 +99,7 @@ func _spawn_player(controller: String, config: Dictionary) -> Dictionary:
 
 
 func _apply_spawn_position(config: Dictionary, runtime_config: Dictionary) -> void:
-    var spawn_id := str(runtime_config.get("spawn_entity_id", ""))
+    var spawn_id: String = _optional_id(runtime_config.get("spawn_entity_id"))
     if spawn_id.is_empty(): return
     var record: Dictionary = _runtime_state.get_entity(spawn_id)
     if record.is_empty(): return
@@ -128,6 +128,11 @@ func _free_player() -> void:
     if _player.has_method("release_pointer"): _player.release_pointer()
     if _player.get_parent() == self: remove_child(_player)
     _player.free(); _player = null
+
+
+func _optional_id(value: Variant) -> String:
+    if value == null: return ""
+    return str(value)
 
 
 func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}
