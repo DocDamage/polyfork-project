@@ -82,15 +82,15 @@ jobs:
           "$exe" --headless > "$env:GITHUB_WORKSPACE\phase15-client.log" 2>&1
           exit /b %ERRORLEVEL%
           "@ | Set-Content -Path $clientCmd -Encoding ASCII
-          $host = Start-Process -FilePath cmd.exe -ArgumentList '/c', $hostCmd -PassThru -WindowStyle Hidden
+          $hostProcess = Start-Process -FilePath cmd.exe -ArgumentList '/c', $hostCmd -PassThru -WindowStyle Hidden
           Start-Sleep -Seconds 1
-          $client = Start-Process -FilePath cmd.exe -ArgumentList '/c', $clientCmd -PassThru -WindowStyle Hidden
+          $clientProcess = Start-Process -FilePath cmd.exe -ArgumentList '/c', $clientCmd -PassThru -WindowStyle Hidden
           $deadline = (Get-Date).AddSeconds(45)
-          while ((!$host.HasExited -or !$client.HasExited) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $host.Refresh(); $client.Refresh() }
-          if (!$host.HasExited) { Stop-Process -Id $host.Id -Force; throw 'Exported host timed out.' }
-          if (!$client.HasExited) { Stop-Process -Id $client.Id -Force; throw 'Exported client timed out.' }
-          if ($host.ExitCode -ne 0) { throw "Exported host exited $($host.ExitCode)." }
-          if ($client.ExitCode -ne 0) { throw "Exported client exited $($client.ExitCode)." }
+          while ((!$hostProcess.HasExited -or !$clientProcess.HasExited) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $hostProcess.Refresh(); $clientProcess.Refresh() }
+          if (!$hostProcess.HasExited) { Stop-Process -Id $hostProcess.Id -Force; throw 'Exported host timed out.' }
+          if (!$clientProcess.HasExited) { Stop-Process -Id $clientProcess.Id -Force; throw 'Exported client timed out.' }
+          if ($hostProcess.ExitCode -ne 0) { throw "Exported host exited $($hostProcess.ExitCode)." }
+          if ($clientProcess.ExitCode -ne 0) { throw "Exported client exited $($clientProcess.ExitCode)." }
           $hostLog = Get-Content phase15-host.log -Raw
           $clientLog = Get-Content phase15-client.log -Raw
           Write-Host "HOST LOG`n$hostLog"
