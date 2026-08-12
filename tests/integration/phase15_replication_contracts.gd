@@ -14,20 +14,20 @@ const GameplayReplication = preload("res://src/network/gameplay_replication_serv
 
 static func run_checks(tree: SceneTree) -> Array[String]:
     var errors: Array[String] = []
-    var fixture := _build_fixture()
+    var fixture: Dictionary = _build_fixture()
     var project_data: Dictionary = fixture["project_data"]
     var gameplay_data: Dictionary = fixture["gameplay_data"]
-    var host_actor_id: String = fixture["host_actor_id"]
-    var client_actor_id: String = fixture["client_actor_id"]
-    var target_id: String = fixture["target_id"]
-    var door_id: String = fixture["door_id"]
+    var host_actor_id := str(fixture["host_actor_id"])
+    var client_actor_id := str(fixture["client_actor_id"])
+    var target_id := str(fixture["target_id"])
+    var door_id := str(fixture["door_id"])
 
     var host_adapter = Adapter.new()
     var client_adapter = Adapter.new()
     tree.root.add_child(host_adapter)
     tree.root.add_child(client_adapter)
     var port := 32500 + int(Time.get_ticks_msec() % 500)
-    var host_config := Contract.default_config()
+    var host_config: Dictionary = Contract.default_config()
     host_config["role"] = Contract.ROLE_HOST
     host_config["address"] = "*"
     host_config["port"] = port
@@ -39,7 +39,7 @@ static func run_checks(tree: SceneTree) -> Array[String]:
         _cleanup_nodes([client_adapter, host_adapter])
         return ["Replication host failed to start: %s" % str(host_start.get("errors", []))]
 
-    var client_config := Contract.default_config()
+    var client_config: Dictionary = Contract.default_config()
     client_config["role"] = Contract.ROLE_CLIENT
     client_config["address"] = "127.0.0.1"
     client_config["port"] = port
@@ -49,7 +49,9 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     if not client_start.get("ok", false):
         _cleanup_nodes([client_adapter, host_adapter])
         return ["Replication client failed to start: %s" % str(client_start.get("errors", []))]
-    await _wait_until(tree, func() -> bool: return client_adapter.is_session_ready() and host_adapter.get_peer_count() == 2, 240)
+    for _index in range(240):
+        await tree.process_frame
+        if client_adapter.is_session_ready() and host_adapter.get_peer_count() == 2: break
     if not client_adapter.is_session_ready():
         _cleanup_nodes([client_adapter, host_adapter])
         return ["Replication client did not complete the host handshake."]
@@ -62,8 +64,8 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     for assignment in [host_assign, host_client_assign, client_host_assign, client_self_assign]:
         if not assignment.get("ok", false): errors.append("Replication identity fixture failed to assign authored ownership: %s" % str(assignment.get("errors", [])))
 
-    var host_services := _make_services(project_data, gameplay_data)
-    var client_services := _make_services(project_data, gameplay_data)
+    var host_services: Dictionary = _make_services(project_data, gameplay_data)
+    var client_services: Dictionary = _make_services(project_data, gameplay_data)
     if not host_services.get("ok", false) or not client_services.get("ok", false):
         errors.append("Replication gameplay fixtures failed to initialize.")
         _cleanup_services(host_services); _cleanup_services(client_services)
@@ -85,13 +87,13 @@ static func run_checks(tree: SceneTree) -> Array[String]:
         "amount": 25.0,
     })
     if not damage_request.get("ok", false) or not damage_request.get("pending", false): errors.append("Client damage must be sent as a pending host-authoritative request.")
-    await _wait_until(tree, func() -> bool:
-        return is_equal_approx(float(host_services["health"].get_health(target_id).get("values", {}).get("current_health", -1.0)), 75.0)
-            and is_equal_approx(float(client_services["health"].get_health(target_id).get("values", {}).get("current_health", -1.0)), 75.0)
-            and client_replication.pending_request_count() == 0
-    , 240)
-    var host_health := float(host_services["health"].get_health(target_id).get("values", {}).get("current_health", -1.0))
-    var client_health := float(client_services["health"].get_health(target_id).get("values", {}).get("current_health", -1.0))
+    for _index in range(240):
+        await tree.process_frame
+        var host_value := _current_health(host_services, target_id)
+        var client_value := _current_health(client_services, target_id)
+        if is_equal_approx(host_value, 75.0) and is_equal_approx(client_value, 75.0) and client_replication.pending_request_count() == 0: break
+    var host_health := _current_health(host_services, target_id)
+    var client_health := _current_health(client_services, target_id)
     if not is_equal_approx(host_health, 75.0): errors.append("Host must authoritatively commit replicated damage.")
     if not is_equal_approx(client_health, 75.0): errors.append("Client health state must converge to the host result.")
     if client_replication.pending_request_count() != 0: errors.append("Accepted client gameplay requests must leave the pending queue.")
@@ -101,9 +103,9 @@ static func run_checks(tree: SceneTree) -> Array[String]:
         "target_entity_id": door_id,
     })
     if not door_request.get("ok", false): errors.append("Client door action must be routable to host authority.")
-    await _wait_until(tree, func() -> bool:
-        return host_services["interaction"].is_door_open(door_id) and client_services["interaction"].is_door_open(door_id)
-    , 240)
+    for _index in range(240):
+        await tree.process_frame
+        if host_services["interaction"].is_door_open(door_id) and client_services["interaction"].is_door_open(door_id): break
     if not host_services["interaction"].is_door_open(door_id): errors.append("Host must commit replicated door state.")
     if not client_services["interaction"].is_door_open(door_id): errors.append("Client door state must converge to the host result.")
 
@@ -113,8 +115,10 @@ static func run_checks(tree: SceneTree) -> Array[String]:
         "amount": 10.0,
     })
     if not spoof_request.get("ok", false): errors.append("Spoofed client request must travel to host validation rather than mutating locally.")
-    await _wait_until(tree, func() -> bool: return client_replication.pending_request_count() == 0, 240)
-    var health_after_spoof := float(host_services["health"].get_health(target_id).get("values", {}).get("current_health", -1.0))
+    for _index in range(240):
+        await tree.process_frame
+        if client_replication.pending_request_count() == 0: break
+    var health_after_spoof := _current_health(host_services, target_id)
     if not is_equal_approx(health_after_spoof, 75.0): errors.append("Host must reject client actions that claim an authored entity owned by another peer.")
 
     host_replication.clear(); client_replication.clear()
@@ -123,11 +127,15 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     _cleanup_nodes([client_adapter, host_adapter])
     return errors
 
+static func _current_health(services: Dictionary, entity_id: String) -> float:
+    return float(services["health"].get_health(entity_id).get("values", {}).get("current_health", -1.0))
+
 static func _build_fixture() -> Dictionary:
     var project = WorldProject.new()
     project.initialize_new("Phase 15 Replication", &"small", "blank_sandbox")
     var cell_id := StableId.generate()
-    project.cell_ids = [cell_id]
+    var cells: Array[String] = [cell_id]
+    project.cell_ids = cells
     var host_actor = WorldEntity.new(); host_actor.initialize_new("Host Actor", cell_id)
     var client_actor = WorldEntity.new(); client_actor.initialize_new("Client Actor", cell_id)
     var target = WorldEntity.new(); target.initialize_new("Target", cell_id)
@@ -137,7 +145,8 @@ static func _build_fixture() -> Dictionary:
     _attach(target, instances, "damageable", {"armor": 0.0})
     _attach(door, instances, "interactable", {"prompt": "Open"})
     _attach(door, instances, "door", {"starts_open": false, "locked": false})
-    project.entity_records = [host_actor.to_dictionary(), client_actor.to_dictionary(), target.to_dictionary(), door.to_dictionary()]
+    var records: Array[Dictionary] = [host_actor.to_dictionary(), client_actor.to_dictionary(), target.to_dictionary(), door.to_dictionary()]
+    project.entity_records = records
     return {
         "project_data": project.to_dictionary(),
         "gameplay_data": {"definitions": Components.definitions(), "instances": instances, "sockets": [], "attachments": [], "dialogues": [], "quests": []},
@@ -170,11 +179,6 @@ static func _cleanup_nodes(nodes: Array) -> void:
         if node.has_method("shutdown"): node.shutdown("cleanup")
         if node.get_parent() != null: node.get_parent().remove_child(node)
         node.free()
-
-static func _wait_until(tree: SceneTree, condition: Callable, frames: int) -> void:
-    for _index in range(frames):
-        if bool(condition.call()): return
-        await tree.process_frame
 
 static func _attach(entity, instances: Array[Dictionary], component_key: String, patch: Dictionary) -> void:
     var definition := _definition(component_key)
