@@ -1,102 +1,107 @@
 class_name PlayWorldTerrainRuntime
 extends Node3D
 
-signal streaming_changed(loaded_cell_ids: Array, unloaded_cell_ids: Array, blocked_dirty_cell_ids: Array)
+signal streaming_changed(loaded_cell_ids: Array, unloaded_cell_ids: Array, blocked_dirty: Array)
 signal cell_refreshed(cell_id: String)
 
 const TerrainChunk = preload("res://src/terrain/terrain_chunk_node.gd")
 const StreamingPolicy = preload("res://src/terrain/terrain_streaming_policy.gd")
+const MeshBuilder = preload("res://src/terrain/terrain_mesh_builder.gd")
 
 var _state
 var _loaded_chunks: Dictionary = {}
 var _focus_position := Vector3.ZERO
-var _blocked_dirty: Dictionary = {}
-
-func _init() -> void: name = "TerrainRuntime"
+var _blocked_dirty: Array[String] = []
 
 func bind_state(state) -> Dictionary:
     if state == null: return _failure("Terrain runtime requires a terrain state.")
-    clear_runtime(); _state = state
+    clear_chunks()
+    _state = state
     return update_focus(Vector3.ZERO)
 
 func update_focus(focus_position: Vector3) -> Dictionary:
     if _state == null: return _failure("Terrain runtime is not bound.")
     _focus_position = focus_position
-    var target_ids: Array[String] = StreamingPolicy.active_cell_ids(_state.manifest, focus_position)
-    var current_ids: Array[String] = get_loaded_cell_ids()
-    if _blocked_dirty.is_empty() and target_ids == current_ids:
-        return {"ok": true, "errors": [], "changed": false, "active": current_ids, "loaded": [], "unloaded": [], "blocked_dirty": []}
-    var previous_blocked: Array[String] = get_blocked_dirty_cell_ids()
+    var target: Array[String] = StreamingPolicy.active_cell_ids(_state.manifest, focus_position)
+    var current: Array[String] = get_loaded_cell_ids()
+    if _blocked_dirty.is_empty() and target == current:
+        return {"ok": true, "errors": [], "changed": false, "loaded": [], "unloaded": [], "blocked_dirty": [], "active": current}
     var target_set: Dictionary = {}
-    for cell_id in target_ids: target_set[cell_id] = true
-    var loaded: Array[String] = []
+    for cell_id in target: target_set[cell_id] = true
     var unloaded: Array[String] = []
-    for cell_id_value in _loaded_chunks.keys().duplicate():
-        var cell_id: String = str(cell_id_value)
+    _blocked_dirty.clear()
+    for cell_id in current:
         if target_set.has(cell_id): continue
-        if _state.is_cell_dirty(cell_id): _blocked_dirty[cell_id] = true; continue
-        _unload_chunk(cell_id); unloaded.append(cell_id)
-    for cell_id in target_ids:
-        if _loaded_chunks.has(cell_id): _blocked_dirty.erase(cell_id); continue
-        var load_result: Dictionary = _load_chunk(cell_id)
+        if _state.is_dirty(cell_id):
+            _blocked_dirty.append(cell_id)
+            continue
+        _unload_cell(cell_id)
+        unloaded.append(cell_id)
+    var loaded: Array[String] = []
+    for cell_id in target:
+        if _loaded_chunks.has(cell_id): continue
+        var load_result: Dictionary = _load_cell(cell_id)
         if not load_result.get("ok", false): return load_result
         loaded.append(cell_id)
-    loaded.sort(); unloaded.sort()
-    var blocked: Array[String] = get_blocked_dirty_cell_ids()
-    var changed: bool = not loaded.is_empty() or not unloaded.is_empty() or blocked != previous_blocked
-    if changed: streaming_changed.emit(loaded.duplicate(), unloaded.duplicate(), blocked.duplicate())
-    return {"ok": true, "errors": [], "changed": changed, "active": get_loaded_cell_ids(), "loaded": loaded, "unloaded": unloaded, "blocked_dirty": blocked}
+    var active: Array[String] = get_loaded_cell_ids()
+    streaming_changed.emit(active, unloaded, _blocked_dirty.duplicate())
+    return {"ok": true, "errors": [], "changed": true, "loaded": loaded, "unloaded": unloaded, "blocked_dirty": _blocked_dirty.duplicate(), "active": active}
 
 func refresh_cell(cell_id: String) -> Dictionary:
-    if _state == null: return _failure("Terrain runtime is not bound.")
-    if not _loaded_chunks.has(cell_id): return {"ok": true, "errors": [], "refreshed": false}
+    if _state == null or not _loaded_chunks.has(cell_id): return {"ok": true, "errors": [], "changed": false}
     var chunk = _loaded_chunks[cell_id]
-    var result: Dictionary = chunk.apply_cell(_state.get_cell(cell_id), _state.manifest)
+    var cell: Dictionary = _state.get_cell(cell_id)
+    var biome: Dictionary = _state.get_biome(str(cell.get("biome_id", "")))
+    var result: Dictionary = chunk.apply_cell(cell, biome)
+    result["changed"] = result.get("ok", false)
     if result.get("ok", false): cell_refreshed.emit(cell_id)
     return result
 
 func sample_height(world_position: Vector3) -> float:
     if _state == null: return 0.0
-    var cell_id: String = _state.cell_id_at_position(world_position)
-    var cell: Dictionary = _state.get_cell(cell_id)
+    var cell: Dictionary = _state.get_cell_at_position(world_position)
     if cell.is_empty(): return 0.0
-    var origin: Vector3 = _state.cell_origin(cell_id)
-    var size: float = float(_state.manifest.get("cell_size", 256.0))
-    var u: float = clampf((world_position.x - origin.x) / size, 0.0, 1.0)
-    var v: float = clampf((world_position.z - origin.z) / size, 0.0, 1.0)
-    return _state.sample_height_uv(cell_id, u, v)
+    return MeshBuilder.sample_height(cell, world_position)
 
 func get_loaded_cell_ids() -> Array[String]:
     var result: Array[String] = []
-    for key in _loaded_chunks.keys(): result.append(str(key))
-    result.sort(); return result
+    for cell_id in _loaded_chunks.keys(): result.append(str(cell_id))
+    result.sort()
+    return result
 
-func get_blocked_dirty_cell_ids() -> Array[String]:
-    var result: Array[String] = []
-    for key in _blocked_dirty.keys(): result.append(str(key))
-    result.sort(); return result
-
+func get_blocked_dirty_ids() -> Array[String]: return _blocked_dirty.duplicate()
 func get_chunk(cell_id: String): return _loaded_chunks.get(cell_id)
-func get_focus_position() -> Vector3: return _focus_position
+func chunk_count() -> int: return _loaded_chunks.size()
+func focus_position() -> Vector3: return _focus_position
 
-func clear_runtime() -> void:
-    for cell_id_value in _loaded_chunks.keys().duplicate(): _unload_chunk(str(cell_id_value))
-    _loaded_chunks.clear(); _blocked_dirty.clear()
+func clear_chunks() -> void:
+    for chunk in _loaded_chunks.values():
+        if is_instance_valid(chunk):
+            remove_child(chunk)
+            chunk.free()
+    _loaded_chunks.clear()
+    _blocked_dirty.clear()
 
-func _load_chunk(cell_id: String) -> Dictionary:
+func _load_cell(cell_id: String) -> Dictionary:
     var cell: Dictionary = _state.get_cell(cell_id)
-    if cell.is_empty(): return _failure("Cannot stream missing terrain cell: %s" % cell_id)
-    var chunk = TerrainChunk.new(); add_child(chunk)
-    var result: Dictionary = chunk.apply_cell(cell, _state.manifest)
-    if not result.get("ok", false): remove_child(chunk); chunk.free(); return result
-    _loaded_chunks[cell_id] = chunk; _blocked_dirty.erase(cell_id)
+    if cell.is_empty(): return _failure("Streaming requested an unknown terrain cell.")
+    var biome: Dictionary = _state.get_biome(str(cell.get("biome_id", "")))
+    if biome.is_empty(): return _failure("Terrain cell references an unknown biome.")
+    var chunk = TerrainChunk.new()
+    chunk.name = "Terrain_%s" % cell_id.substr(0, 8)
+    var result: Dictionary = chunk.apply_cell(cell, biome)
+    if not result.get("ok", false):
+        chunk.free()
+        return result
+    add_child(chunk)
+    _loaded_chunks[cell_id] = chunk
     return {"ok": true, "errors": []}
 
-func _unload_chunk(cell_id: String) -> void:
+func _unload_cell(cell_id: String) -> void:
     var chunk = _loaded_chunks.get(cell_id)
     if chunk != null and is_instance_valid(chunk):
-        if chunk.get_parent() == self: remove_child(chunk)
+        remove_child(chunk)
         chunk.free()
-    _loaded_chunks.erase(cell_id); _blocked_dirty.erase(cell_id)
+    _loaded_chunks.erase(cell_id)
 
-static func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}
+func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}
