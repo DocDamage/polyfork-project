@@ -2,6 +2,7 @@ extends SceneTree
 
 const Foundation = preload("res://tests/unit/phase12_ai_foundation_contracts.gd")
 const Rollback = preload("res://tests/unit/phase12_ai_transaction_contracts.gd")
+const History = preload("res://tests/unit/phase12_ai_history_contracts.gd")
 const Execute = preload("res://tests/integration/phase12_ai_execute_contracts.gd")
 const Workspace = preload("res://tests/integration/phase12_ai_workspace_contracts.gd")
 const Orchestration = preload("res://tests/integration/phase12_ai_orchestration_contracts.gd")
@@ -15,6 +16,7 @@ func _run() -> void:
     match suite:
         "foundation": errors.append_array(Foundation.run_checks())
         "rollback": errors.append_array(Rollback.run_checks())
+        "history": errors.append_array(History.run_checks())
         "execute": errors.append_array(Execute.run_checks(root))
         "workspace": errors.append_array(Workspace.run_checks(root))
         "orchestration": errors.append_array(await Orchestration.run_checks(root))
