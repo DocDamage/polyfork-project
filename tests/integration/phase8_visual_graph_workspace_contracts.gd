@@ -34,7 +34,7 @@ func _check_workspace(main_instance: Control, workspace: Control, errors: Array[
     else:
         print_button.emit_signal("pressed"); graph = service.get_graph(graph_id)
         if graph.get("nodes", []).size() != 2: errors.append("Native node palette action must create a command-backed graph node.")
-    var before_x := graph.get("nodes", []).size(); var gamepad_x := InputEventJoypadButton.new(); gamepad_x.button_index = JOY_BUTTON_X; gamepad_x.pressed = true; layer.call("_unhandled_input", gamepad_x); graph = service.get_graph(graph_id)
+    var before_x: int = graph.get("nodes", []).size(); var gamepad_x := InputEventJoypadButton.new(); gamepad_x.button_index = JOY_BUTTON_X; gamepad_x.pressed = true; layer.call("_unhandled_input", gamepad_x); graph = service.get_graph(graph_id)
     if graph.get("nodes", []).size() != before_x + 1: errors.append("Gamepad X must add the currently selected visual node type.")
     var history: Dictionary = workspace.call("get_history_counts")
     if int(history.get("undo", 0)) < 4: errors.append("Visual Scripting workspace actions must share the universal authoring history.")
