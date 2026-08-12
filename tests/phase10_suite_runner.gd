@@ -8,6 +8,7 @@ const Dialogue = preload("res://tests/unit/phase10_dialogue_contracts.gd")
 const Quest = preload("res://tests/unit/phase10_quest_contracts.gd")
 const Vehicle = preload("res://tests/unit/phase10_vehicle_contracts.gd")
 const SaveState = preload("res://tests/unit/phase10_save_state_contracts.gd")
+const ScaleRegression = preload("res://tests/unit/phase10_scale_regression_contracts.gd")
 
 func _init() -> void:
     call_deferred("_run")
@@ -24,6 +25,7 @@ func _run() -> void:
         "quest": errors.append_array(Quest.run_checks())
         "vehicle": errors.append_array(Vehicle.run_checks())
         "save_state": errors.append_array(SaveState.run_checks())
+        "scale_regression": errors.append_array(ScaleRegression.run_checks())
         _: errors.append("Unknown Phase 10 suite: %s" % suite)
     if errors.is_empty():
         print("PASS: Phase 10 %s contract suite completed." % suite)
