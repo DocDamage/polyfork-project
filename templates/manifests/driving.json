@@ -1,0 +1,16 @@
+{
+  "document_type": "playworld_template_manifest",
+  "schema_version": 1,
+  "template_id": "driving",
+  "display": {"name": "Driving", "summary": "Vehicle-oriented authored world starter without pretending Phase 10 vehicle controls already exist.", "category": "driving"},
+  "required_runtime_modules": ["core.world", "core.terrain", "core.semantic_input", "phase6.gameplay"],
+  "starter_entities": [],
+  "input_mapping": {"profile": "semantic_default"},
+  "default_player_archetype": "20000000-0000-4000-8000-000000000005",
+  "camera_configuration": {"controller": "none", "spawn_position": [0.0, 2.0, 0.0], "jump_enabled": false},
+  "example_graph_references": [],
+  "ui_hud_packages": [],
+  "export_settings": {"preset_id": null},
+  "tutorial_steps": [],
+  "planned_modules": ["gameplay.vehicle_controller"]
+}
