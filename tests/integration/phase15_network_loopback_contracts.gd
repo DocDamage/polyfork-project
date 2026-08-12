@@ -10,8 +10,8 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     tree.root.add_child(host)
     tree.root.add_child(client)
 
-    var port := 31000 + int(Time.get_ticks_msec() % 1000)
-    var host_config := Contract.default_config()
+    var port: int = 31000 + int(Time.get_ticks_msec() % 1000)
+    var host_config: Dictionary = Contract.default_config()
     host_config["role"] = Contract.ROLE_HOST
     host_config["address"] = "*"
     host_config["port"] = port
@@ -25,7 +25,7 @@ static func run_checks(tree: SceneTree) -> Array[String]:
         _cleanup(host, client)
         return errors
 
-    var client_config := Contract.default_config()
+    var client_config: Dictionary = Contract.default_config()
     client_config["role"] = Contract.ROLE_CLIENT
     client_config["address"] = "127.0.0.1"
     client_config["port"] = port
@@ -49,13 +49,13 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     if host.get_session_id() != client.get_session_id(): errors.append("Host and client must converge on one runtime-only session ID.")
     if client.get_local_peer_id() <= 1: errors.append("Connected client must receive a non-host peer ID.")
 
-    var observed := {"received": false, "sender": 0}
+    var observed: Dictionary = {"received": false, "sender": 0}
     host.message_received.connect(func(peer_id: int, message: Dictionary) -> void:
         if str(message.get("message_type", "")) == "test.loopback":
             observed["received"] = true
             observed["sender"] = peer_id
     )
-    var test_message := {
+    var test_message: Dictionary = {
         "protocol_version": Contract.PROTOCOL_VERSION,
         "runtime_contract": Contract.RUNTIME_CONTRACT,
         "message_type": "test.loopback",
@@ -69,7 +69,7 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     if not bool(observed.get("received", false)): errors.append("Loopback host did not receive the client packet through the project-owned ENet adapter.")
     if int(observed.get("sender", 0)) != client.get_local_peer_id(): errors.append("Loopback packets must retain their ENet peer identity.")
 
-    var client_peer_id := client.get_local_peer_id()
+    var client_peer_id: int = int(client.get_local_peer_id())
     client.shutdown("test_disconnect")
     for _index in range(120):
         await tree.process_frame
