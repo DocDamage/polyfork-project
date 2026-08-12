@@ -22,31 +22,40 @@ func resolve_mesh(source: Dictionary) -> Dictionary:
 
 
 func _primitive_mesh(key: String) -> Dictionary:
-    var mesh: Mesh
+    var mesh: PrimitiveMesh
+    var color := Color(0.35, 0.70, 0.27, 1.0)
     match key:
         "grass":
-            var quad := QuadMesh.new()
-            quad.size = Vector2(0.75, 1.5)
-            mesh = quad
+            var box := BoxMesh.new()
+            box.size = Vector3(0.16, 1.05, 0.16)
+            mesh = box
+            color = Color(0.30, 0.72, 0.24, 1.0)
         "shrub":
             var sphere := SphereMesh.new()
-            sphere.radius = 0.65
-            sphere.height = 1.25
+            sphere.radius = 0.72
+            sphere.height = 1.35
             sphere.radial_segments = 8
             sphere.rings = 4
             mesh = sphere
+            color = Color(0.22, 0.58, 0.20, 1.0)
         "tree":
-            var cylinder := CylinderMesh.new()
-            cylinder.top_radius = 0.28
-            cylinder.bottom_radius = 0.42
-            cylinder.height = 3.5
-            cylinder.radial_segments = 8
-            mesh = cylinder
+            var cone := CylinderMesh.new()
+            cone.top_radius = 0.08
+            cone.bottom_radius = 1.15
+            cone.height = 3.6
+            cone.radial_segments = 10
+            mesh = cone
+            color = Color(0.16, 0.46, 0.18, 1.0)
         "post":
-            var box := BoxMesh.new()
-            box.size = Vector3(0.22, 1.8, 0.22)
-            mesh = box
+            var post := BoxMesh.new()
+            post.size = Vector3(0.28, 1.8, 0.28)
+            mesh = post
+            color = Color(0.43, 0.25, 0.12, 1.0)
         _: return _failure("Unsupported procedural primitive: %s" % key)
+    var material := StandardMaterial3D.new()
+    material.albedo_color = color
+    material.roughness = 0.95
+    mesh.material = material
     return {"ok": true, "errors": [], "mesh": mesh, "source_kind": "primitive"}
 
 
