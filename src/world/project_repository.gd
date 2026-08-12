@@ -5,6 +5,8 @@ const WorldProject = preload("res://src/world/world_project.gd")
 const StableId = preload("res://src/world/stable_id.gd")
 const SafeJsonWriter = preload("res://src/world/safe_json_writer.gd")
 const CheckpointStore = preload("res://src/world/checkpoint_store.gd")
+const TemplateRegistry = preload("res://src/templates/template_registry.gd")
+const TemplateApplicationService = preload("res://src/templates/template_application_service.gd")
 
 const MANIFEST_FILE := "project.json"
 
@@ -24,8 +26,21 @@ func _init(
 
 
 func create_project(title: String, profile_id: StringName, template_id: String) -> Dictionary:
+    var registry = TemplateRegistry.new()
+    var registry_result: Dictionary = registry.load_builtin()
+    if not registry_result.get("ok", false):
+        return _failure("Unable to load template registry: %s" % str(registry_result.get("errors", [])))
+    var manifest_result: Dictionary = registry.require_manifest(template_id)
+    if not manifest_result.get("ok", false):
+        return _failure(str(manifest_result.get("errors", ["Unknown template."])[0]))
+
     var project = WorldProject.new()
     project.initialize_new(title, profile_id, template_id)
+    var application = TemplateApplicationService.new()
+    var apply_result: Dictionary = application.apply_to_project(project, manifest_result["manifest"])
+    if not apply_result.get("ok", false):
+        return {"ok": false, "errors": apply_result.get("errors", ["Template application failed."]), "project": null, "manifest_path": ""}
+
     var errors: Array[String] = project.validate()
     if not errors.is_empty():
         return {"ok": false, "errors": errors, "project": null, "manifest_path": ""}
@@ -39,6 +54,7 @@ func create_project(title: String, profile_id: StringName, template_id: String) 
     if not save_result.get("ok", false):
         return save_result
     save_result["project"] = project
+    save_result["template_application"] = apply_result
     return save_result
 
 
