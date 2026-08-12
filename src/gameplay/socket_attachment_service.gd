@@ -28,7 +28,7 @@ func add_socket(entity_id: String, name: String, category: String, local_transfo
     var record := {"document_type": Contracts.SOCKET, "schema_version": Contracts.SCHEMA_VERSION, "socket_id": socket_id, "owner_kind": "entity", "owner_id": entity_id, "name": name.strip_edges(), "category": category, "custom_category": custom_category.strip_edges(), "local_transform": local_transform.duplicate(true)}
     var stage = _clone_state(); var put: Dictionary = stage.put_socket(record)
     if not put.get("ok", false): return put
-    var validation: Array[String] = stage.validate(_project)
+    var validation: Array[String] = stage.validate(null)
     if not validation.is_empty(): return {"ok": false, "errors": validation}
     var result := _execute(stage, ["sockets"], "Add socket")
     if result.get("ok", false): result["socket_id"] = socket_id
@@ -42,7 +42,7 @@ func edit_socket(socket_id: String, patch: Dictionary) -> Dictionary:
         if ["name", "category", "custom_category", "local_transform"].has(key): record[key] = patch[key] if not patch[key] is Dictionary else patch[key].duplicate(true)
     var put: Dictionary = stage.put_socket(record)
     if not put.get("ok", false): return put
-    var validation: Array[String] = stage.validate(_project)
+    var validation: Array[String] = stage.validate(null)
     if not validation.is_empty(): return {"ok": false, "errors": validation}
     return _execute(stage, ["sockets"], "Edit socket")
 
@@ -62,7 +62,7 @@ func attach(parent_entity_id: String, parent_socket_id: String, child_entity_id:
     var record := {"document_type": Contracts.ATTACHMENT, "schema_version": Contracts.SCHEMA_VERSION, "attachment_id": attachment_id, "parent_entity_id": parent_entity_id, "parent_socket_id": parent_socket_id, "child_entity_id": child_entity_id, "child_socket_id": child_socket_id, "offset_transform": transform}
     var stage = _clone_state(); var put: Dictionary = stage.put_attachment(record)
     if not put.get("ok", false): return put
-    var validation: Array[String] = stage.validate(_project)
+    var validation: Array[String] = stage.validate(null)
     if not validation.is_empty(): return {"ok": false, "errors": validation}
     var result := _execute(stage, ["attachments"], "Attach entity")
     if result.get("ok", false): result["attachment_id"] = attachment_id
@@ -89,14 +89,13 @@ func _execute(stage, sections: Array[String], label: String) -> Dictionary:
 
 func _clone_state():
     var clone = GameplayState.new()
-    for section in ["definitions", "instances", "archetypes", "prefabs", "sockets", "attachments", "prefab_instances"]: clone.set(section, _copy_array(_state.get(section)))
+    clone.definitions = _copy_array(_state.definitions); clone.instances = _copy_array(_state.instances); clone.archetypes = _copy_array(_state.archetypes)
+    clone.prefabs = _copy_array(_state.prefabs); clone.sockets = _copy_array(_state.sockets); clone.attachments = _copy_array(_state.attachments); clone.prefab_instances = _copy_array(_state.prefab_instances)
     return clone
 
 
 func _state_snapshot(value) -> Dictionary:
-    var result: Dictionary = {}
-    for section in ["definitions", "instances", "archetypes", "prefabs", "sockets", "attachments", "prefab_instances"]: result[section] = _copy_array(value.get(section))
-    return result
+    return {"definitions": _copy_array(value.definitions), "instances": _copy_array(value.instances), "archetypes": _copy_array(value.archetypes), "prefabs": _copy_array(value.prefabs), "sockets": _copy_array(value.sockets), "attachments": _copy_array(value.attachments), "prefab_instances": _copy_array(value.prefab_instances)}
 
 
 func _project_snapshot() -> Dictionary: return {"entities": _copy_array(_project.entity_records), "registries": _project.registries.duplicate(true)}
