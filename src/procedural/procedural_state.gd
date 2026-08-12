@@ -17,6 +17,7 @@ func load_document(data: Dictionary) -> Array[String]:
     foliage_sets = _typed_records(data.get("foliage_sets", []))
     scatter_layers = _typed_records(data.get("scatter_layers", []))
     splines = _typed_records(data.get("splines", []))
+    _normalize_persisted_types()
     return []
 
 
@@ -79,6 +80,17 @@ func replace_splines(records: Array[Dictionary]) -> Array[String]:
     var document: Dictionary = to_document()
     document["splines"] = records.duplicate(true)
     return load_document(document)
+
+
+func _normalize_persisted_types() -> void:
+    for index in range(foliage_sets.size()):
+        var foliage: Dictionary = foliage_sets[index]
+        foliage["max_instances_per_cell"] = int(foliage.get("max_instances_per_cell", 0))
+        foliage_sets[index] = foliage
+    for index in range(scatter_layers.size()):
+        var scatter: Dictionary = scatter_layers[index]
+        scatter["seed"] = int(scatter.get("seed", 0))
+        scatter_layers[index] = scatter
 
 
 static func _typed_records(value: Variant) -> Array[Dictionary]:
