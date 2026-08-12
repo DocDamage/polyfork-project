@@ -6,6 +6,7 @@ const Health = preload("res://tests/unit/phase10_health_damage_contracts.gd")
 const NpcAi = preload("res://tests/unit/phase10_npc_ai_contracts.gd")
 const Dialogue = preload("res://tests/unit/phase10_dialogue_contracts.gd")
 const Quest = preload("res://tests/unit/phase10_quest_contracts.gd")
+const Vehicle = preload("res://tests/unit/phase10_vehicle_contracts.gd")
 
 func _init() -> void:
     call_deferred("_run")
@@ -20,6 +21,7 @@ func _run() -> void:
         "npc": errors.append_array(NpcAi.run_checks())
         "dialogue": errors.append_array(Dialogue.run_checks())
         "quest": errors.append_array(Quest.run_checks())
+        "vehicle": errors.append_array(Vehicle.run_checks())
         _: errors.append("Unknown Phase 10 suite: %s" % suite)
     if errors.is_empty():
         print("PASS: Phase 10 %s contract suite completed." % suite)
