@@ -22,7 +22,7 @@ func clear() -> void:
 
 
 func get_prompt(target_entity_id: String) -> Dictionary:
-    var values := _interactable_values(target_entity_id)
+    var values: Dictionary = _interactable_values(target_entity_id)
     if values.is_empty():
         return _failure("Target entity is not interactable.")
     if not bool(values.get("enabled", true)):
@@ -43,7 +43,7 @@ func interact(actor_entity_id: String, target_entity_id: String) -> Dictionary:
         return _failure("Interaction actor entity reference does not resolve.")
     if not _runtime.has_entity(target_entity_id):
         return _failure("Interaction target entity reference does not resolve.")
-    var values := _interactable_values(target_entity_id)
+    var values: Dictionary = _interactable_values(target_entity_id)
     if values.is_empty():
         return _failure("Target entity is not interactable.")
     if not bool(values.get("enabled", true)):
@@ -60,14 +60,14 @@ func interact(actor_entity_id: String, target_entity_id: String) -> Dictionary:
         return pickup_result
 
     if _runtime.has_component(target_entity_id, "door"):
-        var door_result := toggle_door(actor_entity_id, target_entity_id)
+        var door_result: Dictionary = toggle_door(actor_entity_id, target_entity_id)
         if not door_result.get("ok", false):
             return door_result
         _runtime.emit_event("interaction.performed", actor_entity_id, target_entity_id, {"route": "door"})
         door_result["route"] = "door"
         return door_result
 
-    var event_result := _runtime.emit_event("interaction.performed", actor_entity_id, target_entity_id, {"route": "generic"})
+    var event_result: Dictionary = _runtime.emit_event("interaction.performed", actor_entity_id, target_entity_id, {"route": "generic"})
     if not event_result.get("ok", false):
         return event_result
     return {"ok": true, "errors": [], "route": "generic", "target_entity_id": target_entity_id}
@@ -78,7 +78,7 @@ func toggle_door(actor_entity_id: String, door_entity_id: String) -> Dictionary:
         return _failure("Interaction service is not bound.")
     if not _runtime.has_entity(actor_entity_id):
         return _failure("Door interaction actor entity reference does not resolve.")
-    var door := _runtime.get_component_values(door_entity_id, "door")
+    var door: Dictionary = _runtime.get_component_values(door_entity_id, "door")
     if door.is_empty():
         return _failure("Target entity is not a door.")
     if bool(door.get("locked", false)):
@@ -98,7 +98,7 @@ func is_door_open(door_entity_id: String) -> bool:
         return bool(_door_open_state[door_entity_id])
     if _runtime == null:
         return false
-    var door := _runtime.get_component_values(door_entity_id, "door")
+    var door: Dictionary = _runtime.get_component_values(door_entity_id, "door")
     return bool(door.get("starts_open", false)) if not door.is_empty() else false
 
 
