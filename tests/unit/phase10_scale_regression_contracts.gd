@@ -16,7 +16,7 @@ static func run_checks() -> Array[String]:
     var project = WorldProject.new()
     project.initialize_new("Phase 10 Scale", &"large", "blank_sandbox")
     var cell_id: String = StableId.generate()
-    project.cell_ids = [cell_id]
+    project.cell_ids.append(cell_id)
 
     var definitions: Array[Dictionary] = Components.definitions()
     var health_definition := _definition(definitions, "health")
@@ -27,23 +27,19 @@ static func run_checks() -> Array[String]:
 
     var instances: Array[Dictionary] = []
     var expected_ids: Array[String] = []
-    var records: Array[Dictionary] = []
     for index in range(ENTITY_COUNT):
         var entity = WorldEntity.new()
         entity.initialize_new("Scale Actor %03d" % index, cell_id)
         var entity_id: String = entity.entity_id
         expected_ids.append(entity_id)
-        var owned_ids: Array[String] = []
         for component in [
             _instance(entity_id, health_definition, {"max_health": 100.0, "current_health": 100.0}),
             _instance(entity_id, inventory_definition, {"capacity": 16, "locked": false}),
             _instance(entity_id, save_definition, {"persist": true, "scope": "world"}),
         ]:
             instances.append(component)
-            owned_ids.append(str(component["instance_id"]))
-        entity.component_instance_ids = owned_ids
-        records.append(entity.to_dictionary())
-    project.entity_records = records
+            entity.component_instance_ids.append(str(component["instance_id"]))
+        project.entity_records.append(entity.to_dictionary())
 
     var authored_snapshot: Dictionary = {
         "definitions": definitions,
