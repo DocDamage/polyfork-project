@@ -19,21 +19,31 @@ func run_checks() -> Array[String]:
 func _check_workspace(main_instance: Control, workspace: Control, errors: Array[String]) -> void:
     var layer = main_instance.call("get_visual_scripting_workspace"); var logic_button := workspace.find_child("MoreButton", true, false) as Button
     if layer == null or logic_button == null or logic_button.text != "Logic": errors.append("Real workspace must expose the Phase 8 Logic dock entry and Visual Scripting layer."); return
-    var service = layer.call("get_service"); var panel = layer.call("get_panel")
-    if service == null or panel == null: errors.append("Visual Scripting workspace must bind its project-managed graph service."); return
+    var service = layer.call("get_service"); var panel = layer.call("get_panel"); var toolbar = layer.call("get_debug_toolbar")
+    if service == null or panel == null or toolbar == null: errors.append("Visual Scripting workspace must bind graph authoring and debugger tools."); return
     logic_button.emit_signal("pressed")
-    if not layer.call("is_open") or not panel.visible: errors.append("Logic must open the native Visual Scripting panel."); return
+    if not layer.call("is_open") or not panel.visible or not toolbar.visible: errors.append("Logic must open the native Visual Scripting panel and debugger toolbar."); return
     var graph_edit = panel.call("get_graph_edit")
     if not graph_edit is GraphEdit: errors.append("Phase 8 authoring surface must use Godot GraphEdit.")
+    for label in ["Validate", "Run", "Breakpoint", "Resume"]:
+        if _button_contains(toolbar, label) == null: errors.append("Visual debugger toolbar must expose %s." % label)
     var new_event := _button(panel, "New Event"); if new_event == null: errors.append("Visual Scripting panel must expose event graph creation."); return
     new_event.emit_signal("pressed")
     var graph_id := str(panel.call("get_current_graph_id")); var graph: Dictionary = service.get_graph(graph_id)
     if graph.is_empty() or graph.get("nodes", []).size() != 1 or str(graph["nodes"][0].get("type_key", "")) != "event.start": errors.append("New Event must materialize a stable graph with one Start entry node.")
+    var validate_button := _button(toolbar, "Validate")
+    if validate_button != null: validate_button.emit_signal("pressed")
     var print_button := _button_contains(panel, "Print")
     if print_button == null: errors.append("Searchable node palette must expose the built-in Print node.")
     else:
         print_button.emit_signal("pressed"); graph = service.get_graph(graph_id)
         if graph.get("nodes", []).size() != 2: errors.append("Native node palette action must create a command-backed graph node.")
+        else:
+            var print_id := str(graph["nodes"][1].get("node_id", ""))
+            if not toolbar.call("select_node", print_id): errors.append("Debugger toolbar must select stable visual node IDs.")
+            else:
+                var breakpoint_button := _button_contains(toolbar, "Breakpoint"); if breakpoint_button != null: breakpoint_button.emit_signal("pressed")
+                if not toolbar.call("get_debugger").has_breakpoint(graph_id, print_id): errors.append("Debugger toolbar must toggle breakpoints for stable node IDs.")
     var before_x: int = graph.get("nodes", []).size(); var gamepad_x := InputEventJoypadButton.new(); gamepad_x.button_index = JOY_BUTTON_X; gamepad_x.pressed = true; layer.call("_unhandled_input", gamepad_x); graph = service.get_graph(graph_id)
     if graph.get("nodes", []).size() != before_x + 1: errors.append("Gamepad X must add the currently selected visual node type.")
     var history: Dictionary = workspace.call("get_history_counts")
@@ -41,7 +51,7 @@ func _check_workspace(main_instance: Control, workspace: Control, errors: Array[
     var property_edit := _line_edit(panel, "{}")
     if property_edit == null or property_edit.focus_mode != Control.FOCUS_ALL: errors.append("Visual node property editing must remain a native focusable control.")
     var cancel := InputEventAction.new(); cancel.action = &"ui_cancel"; cancel.pressed = true; main_instance.call("_unhandled_input", cancel)
-    if layer.call("is_open") or not workspace.visible: errors.append("Back/Cancel must close Visual Scripting before leaving the workspace.")
+    if layer.call("is_open") or toolbar.visible or not workspace.visible: errors.append("Back/Cancel must close Visual Scripting debugger before leaving the workspace.")
     logic_button.emit_signal("pressed"); var gameplay_button := workspace.find_child("GameplayButton", true, false) as Button; var gameplay_layer = main_instance.call("get_gameplay_workspace")
     if gameplay_button != null:
         gameplay_button.emit_signal("pressed")

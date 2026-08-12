@@ -26,6 +26,12 @@ static func run_checks(tree_root: Node) -> Array[String]:
     if not service.move_node(graph_id, str(print_node.get("node_id", "")), Vector2(420, 80)).get("ok", false): errors.append("Visual node movement must be authorable.")
     if not service.configure_node(graph_id, str(print_node.get("node_id", "")), {"tag":"authoring-test"}).get("ok", false): errors.append("Visual node properties must be configurable.")
     if service.connect_nodes(graph_id, StableId.generate(), "next", str(print_node.get("node_id", "")), "in", "exec").get("ok", false): errors.append("Connections to missing nodes must reject without history mutation.")
+    var valid_refs: Array = [graph_id]
+    if not service.validate_graph_references(valid_refs).get("ok", false): errors.append("Template visual graph references must resolve stable project graph IDs.")
+    var missing_refs: Array = [StableId.generate()]
+    if service.validate_graph_references(missing_refs).get("ok", false): errors.append("Missing template visual graph references must fail closed.")
+    var malformed_refs: Array = ["not-a-uuid"]
+    if service.validate_graph_references(malformed_refs).get("ok", false): errors.append("Malformed template visual graph references must fail closed.")
     var history_before_undo: Dictionary = editor.get_history_counts()
     if int(history_before_undo.get("undo", 0)) < 7: errors.append("Graph authoring must use the shared universal command history.")
     var graph_before_undo: Dictionary = service.get_graph(graph_id)
