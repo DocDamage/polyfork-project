@@ -1,0 +1,55 @@
+name: Phase 13 Contracts
+
+on:
+  push:
+    branches:
+      - dev/phase13-export-pipeline-milestone
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  phase13-contracts:
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [foundation]
+    name: phase13-${{ matrix.suite }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 --connect-timeout 20 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+          ./Godot_v4.7.1-stable_linux.x86_64 --version
+      - name: Run Phase 13 contract suite
+        shell: bash
+        env:
+          PHASE13_SUITE: ${{ matrix.suite }}
+        run: |
+          set -uo pipefail; set +e
+          timeout --signal=TERM --kill-after=10s 150s \
+            ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . \
+            --script res://tests/phase13_suite_runner.gd 2>&1 | tee phase13-${PHASE13_SUITE}.log
+          godot_status=${PIPESTATUS[0]}; set -e
+          if [ "$godot_status" -ne 0 ]; then exit "$godot_status"; fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' phase13-${PHASE13_SUITE}.log; then exit 1; fi
+          grep -F "PASS: Phase 13 ${PHASE13_SUITE} contract suite completed." phase13-${PHASE13_SUITE}.log
+      - name: Upload Phase 13 contract log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase13-${{ matrix.suite }}-log
+          path: phase13-${{ matrix.suite }}.log
+          if-no-files-found: error
+          retention-days: 14
