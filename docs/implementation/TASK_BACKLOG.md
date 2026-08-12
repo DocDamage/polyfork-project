@@ -3,7 +3,7 @@
 Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are milestone gates, not task gates, unless a handoff explicitly says otherwise.
 
 ## Completed phases 0–15
-Phases 0 through 14 are complete and merged on authoritative `master`. Phase 15 implementation is complete on its milestone branch and is ready for its single completion PR; it is **not merged yet**.
+Phases 0 through 14 are complete and merged on authoritative `master`. Phase 15 implementation is complete and its completion PR is open; it is **not merged yet**.
 
 - [x] Phase 0 — Repository and contracts
 - [x] Phase 1 — App shell and canonical UI foundation
@@ -20,9 +20,9 @@ Phases 0 through 14 are complete and merged on authoritative `master`. Phase 15 
 - [x] Phase 12 — AI Creation — PR #17
 - [x] Phase 13 — Export Pipeline — PR #18
 - [x] Phase 14 — Scale and Polish — PR #19 at `14085eb703b72d930f39121d3da18362d43cc77d`
-- [x] Phase 15 — Multiplayer Foundations and Collaboration Roadmap — completion PR pending
+- [x] Phase 15 — Multiplayer Foundations and Collaboration Roadmap — PR #20 OPEN
 
-## Phase 15 — COMPLETE / PR READY
+## Phase 15 — COMPLETE / PR #20 OPEN
 Milestone branch:
 
 `dev/phase15-multiplayer-collaboration-milestone`
@@ -35,32 +35,29 @@ Verified implementation head before documentation-only closeout:
 
 `93b67eb5e50ffe5b2b686027d6a400ee9ccff1f0`
 
-Detailed plan:
+Completion PR:
 
-`docs/implementation/PHASE15_MULTIPLAYER_COLLABORATION_PLAN.md`
+`#20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap`
 
-- [x] P15-T01 Runtime-only network identity/session/ownership/capability handshake contracts with offline fallback and authored stable-ID preservation
-- [x] P15-T02 Project-owned ENet host/join transport adapter, clean Play lifecycle, explicit failure handling, and teardown
-- [x] P15-T03 Multiplayer player spawning/ownership and remote movement/presence replication through existing controllers
-- [x] P15-T04 Bounded host-authoritative Phase 10 gameplay replication with validated client requests and convergent state
-- [x] P15-T05 Multiplayer template capability, team/spawn/session/score-objective hooks, and bounded Visual Scripting multiplayer events/actions
-- [x] P15-T06 Accessible Offline/Host/Join Play UX with keyboard/gamepad focus and compact-layout behavior
-- [x] P15-T07 Host-only runtime save authority, join/leave/rejoin, host termination, duplicate/incompatible identity rejection, and repeated-session cleanup
-- [x] P15-T08 Multiplayer-aware Phase 13/14 export closure plus real two-process Windows host/client verification
-- [x] P15-T09 Collaborative-authoring architecture roadmap with explicit separation from gameplay replication
-- [x] P15-T10 Full Phase 15 verification, inherited Phase 6–14 regressions, Godot Smoke, rendered evidence, Windows multiplayer export verification, and documentation closeout
+- [x] P15-T01 Network identity/session contracts
+- [x] P15-T02 ENet host/client transport and lifecycle
+- [x] P15-T03 Multiplayer spawn/ownership/movement replication
+- [x] P15-T04 Host-authoritative gameplay replication
+- [x] P15-T05 Template/match/Visual Scripting multiplayer hooks
+- [x] P15-T06 Accessible adaptive Offline/Host/Join UX
+- [x] P15-T07 Save authority/reconnect/failure hardening
+- [x] P15-T08 Optional export closure and exported two-process Windows verification
+- [x] P15-T09 Collaborative-authoring architecture roadmap
+- [x] P15-T10 Full verification/evidence/docs/completion PR
 
-## Phase 15 completion verification
-- Phase 15 Contracts — run `31635239746` — PASS — all eight suites
-- Phase 15 Inherited Regressions — run `31634218734` — PASS
-- Godot Smoke — run `31635582701` — PASS on final implementation head
-- Phase 15 Visual Evidence — run `31634842058` — PASS; corrected full/compact Host/Join UI inspected
-- Phase 15 Windows Multiplayer Export — run `31635582699` — PASS; offline package plus concurrent exported host/client verified
+## Completion verification
+- Phase 15 Contracts — `31635239746` — PASS — all 8 suites
+- Phase 15 Inherited Regressions — `31634218734` — PASS
+- Godot Smoke — `31635582701` — PASS
+- Phase 15 Visual Evidence — `31634842058` — PASS; corrected full/compact evidence inspected
+- Phase 15 Windows Multiplayer Export — `31635582699` — PASS; offline package and concurrent exported host/client
 
-A later contract matrix run `31635582748` had one runner fail while downloading Godot before tests; the other seven shards passed. The complete eight-suite contract run above is green, and final-head Godot Smoke and Windows two-process export are green.
-
-## Phase 15 scope guard
-Phase 15 implements bounded host-authoritative multiplayer foundations and a real co-op prototype. It does not claim production matchmaking, cloud relay/account infrastructure, NAT traversal service, voice chat, anti-cheat platform integration, rollback netcode, dedicated-server fleet orchestration, or real-time collaborative editor mutation.
+A later matrix run had one infrastructure-only Godot download failure before its identity shard began; its other seven shards passed. The full eight-suite run above is green.
 
 ## Release rule
-Open one Phase 15 completion PR targeting authoritative `master`. Do **not** merge it without explicit user authorization. Do not begin Phase 16 until that PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+PR #20 must **not** be merged without explicit user authorization. Phase 16 is blocked until PR #20 is explicitly merged and the resulting authoritative `master` SHA is verified.
