@@ -1,0 +1,64 @@
+name: Phase 14 Windows Export
+
+on:
+  push:
+    branches:
+      - dev/phase14-scale-polish-milestone
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  windows-profiled-export-smoke:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.7.1 and Windows export templates
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $godotUri = 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_win64.exe.zip'
+          $templatesUri = 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_export_templates.tpz'
+          for ($attempt = 1; $attempt -le 6; $attempt++) {
+            try { Invoke-WebRequest -Uri $godotUri -OutFile godot.zip; break }
+            catch { if ($attempt -eq 6) { throw }; Start-Sleep -Seconds (2 * $attempt) }
+          }
+          Expand-Archive godot.zip -DestinationPath godot
+          for ($attempt = 1; $attempt -le 6; $attempt++) {
+            try { Invoke-WebRequest -Uri $templatesUri -OutFile templates.tpz; break }
+            catch { if ($attempt -eq 6) { throw }; Start-Sleep -Seconds (2 * $attempt) }
+          }
+          Copy-Item templates.tpz templates.zip
+          Expand-Archive templates.zip -DestinationPath template-package
+          $templateTarget = Join-Path $env:APPDATA 'Godot\export_templates\4.7.1.stable'
+          New-Item -ItemType Directory -Force -Path $templateTarget | Out-Null
+          Copy-Item 'template-package\templates\*' $templateTarget -Recurse -Force
+          $godot = (Get-ChildItem godot -Filter '*_console.exe' | Select-Object -First 1).FullName
+          if (-not $godot) { $godot = (Get-ChildItem godot -Filter '*.exe' | Select-Object -First 1).FullName }
+          if (-not $godot) { throw 'Godot executable not found.' }
+          "GODOT_EXE=$godot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          & $godot --version
+      - name: Build, export, copy, and launch profiled Small Medium Large Windows packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:GODOT_EXE --headless --path . --script res://tests/phase14_windows_export_runner.gd 2>&1 | Tee-Object -FilePath phase14-windows-export.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $log = Get-Content phase14-windows-export.log -Raw
+          if ($log -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Strict Godot log gate failed.' }
+          if ($log -notmatch 'PASS: Phase 14 Windows Small/Medium/Large profiled export and clean-package launch completed.') { throw 'Phase 14 Windows export completion marker missing.' }
+      - name: Upload Windows export evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase14-windows-export-evidence
+          path: |
+            phase14-windows-export.log
+            ${{ runner.temp }}/_github_home/AppData/Roaming/Godot/app_userdata/Polyfork/tests/phase14/**/exports/**
+            ${{ runner.temp }}/_github_home/AppData/Roaming/Godot/app_userdata/Polyfork/tests/phase14/**/clean-machine/**
+          if-no-files-found: warn
+          retention-days: 14
