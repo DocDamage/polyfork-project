@@ -90,12 +90,12 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     if host_match.get_score(host_team) != 4: errors.append("Host-authoritative multiplayer score event must update host match state.")
     if client_match.get_score(host_team) != 4: errors.append("Host-authoritative match snapshot must converge score state to the client.")
 
-    var client_error := false
-    client_bridge.replication_error.connect(func(_values: Array[String]) -> void: client_error = true)
+    var client_error_state: Dictionary = {"seen": false}
+    client_bridge.replication_error.connect(func(_values: Array[String]) -> void: client_error_state["seen"] = true)
     var client_team: String = str(client_match.get_player(client.get_local_peer_id()).get("team_id", ""))
     client_gameplay.emit_event(MatchReplication.EVENT_SCORE_ADD, "", "", {"subject_id": client_team, "amount": 99})
     await tree.process_frame
-    if not client_error: errors.append("Client Visual Scripting score actions must be explicitly rejected as non-authoritative.")
+    if not bool(client_error_state.get("seen", false)): errors.append("Client Visual Scripting score actions must be explicitly rejected as non-authoritative.")
     if host_match.get_score(client_team) == 99: errors.append("Client-side score events must never mutate host-authoritative match state.")
 
     var event_kinds: Dictionary = {}
