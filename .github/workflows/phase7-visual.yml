@@ -1,0 +1,70 @@
+name: Phase 7 Visual Evidence
+
+on:
+  push:
+    branches:
+      - "dev/phase7-instant-play-templates-milestone"
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phase7-visual-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+          ./Godot_v4.7.1-stable_linux.x86_64 --version
+
+      - name: Capture rendered Phase 7 Build and Play states
+        shell: bash
+        run: |
+          set -uo pipefail
+          set +e
+          xvfb-run -a ./Godot_v4.7.1-stable_linux.x86_64 \
+            --path . \
+            --rendering-method gl_compatibility \
+            --audio-driver Dummy \
+            --disable-vsync \
+            --script res://tests/runtime/capture_phase7.gd 2>&1 | tee godot-phase7-visual.log
+          godot_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$godot_status" -ne 0 ]; then exit "$godot_status"; fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' godot-phase7-visual.log; then
+            echo "Godot emitted script/engine errors during Phase 7 visual capture."
+            exit 1
+          fi
+          grep -F 'PASS: Phase 7 rendered screenshots captured.' godot-phase7-visual.log
+          file artifacts/phase7/*.png
+
+      - name: Upload Phase 7 visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase7-visual-evidence
+          path: artifacts/phase7/*.png
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Phase 7 visual log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase7-visual-log
+          path: godot-phase7-visual.log
+          if-no-files-found: warn
+          retention-days: 14
