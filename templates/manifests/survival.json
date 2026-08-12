@@ -5,10 +5,10 @@
   "display": {"name": "Survival", "summary": "Third-person survival-oriented starter using current Phase 7 movement while later survival systems remain explicit future modules.", "category": "survival"},
   "required_runtime_modules": ["core.world", "core.terrain", "core.semantic_input", "phase6.gameplay", "play.third_person"],
   "starter_entities": [
-    {"starter_key": "player_start", "display_name": "Survival Player Start", "role": "player_spawn", "archetype_key": "player", "transform": {"position": [0.0, 2.0, 0.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}
+    {"starter_key": "player_start", "display_name": "Survival Player Start", "role": "player_spawn", "transform": {"position": [0.0, 2.0, 0.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}
   ],
   "input_mapping": {"profile": "semantic_default"},
-  "default_player_archetype": "player",
+  "default_player_archetype": null,
   "camera_configuration": {"controller": "third_person", "spawn_position": [0.0, 2.0, 0.0], "jump_enabled": true, "move_speed": 5.5, "camera_distance": 4.8},
   "example_graph_references": [],
   "ui_hud_packages": ["hud_basic"],
