@@ -5,11 +5,11 @@
   "display": {"name": "RPG", "summary": "Third-person RPG-oriented starter using current world/player composition without faking progression, quests, or dialogue runtime.", "category": "rpg"},
   "required_runtime_modules": ["core.world", "core.terrain", "core.semantic_input", "phase6.gameplay", "play.third_person"],
   "starter_entities": [
-    {"starter_key": "player_start", "display_name": "RPG Player Start", "role": "player_spawn", "archetype_key": "player", "transform": {"position": [0.0, 2.0, 0.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}
+    {"starter_key": "player_start", "display_name": "RPG Player Start", "role": "player_spawn", "archetype_key": "player", "transform": {"position": [8.0, 2.0, 8.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}
   ],
   "input_mapping": {"profile": "semantic_default"},
   "default_player_archetype": "20000000-0000-4000-8000-00000000000a",
-  "camera_configuration": {"controller": "third_person", "spawn_position": [0.0, 2.0, 0.0], "jump_enabled": true, "move_speed": 5.5, "camera_distance": 5.0},
+  "camera_configuration": {"controller": "third_person", "spawn_position": [8.0, 2.0, 8.0], "jump_enabled": true, "move_speed": 5.5, "camera_distance": 5.0},
   "example_graph_references": [],
   "ui_hud_packages": ["hud_basic"],
   "export_settings": {"preset_id": null},
