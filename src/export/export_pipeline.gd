@@ -9,10 +9,11 @@ const AssetResolver = preload("res://src/export/export_asset_resolver.gd")
 const LicenseReport = preload("res://src/export/export_license_report.gd")
 const StagingService = preload("res://src/export/export_staging_service.gd")
 const WindowsPreset = preload("res://src/export/windows_export_preset.gd")
+const PerformanceProfiles = preload("res://src/scale/performance_profiles.gd")
 
 const PRESET_NAME := "Windows Desktop"
 
-func export_windows(project, project_directory: String, asset_library, output_root: String, package_name: String) -> Dictionary:
+func export_windows(project, project_directory: String, asset_library, output_root: String, package_name: String, performance_profile: Dictionary = {}) -> Dictionary:
     if project == null: return _failure("Export requires an active project.")
     var project_data: Dictionary = project.to_dictionary() if project.has_method("to_dictionary") else {}
     var project_errors: Array[String] = WorldProject.validate_dictionary(project_data)
@@ -20,6 +21,11 @@ func export_windows(project, project_directory: String, asset_library, output_ro
     var safe_name: String = _package_name(package_name)
     if safe_name.is_empty(): return _failure("Export package name must contain letters or numbers.")
     if output_root.strip_edges().is_empty(): return _failure("Export output directory is required.")
+    var effective_profile: Dictionary = {}
+    if not performance_profile.is_empty():
+        var profile_errors: Array[String] = PerformanceProfiles.validate_profile(performance_profile)
+        if not profile_errors.is_empty(): return {"ok": false, "errors": profile_errors}
+        effective_profile = PerformanceProfiles.get_profile(performance_profile.get("preset_id", PerformanceProfiles.DEFAULT))
 
     var authored: Dictionary = AuthoredReader.read_documents(project_directory)
     if not authored.get("ok", false): return authored
@@ -35,7 +41,7 @@ func export_windows(project, project_directory: String, asset_library, output_ro
     var project_id: String = str(project_data.get("project_id", "")); var build_id: String = StableId.generate()
     var stage_root: String = str(ProjectSettings.get_setting("playworld/export/staging_root", "user://polyfork_exports/staging")).trim_suffix("/").path_join(project_id).path_join(safe_name)
     var staging = StagingService.new()
-    var staged: Dictionary = staging.assemble(project_directory, stage_root, project_data, dependencies, build_id, safe_name, licenses)
+    var staged: Dictionary = staging.assemble(project_directory, stage_root, project_data, dependencies, build_id, safe_name, licenses, effective_profile)
     if not staged.get("ok", false): return staged
     var preset_write: Dictionary = _write_text(stage_root.path_join("export_presets.cfg"), WindowsPreset.text(safe_name))
     if not preset_write.get("ok", false): return preset_write
@@ -57,7 +63,7 @@ func export_windows(project, project_directory: String, asset_library, output_ro
         var copy: Dictionary = _copy_file(stage_root.path_join(report_name), partial_root.path_join(report_name))
         if not copy.get("ok", false): return copy
     if not _promote(partial_root, final_root): return _failure("Unable to promote completed export package into its deterministic output folder.")
-    return {"ok": true, "errors": [], "target": "windows", "build_id": build_id, "package_name": safe_name, "output_root": final_root, "executable_path": final_root.path_join("%s.exe" % safe_name), "manifest_path": final_root.path_join("export_manifest.json"), "attribution_path": final_root.path_join("ATTRIBUTIONS.txt"), "report_path": final_root.path_join("export_report.json"), "dependency_count": dependencies.size(), "license_findings": licenses.get("findings", []), "import_output": import_result.get("output", []), "export_output": export_result.get("output", [])}
+    return {"ok": true, "errors": [], "target": "windows", "build_id": build_id, "package_name": safe_name, "output_root": final_root, "executable_path": final_root.path_join("%s.exe" % safe_name), "manifest_path": final_root.path_join("export_manifest.json"), "attribution_path": final_root.path_join("ATTRIBUTIONS.txt"), "report_path": final_root.path_join("export_report.json"), "dependency_count": dependencies.size(), "license_findings": licenses.get("findings", []), "performance_profile": effective_profile.duplicate(true), "import_output": import_result.get("output", []), "export_output": export_result.get("output", [])}
 
 static func _run_process(path: String, arguments: PackedStringArray) -> Dictionary:
     var output: Array = []; var exit_code: int = OS.execute(path, arguments, output, true, false)
