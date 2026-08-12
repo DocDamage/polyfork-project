@@ -129,8 +129,8 @@ func _add_graph_node(graph: Dictionary, node_value: Variant) -> void:
     var node: Dictionary = node_value; var node_id := str(node.get("node_id", "")); var type_key := str(node.get("type_key", "")); var definition := _definition_for_node(graph, node)
     var graph_node := GraphNode.new(); graph_node.name = node_id; graph_node.title = str(definition.get("display_name", type_key)); graph_node.custom_minimum_size = Vector2(190, 90)
     var position: Array = node.get("position", [0.0, 0.0]); graph_node.position_offset = Vector2(float(position[0]), float(position[1])); graph_node.set_meta("persisted_position", graph_node.position_offset); graph_node.set_meta("type_key", type_key)
-    var inputs := _port_descriptors(definition, true); var outputs := _port_descriptors(definition, false); graph_node.set_meta("input_ports", inputs); graph_node.set_meta("output_ports", outputs)
-    var rows := max(1, max(inputs.size(), outputs.size()))
+    var inputs: Array[Dictionary] = _port_descriptors(definition, true); var outputs: Array[Dictionary] = _port_descriptors(definition, false); graph_node.set_meta("input_ports", inputs); graph_node.set_meta("output_ports", outputs)
+    var rows: int = maxi(1, maxi(inputs.size(), outputs.size()))
     for row_index in range(rows):
         var row := HBoxContainer.new(); row.custom_minimum_size = Vector2(176, 28)
         var left := Label.new(); left.size_flags_horizontal = Control.SIZE_EXPAND_FILL; left.text = str(inputs[row_index].get("name", "")) if row_index < inputs.size() else ""; row.add_child(left)
@@ -163,7 +163,7 @@ func _port_descriptors(definition: Dictionary, inputs: bool) -> Array[Dictionary
 
 func _create_graph(kind: String) -> void:
     if _service == null: return
-    var count := _service.get_graphs().size() + 1; var result: Dictionary = _service.create_graph("%s %d" % ["Event Graph" if kind == "event" else "Macro", count], kind)
+    var count: int = _service.get_graphs().size() + 1; var result: Dictionary = _service.create_graph("%s %d" % ["Event Graph" if kind == "event" else "Macro", count], kind)
     if not result.get("ok", false): _report(result); return
     var graph_id := str(result.get("graph_id", ""))
     if kind == "event": _service.add_node(graph_id, "event.start", Vector2(80, 120))
@@ -175,7 +175,7 @@ func _create_graph(kind: String) -> void:
 func _add_palette_node(type_key: String) -> void:
     if _service == null or _current_graph_id.is_empty(): _set_status("Create or select a graph first", true); return
     if ["event.start", "macro.entry", "macro.return"].has(type_key): _set_status("Entry nodes are created with their graph", true); return
-    var graph := _service.get_graph(_current_graph_id); var offset := float(graph.get("nodes", []).size() * 28); var result: Dictionary = _service.add_node(_current_graph_id, type_key, Vector2(210 + offset, 120 + offset))
+    var graph: Dictionary = _service.get_graph(_current_graph_id); var offset := float(graph.get("nodes", []).size() * 28); var result: Dictionary = _service.add_node(_current_graph_id, type_key, Vector2(210 + offset, 120 + offset))
     _report(result)
 
 
