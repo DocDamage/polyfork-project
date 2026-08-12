@@ -82,9 +82,11 @@ static func _check_snapping_and_resolvers() -> Array[String]:
 
     var project = WorldProject.new()
     project.initialize_new("Phase16 Editor", &"medium", "blank_sandbox")
-    var cell_id := StableId.generate(); project.cell_ids = [cell_id]
+    var cell_id := StableId.generate()
+    project.cell_ids.clear(); project.cell_ids.append(cell_id)
     var entity_id := StableId.generate()
-    project.entity_records = [{
+    project.entity_records.clear()
+    project.entity_records.append({
         "document_type": WorldEntity.DOCUMENT_TYPE,
         "schema_version": WorldEntity.SCHEMA_VERSION,
         "entity_id": entity_id,
@@ -95,7 +97,7 @@ static func _check_snapping_and_resolvers() -> Array[String]:
         "parent_entity_id": null,
         "component_instance_ids": [],
         "transform": {"position": [5.0, 1.0, 5.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]},
-    }]
+    })
     var session = EditorSession.new()
     var bind_result: Dictionary = session.bind_project(project, func(): return {"ok": true, "errors": []})
     if not bind_result.get("ok", false): return errors + ["Phase 16 editor fixture failed to bind: %s" % str(bind_result.get("errors", []))]
@@ -120,11 +122,14 @@ static func _check_snapping_and_resolvers() -> Array[String]:
 
 static func _check_water_runtime(tree: SceneTree) -> Array[String]:
     var errors: Array[String] = []
+    var fixture_root := "user://tests/phase16"
+    var make_error: Error = DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(fixture_root))
+    if make_error not in [OK, ERR_ALREADY_EXISTS]: return ["Could not create Phase 16 water fixture directory: %s" % make_error]
     var provider_registry = WaterProviders.new()
     var imported_root := Node3D.new(); imported_root.name = "ImportedWater"
     var packed := PackedScene.new(); var pack_error: Error = packed.pack(imported_root); imported_root.free()
     if pack_error != OK: errors.append("Could not pack imported water fixture.")
-    var imported_path := "user://tests/phase16/imported-water-%s.tscn" % StableId.generate()
+    var imported_path := fixture_root.path_join("imported-water-%s.tscn" % StableId.generate())
     if errors.is_empty() and ResourceSaver.save(packed, imported_path) != OK: errors.append("Could not save imported water fixture.")
     if errors.is_empty():
         var imported: Dictionary = provider_registry.instantiate_hook({"display_name": "Imported", "provider_key": "imported_scene", "settings": {"scene_path": imported_path}})
@@ -139,7 +144,8 @@ static func _check_water_runtime(tree: SceneTree) -> Array[String]:
     var initialize: Dictionary = runtime.initialize(document, FakeTerrain.new(biome_id), null, false)
     if not initialize.get("ok", false): errors.append("Environment runtime could not consume basic water hook: %s" % str(initialize.get("errors", [])))
     var snapshot: Dictionary = runtime.get_water_runtime_snapshot()
-    if int(snapshot.get("count", 0)) != 1 or str(snapshot.get("providers", [])[0].get("provider_key", "")) != "basic_plane": errors.append("Environment runtime did not materialize the basic water provider.")
+    var providers: Array = snapshot.get("providers", [])
+    if int(snapshot.get("count", 0)) != 1 or providers.is_empty() or str(providers[0].get("provider_key", "")) != "basic_plane": errors.append("Environment runtime did not materialize the basic water provider.")
     var invalid: Dictionary = document.duplicate(true); invalid["water_hooks"][0]["provider_key"] = "missing_provider"
     var invalid_result: Dictionary = runtime.refresh_authored(invalid)
     if invalid_result.get("ok", false): errors.append("Unknown water provider did not fail explicitly.")
