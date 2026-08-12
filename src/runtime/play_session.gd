@@ -15,6 +15,8 @@ const RuntimeInventoryService = preload("res://src/gameplay/runtime_inventory_se
 const RuntimeInteractionService = preload("res://src/gameplay/runtime_interaction_service.gd")
 const RuntimeHealthService = preload("res://src/gameplay/runtime_health_service.gd")
 const RuntimeNpcAiService = preload("res://src/gameplay/runtime_npc_ai_service.gd")
+const RuntimeDialogueService = preload("res://src/gameplay/runtime_dialogue_service.gd")
+const RuntimeQuestService = preload("res://src/gameplay/runtime_quest_service.gd")
 
 var _runtime_state = RuntimeState.new()
 var _gameplay_runtime = RuntimeGameplayState.new()
@@ -22,6 +24,8 @@ var _inventory_runtime = RuntimeInventoryService.new()
 var _interaction_runtime = RuntimeInteractionService.new()
 var _health_runtime = RuntimeHealthService.new()
 var _npc_runtime = RuntimeNpcAiService.new()
+var _dialogue_runtime = RuntimeDialogueService.new()
+var _quest_runtime = RuntimeQuestService.new()
 var _visual_runtime = VisualGraphRuntime.new()
 var _visual_graph_provider := Callable()
 var _gameplay_state_provider := Callable()
@@ -53,7 +57,7 @@ func enter_play(editor_session) -> Dictionary:
     var state_result: Dictionary = _runtime_state.load_authored_project(project_data)
     if not state_result.get("ok", false): GameplayInput.uninstall_owned(); return state_result
 
-    var gameplay_snapshot: Dictionary = {"definitions": [], "instances": [], "sockets": [], "attachments": []}
+    var gameplay_snapshot: Dictionary = {"definitions": [], "instances": [], "sockets": [], "attachments": [], "dialogues": [], "quests": []}
     if _gameplay_state_provider.is_valid():
         var gameplay_value: Variant = _gameplay_state_provider.call()
         if not gameplay_value is Dictionary:
@@ -93,14 +97,16 @@ func enter_play(editor_session) -> Dictionary:
         "controller": controller,
         "entity_count": state_result.get("entity_count", 0),
         "gameplay_component_count": gameplay_result.get("component_count", 0),
+        "dialogue_count": gameplay_result.get("dialogue_count", 0),
+        "quest_count": gameplay_result.get("quest_count", 0),
         "spawn_entity_id": _spawn_entity_id,
         "visual_graphs": _last_visual_result.get("executed_graphs", 0),
     }
 
 func exit_play() -> Dictionary:
     if not _active and _editor_session == null:
-        _runtime_state.clear(); _gameplay_runtime.clear(); _clear_runtime_services(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE; return {"ok": true, "errors": [], "changed": false}
-    _free_player(); _runtime_state.clear(); _gameplay_runtime.clear(); _clear_runtime_services(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        _clear_runtime_services(); _gameplay_runtime.clear(); _runtime_state.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE; return {"ok": true, "errors": [], "changed": false}
+    _free_player(); _clear_runtime_services(); _gameplay_runtime.clear(); _runtime_state.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     if is_instance_valid(_previous_camera): _previous_camera.current = true
     _previous_camera = null; var editor_session = _editor_session
     if editor_session != null: editor_session.get_bridge().clear_excluded_entity_ids()
@@ -119,6 +125,8 @@ func get_inventory_runtime(): return _inventory_runtime
 func get_interaction_runtime(): return _interaction_runtime
 func get_health_runtime(): return _health_runtime
 func get_npc_runtime(): return _npc_runtime
+func get_dialogue_runtime(): return _dialogue_runtime
+func get_quest_runtime(): return _quest_runtime
 func get_player(): return _player
 func get_last_visual_graph_result() -> Dictionary: return _last_visual_result.duplicate(true)
 
@@ -160,16 +168,22 @@ func _bind_gameplay_services() -> Dictionary:
     if not health_result.get("ok", false): return health_result
     var npc_result: Dictionary = _npc_runtime.bind_runtime(_gameplay_runtime, _runtime_state, _interaction_runtime)
     if not npc_result.get("ok", false): return npc_result
+    var quest_result: Dictionary = _quest_runtime.bind_runtime(_gameplay_runtime)
+    if not quest_result.get("ok", false): return quest_result
+    var dialogue_result: Dictionary = _dialogue_runtime.bind_runtime(_gameplay_runtime)
+    if not dialogue_result.get("ok", false): return dialogue_result
     return {"ok": true, "errors": []}
 
 func _clear_runtime_services() -> void:
+    _dialogue_runtime.clear()
+    _quest_runtime.clear()
     _npc_runtime.clear()
     _interaction_runtime.clear()
     _inventory_runtime.clear()
     _health_runtime.clear()
 
 func _rollback_startup() -> void:
-    _free_player(); _runtime_state.clear(); _gameplay_runtime.clear(); _clear_runtime_services(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+    _free_player(); _clear_runtime_services(); _gameplay_runtime.clear(); _runtime_state.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     if is_instance_valid(_previous_camera): _previous_camera.current = true
     _previous_camera = null
     if _editor_session != null:
