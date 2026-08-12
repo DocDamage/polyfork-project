@@ -7,18 +7,22 @@ const Interpreter = preload("res://src/visual_scripting/visual_graph_interpreter
 
 static func run_checks() -> Array[String]:
     var errors: Array[String] = []; var compiler = Compiler.new(); var graph: Dictionary = _calculation_graph(); var compiled: Dictionary = compiler.compile_graph(graph)
-    if not compiled.get("ok", false): return ["Runtime fixture must compile: %s" % compiled.get("errors", [])]
+    if not compiled.get("ok", false): return ["Runtime fixture must compile: %s" % str(compiled.get("errors", []))]
     var interpreter = Interpreter.new(); var result: Dictionary = interpreter.execute(compiled["plan"])
-    if not result.get("ok", false): errors.append("Compiled visual graph must execute: %s" % result.get("errors", []))
+    if not result.get("ok", false): errors.append("Compiled visual graph must execute: %s" % str(result.get("errors", [])))
     elif result.get("trace", []) != ["5.0"]: errors.append("Visual runtime must evaluate data dependencies and flow deterministically.")
     var entity_graph: Dictionary = _entity_graph(); var entity_compile: Dictionary = compiler.compile_graph(entity_graph)
-    var entity_id := str(entity_graph["nodes"][1]["properties"]["value"]); var entities: Dictionary = {entity_id:[0.0,0.0,0.0]}
-    var entity_result: Dictionary = interpreter.execute(entity_compile.get("plan", {}), {"entities":entities})
-    if not entity_result.get("ok", false): errors.append("Entity visual nodes must execute against runtime context: %s" % entity_result.get("errors", []))
-    elif entities.get(entity_id) != [4.0,2.0,1.0]: errors.append("Set Position must mutate the supplied disposable runtime entity context.")
+    if not entity_compile.get("ok", false): errors.append("Entity visual graph must compile: %s" % str(entity_compile.get("errors", [])))
+    else:
+        var entity_id := str(entity_graph["nodes"][1]["properties"]["value"]); var entities: Dictionary = {entity_id:[0.0,0.0,0.0]}
+        var entity_result: Dictionary = interpreter.execute(entity_compile["plan"], {"entities":entities})
+        if not entity_result.get("ok", false): errors.append("Entity visual nodes must execute against runtime context: %s" % str(entity_result.get("errors", [])))
+        elif entities.get(entity_id) != [4.0,2.0,1.0]: errors.append("Set Position must mutate the supplied disposable runtime entity context.")
     var loop_graph: Dictionary = _loop_graph(); var loop_compile: Dictionary = compiler.compile_graph(loop_graph); interpreter.step_budget = 12
-    var loop_result: Dictionary = interpreter.execute(loop_compile.get("plan", {}))
-    if loop_result.get("ok", false) or not str(loop_result.get("errors", [])).contains("step budget"): errors.append("Visual runtime must stop cyclic execution at its hard step budget.")
+    if not loop_compile.get("ok", false): errors.append("Bounded-loop visual graph must compile: %s" % str(loop_compile.get("errors", [])))
+    else:
+        var loop_result: Dictionary = interpreter.execute(loop_compile["plan"])
+        if loop_result.get("ok", false) or not str(loop_result.get("errors", [])).contains("step budget"): errors.append("Visual runtime must stop cyclic execution at its hard step budget.")
     return errors
 
 static func _calculation_graph() -> Dictionary:

@@ -7,7 +7,7 @@ const Compiler = preload("res://src/visual_scripting/visual_graph_compiler.gd")
 static func run_checks() -> Array[String]:
     var errors: Array[String] = []; var compiler = Compiler.new(); var graph: Dictionary = _simple_graph()
     var compiled: Dictionary = compiler.compile_graph(graph)
-    if not compiled.get("ok", false): return ["Valid visual graph must compile: %s" % compiled.get("errors", [])]
+    if not compiled.get("ok", false): return ["Valid visual graph must compile: %s" % str(compiled.get("errors", []))]
     var compiled_again: Dictionary = compiler.compile_graph(graph)
     if compiled.get("plan", {}) != compiled_again.get("plan", {}): errors.append("Visual graph compilation must be deterministic.")
     var invalid_port: Dictionary = graph.duplicate(true); invalid_port["connections"][0]["from_port"] = "missing"

@@ -26,7 +26,8 @@ func compile_graph(graph: Dictionary, graph_registry: Dictionary = {}) -> Dictio
             if not source_definition.get("exec_outputs", []).has(from_port): errors.append("Exec source port does not exist: %s.%s" % [from_id, from_port]); continue
             if not target_definition.get("exec_inputs", []).has(to_port): errors.append("Exec target port does not exist: %s.%s" % [to_id, to_port]); continue
             var source_outputs: Dictionary = exec_out.get(from_id, {})
-            var targets: Array[String] = source_outputs.get(from_port, [])
+            var targets: Array[String] = []
+            for target_value in source_outputs.get(from_port, []): targets.append(str(target_value))
             targets.append(to_id); targets.sort(); source_outputs[from_port] = targets; exec_out[from_id] = source_outputs
         else:
             var source_outputs: Dictionary = source_definition.get("value_outputs", {}); var target_inputs: Dictionary = target_definition.get("value_inputs", {})
@@ -73,7 +74,9 @@ func _validate_macro_cycles(plans: Dictionary) -> Array[String]:
     var ids: Array[String] = []
     for graph_id in plans.keys(): ids.append(str(graph_id))
     ids.sort()
-    for graph_id in ids: _visit_macro(graph_id, plans, visiting, visited, [], errors)
+    for graph_id in ids:
+        var path: Array[String] = []
+        _visit_macro(graph_id, plans, visiting, visited, path, errors)
     return errors
 
 func _visit_macro(graph_id: String, plans: Dictionary, visiting: Dictionary, visited: Dictionary, path: Array[String], errors: Array[String]) -> void:
