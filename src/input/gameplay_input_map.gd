@@ -15,6 +15,15 @@ const PRIMARY: StringName = &"play_primary"
 const PAUSE: StringName = &"play_pause"
 const EXIT: StringName = &"play_exit"
 
+static var _owned_actions: Dictionary = {}
+
+
+static func install_profile(mapping: Dictionary) -> Dictionary:
+    var profile := str(mapping.get("profile", "semantic_default"))
+    if profile != "semantic_default":
+        return {"ok": false, "errors": ["Unsupported gameplay input profile: %s" % profile]}
+    return install_defaults()
+
 
 static func install_defaults() -> Dictionary:
     _ensure_action(MOVE_LEFT, [_key(KEY_A), _joy_axis(JOY_AXIS_LEFT_X, -1.0)])
@@ -33,39 +42,40 @@ static func install_defaults() -> Dictionary:
     return {"ok": true, "errors": [], "actions": action_names()}
 
 
+static func uninstall_owned() -> Dictionary:
+    var removed: Array[StringName] = []
+    for action in action_names():
+        if bool(_owned_actions.get(action, false)) and InputMap.has_action(action):
+            InputMap.erase_action(action)
+            removed.append(action)
+    _owned_actions.clear()
+    return {"ok": true, "errors": [], "removed": removed}
+
+
 static func action_names() -> Array[StringName]:
     return [MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK, LOOK_LEFT, LOOK_RIGHT, LOOK_UP, LOOK_DOWN, JUMP, INTERACT, PRIMARY, PAUSE, EXIT]
 
 
 static func _ensure_action(action: StringName, events: Array) -> void:
-    if not InputMap.has_action(action):
+    var existed := InputMap.has_action(action)
+    if not existed:
         InputMap.add_action(action, 0.2)
-    if not InputMap.action_get_events(action).is_empty():
-        return
-    for event in events:
-        InputMap.action_add_event(action, event)
+        _owned_actions[action] = true
+    if not InputMap.action_get_events(action).is_empty(): return
+    for event in events: InputMap.action_add_event(action, event)
 
 
 static func _key(keycode: Key) -> InputEventKey:
-    var event := InputEventKey.new()
-    event.physical_keycode = keycode
-    return event
+    var event := InputEventKey.new(); event.physical_keycode = keycode; return event
 
 
 static func _joy_axis(axis: JoyAxis, value: float) -> InputEventJoypadMotion:
-    var event := InputEventJoypadMotion.new()
-    event.axis = axis
-    event.axis_value = value
-    return event
+    var event := InputEventJoypadMotion.new(); event.axis = axis; event.axis_value = value; return event
 
 
 static func _joy_button(button: JoyButton) -> InputEventJoypadButton:
-    var event := InputEventJoypadButton.new()
-    event.button_index = button
-    return event
+    var event := InputEventJoypadButton.new(); event.button_index = button; return event
 
 
 static func _mouse_button(button: MouseButton) -> InputEventMouseButton:
-    var event := InputEventMouseButton.new()
-    event.button_index = button
-    return event
+    var event := InputEventMouseButton.new(); event.button_index = button; return event
