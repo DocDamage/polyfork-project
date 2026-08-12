@@ -3,6 +3,7 @@ extends RefCounted
 
 const StableId = preload("res://src/world/stable_id.gd")
 const Contracts = preload("res://src/gameplay/gameplay_contracts.gd")
+const NarrativeContracts = preload("res://src/gameplay/gameplay_narrative_contracts.gd")
 
 var definitions: Array[Dictionary] = []
 var instances: Array[Dictionary] = []
@@ -11,6 +12,8 @@ var prefabs: Array[Dictionary] = []
 var sockets: Array[Dictionary] = []
 var attachments: Array[Dictionary] = []
 var prefab_instances: Array[Dictionary] = []
+var dialogues: Array[Dictionary] = []
+var quests: Array[Dictionary] = []
 
 
 func validate(project = null) -> Array[String]:
@@ -22,6 +25,8 @@ func validate(project = null) -> Array[String]:
     _validate_unique(sockets, "socket_id", Callable(Contracts, "validate_socket"), errors)
     _validate_unique(attachments, "attachment_id", Callable(Contracts, "validate_attachment"), errors)
     _validate_unique(prefab_instances, "instance_id", Callable(Contracts, "validate_prefab_instance"), errors)
+    _validate_unique(dialogues, "dialogue_id", Callable(NarrativeContracts, "validate_dialogue"), errors)
+    _validate_unique(quests, "quest_id", Callable(NarrativeContracts, "validate_quest"), errors)
     _validate_definition_links(errors)
     _validate_instance_links(project, errors)
     _validate_archetype_links(errors)
@@ -29,6 +34,7 @@ func validate(project = null) -> Array[String]:
     _validate_socket_links(project, errors)
     _validate_attachment_links(project, errors)
     _validate_prefab_instance_links(project, errors)
+    _validate_narrative_links(project, errors)
     return errors
 
 
@@ -40,6 +46,8 @@ func get_prefab(prefab_id: String) -> Dictionary: return _find(prefabs, "prefab_
 func get_socket(socket_id: String) -> Dictionary: return _find(sockets, "socket_id", socket_id)
 func get_attachment(attachment_id: String) -> Dictionary: return _find(attachments, "attachment_id", attachment_id)
 func get_prefab_instance(instance_id: String) -> Dictionary: return _find(prefab_instances, "instance_id", instance_id)
+func get_dialogue(dialogue_id: String) -> Dictionary: return _find(dialogues, "dialogue_id", dialogue_id)
+func get_quest(quest_id: String) -> Dictionary: return _find(quests, "quest_id", quest_id)
 
 
 func instances_for_entity(entity_id: String) -> Array[Dictionary]:
@@ -136,9 +144,13 @@ func put_prefab(record: Dictionary) -> Dictionary: return _put(prefabs, "prefab_
 func put_socket(record: Dictionary) -> Dictionary: return _put(sockets, "socket_id", record, Callable(Contracts, "validate_socket"))
 func put_attachment(record: Dictionary) -> Dictionary: return _put(attachments, "attachment_id", record, Callable(Contracts, "validate_attachment"))
 func put_prefab_instance(record: Dictionary) -> Dictionary: return _put(prefab_instances, "instance_id", record, Callable(Contracts, "validate_prefab_instance"))
+func put_dialogue(record: Dictionary) -> Dictionary: return _put(dialogues, "dialogue_id", record, Callable(NarrativeContracts, "validate_dialogue"))
+func put_quest(record: Dictionary) -> Dictionary: return _put(quests, "quest_id", record, Callable(NarrativeContracts, "validate_quest"))
 func remove_socket(socket_id: String) -> Dictionary: return _remove(sockets, "socket_id", socket_id)
 func remove_attachment(attachment_id: String) -> Dictionary: return _remove(attachments, "attachment_id", attachment_id)
 func remove_prefab_instance(instance_id: String) -> Dictionary: return _remove(prefab_instances, "instance_id", instance_id)
+func remove_dialogue(dialogue_id: String) -> Dictionary: return _remove(dialogues, "dialogue_id", dialogue_id)
+func remove_quest(quest_id: String) -> Dictionary: return _remove(quests, "quest_id", quest_id)
 
 
 func _validate_definition_links(errors: Array[String]) -> void:
@@ -228,6 +240,27 @@ func _validate_prefab_instance_links(project, errors: Array[String]) -> void:
             if not _project_has_entity(project, str(record.get("root_entity_id", ""))): errors.append("Prefab instance root entity does not resolve.")
             for entity_id in record.get("node_entity_ids", {}).values():
                 if not _project_has_entity(project, str(entity_id)): errors.append("Prefab instance node entity does not resolve.")
+
+
+func _validate_narrative_links(project, errors: Array[String]) -> void:
+    var quest_ids: Dictionary = {}
+    for quest in quests: quest_ids[str(quest.get("quest_id", ""))] = true
+    for dialogue in dialogues:
+        for entity_id in dialogue.get("participant_entity_ids", []):
+            if project != null and not _project_has_entity(project, str(entity_id)): errors.append("Dialogue participant entity reference does not resolve.")
+        for line_value in dialogue.get("lines", []):
+            if not line_value is Dictionary: continue
+            var speaker = line_value.get("speaker_entity_id")
+            if speaker != null and not str(speaker).is_empty() and project != null and not _project_has_entity(project, str(speaker)): errors.append("Dialogue speaker entity reference does not resolve.")
+    for quest in quests:
+        for prerequisite in quest.get("prerequisite_quest_ids", []):
+            if not quest_ids.has(str(prerequisite)): errors.append("Quest prerequisite_quest_id does not resolve.")
+        for entity_id in quest.get("participant_entity_ids", []):
+            if project != null and not _project_has_entity(project, str(entity_id)): errors.append("Quest participant entity reference does not resolve.")
+        for objective_value in quest.get("objectives", []):
+            if not objective_value is Dictionary: continue
+            var target = objective_value.get("target_entity_id")
+            if target != null and not str(target).is_empty() and project != null and not _project_has_entity(project, str(target)): errors.append("Quest objective target entity reference does not resolve.")
 
 
 func _visit_dependency(definition_id: String, existing: Dictionary, visiting: Dictionary, visited: Dictionary, ordered: Array[String]) -> String:
