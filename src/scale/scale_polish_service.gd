@@ -8,6 +8,7 @@ signal operation_status_changed(status: Dictionary)
 
 const Profiles = preload("res://src/scale/performance_profiles.gd")
 const UserPreferences = preload("res://src/scale/user_preferences.gd")
+const ControllerGlyphs = preload("res://src/scale/controller_glyphs.gd")
 const BASE_TOUCH_TARGET := 44.0
 const COMFORTABLE_TOUCH_TARGET := 52.0
 
@@ -26,10 +27,8 @@ func _ready() -> void:
     else:
         push_warning(str(load_result.get("errors", [])))
     _apply_root_scale()
-    if not get_tree().node_added.is_connected(_on_node_added):
-        get_tree().node_added.connect(_on_node_added)
-    if not get_tree().root.size_changed.is_connected(_refresh_layout_mode):
-        get_tree().root.size_changed.connect(_refresh_layout_mode)
+    if not get_tree().node_added.is_connected(_on_node_added): get_tree().node_added.connect(_on_node_added)
+    if not get_tree().root.size_changed.is_connected(_refresh_layout_mode): get_tree().root.size_changed.connect(_refresh_layout_mode)
     _refresh_layout_mode()
     call_deferred("_apply_existing_controls")
 
@@ -41,43 +40,32 @@ func _input(event: InputEvent) -> void:
         next_context = &"keyboard_mouse"
     if next_context != _input_context:
         _input_context = next_context
+        _apply_existing_controls()
         input_context_changed.emit(_input_context)
 
 func get_preferences() -> Dictionary: return _settings.duplicate(true)
 func get_effective_profile() -> Dictionary: return Profiles.get_profile(_settings.get("performance_preset", Profiles.DEFAULT))
 func get_input_context() -> StringName: return _input_context
+func get_input_hint(action: StringName) -> String: return ControllerGlyphs.action_hint(action, _input_context)
 func is_compact_layout() -> bool: return _compact_layout
 func is_reduced_motion() -> bool: return bool(_settings.get("reduced_motion", false))
 func get_density() -> StringName: return StringName(str(_settings.get("density", "comfortable")))
 func get_minimum_target_size() -> float: return BASE_TOUCH_TARGET if get_density() == &"compact" else COMFORTABLE_TOUCH_TARGET
 
 func set_performance_preset(value: Variant) -> Dictionary:
-    _settings["performance_preset"] = str(Profiles.normalize_id(value))
-    return _persist_and_apply()
-
+    _settings["performance_preset"] = str(Profiles.normalize_id(value)); return _persist_and_apply()
 func set_ui_scale(value: float) -> Dictionary:
-    _settings["ui_scale"] = value
-    return _persist_and_apply()
-
+    _settings["ui_scale"] = value; return _persist_and_apply()
 func set_reduced_motion(value: bool) -> Dictionary:
-    _settings["reduced_motion"] = value
-    return _persist_and_apply()
-
+    _settings["reduced_motion"] = value; return _persist_and_apply()
 func set_density(value: Variant) -> Dictionary:
-    _settings["density"] = str(value)
-    return _persist_and_apply()
-
+    _settings["density"] = str(value); return _persist_and_apply()
 func reset_preferences() -> Dictionary:
-    _settings = UserPreferences.defaults()
-    return _persist_and_apply()
+    _settings = UserPreferences.defaults(); return _persist_and_apply()
 
 func begin_operation(label: String, subsystem: String = "application") -> int:
     _operation_serial += 1
-    var operation: Dictionary = {
-        "operation_id": _operation_serial, "label": label, "subsystem": subsystem,
-        "started_usec": Time.get_ticks_usec(), "finished": false, "ok": true,
-        "elapsed_ms": 0.0, "message": "%s…" % label,
-    }
+    var operation: Dictionary = {"operation_id": _operation_serial, "label": label, "subsystem": subsystem, "started_usec": Time.get_ticks_usec(), "finished": false, "ok": true, "elapsed_ms": 0.0, "message": "%s…" % label}
     _operations[_operation_serial] = operation
     operation_status_changed.emit(operation.duplicate(true))
     return _operation_serial
@@ -85,8 +73,7 @@ func begin_operation(label: String, subsystem: String = "application") -> int:
 func finish_operation(operation_id: int, ok: bool = true, message: String = "") -> Dictionary:
     if not _operations.has(operation_id): return {"ok": false, "errors": ["Unknown operation id."]}
     var operation: Dictionary = _operations[operation_id]
-    operation["finished"] = true
-    operation["ok"] = ok
+    operation["finished"] = true; operation["ok"] = ok
     operation["elapsed_ms"] = float(Time.get_ticks_usec() - int(operation["started_usec"])) / 1000.0
     operation["message"] = message if not message.is_empty() else ("%s complete" % operation["label"] if ok else "%s failed" % operation["label"])
     _operations[operation_id] = operation
@@ -95,15 +82,11 @@ func finish_operation(operation_id: int, ok: bool = true, message: String = "") 
 
 func sample_runtime() -> Dictionary:
     var fps: float = maxf(0.0, float(Engine.get_frames_per_second()))
-    return {
-        "fps": fps, "frame_time_ms": 0.0 if fps <= 0.0 else 1000.0 / fps,
-        "memory_static_mb": float(Performance.get_monitor(Performance.MEMORY_STATIC)) / (1024.0 * 1024.0),
-        "object_count": int(Performance.get_monitor(Performance.OBJECT_COUNT)),
-        "node_count": int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
-    }
+    return {"fps": fps, "frame_time_ms": 0.0 if fps <= 0.0 else 1000.0 / fps, "memory_static_mb": float(Performance.get_monitor(Performance.MEMORY_STATIC)) / (1024.0 * 1024.0), "object_count": int(Performance.get_monitor(Performance.OBJECT_COUNT)), "node_count": int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))}
 
 func apply_accessibility_to_subtree(root: Node) -> void:
     if root == null or not is_instance_valid(root): return
+    _apply_adaptive_node(root)
     _apply_control(root)
     for child in root.get_children():
         if is_instance_valid(child): apply_accessibility_to_subtree(child)
@@ -113,9 +96,7 @@ func _persist_and_apply() -> Dictionary:
     var save_result: Dictionary = _store.save_preferences(_settings)
     if not save_result.get("ok", false): return save_result
     _settings = save_result.get("settings", _settings).duplicate(true)
-    _apply_root_scale()
-    _apply_existing_controls()
-    preferences_changed.emit(_settings.duplicate(true))
+    _apply_root_scale(); _apply_existing_controls(); preferences_changed.emit(_settings.duplicate(true))
     return {"ok": true, "errors": [], "settings": _settings.duplicate(true), "profile": get_effective_profile()}
 
 func _apply_root_scale() -> void:
@@ -124,7 +105,6 @@ func _apply_root_scale() -> void:
 
 func _on_node_added(node: Node) -> void:
     if is_instance_valid(node): apply_accessibility_to_subtree(node)
-
 func _apply_existing_controls() -> void:
     if get_tree() == null or get_tree().root == null: return
     apply_accessibility_to_subtree(get_tree().root)
@@ -136,6 +116,22 @@ func _apply_control(node: Node) -> void:
     var minimum: float = get_minimum_target_size()
     control.custom_minimum_size.y = maxf(control.custom_minimum_size.y, minimum)
     if control.mouse_filter != Control.MOUSE_FILTER_IGNORE: control.focus_mode = Control.FOCUS_ALL
+    if control is BaseButton:
+        var button: BaseButton = control as BaseButton
+        var hint: String = ControllerGlyphs.control_hint(StringName(button.name), _input_context)
+        if button.tooltip_text.strip_edges().is_empty() or button.has_meta("phase14_input_hint"):
+            button.tooltip_text = hint
+            button.set_meta("phase14_input_hint", true)
+
+func _apply_adaptive_node(node: Node) -> void:
+    if node.name == &"WorldStack" and node is Control:
+        (node as Control).custom_minimum_size.x = 180.0 if _compact_layout else 300.0
+    elif node.name == &"ModeSlot" and node is Control:
+        (node as Control).custom_minimum_size.x = 180.0 if _compact_layout else 240.0
+    elif node.name == &"SessionBadge" and node is CanvasItem:
+        (node as CanvasItem).visible = not _compact_layout
+    elif node.name == &"WorldContext" and node is CanvasItem:
+        (node as CanvasItem).visible = not _compact_layout
 
 func _is_interactive_control(control: Control) -> bool:
     return control is BaseButton or control is LineEdit or control is TextEdit or control is Range or control is ItemList or control is Tree
@@ -146,4 +142,5 @@ func _refresh_layout_mode() -> void:
     var compact: bool = viewport_size.x < 1120 or viewport_size.y < 700
     if compact == _compact_layout: return
     _compact_layout = compact
+    _apply_existing_controls()
     layout_mode_changed.emit(_compact_layout)
