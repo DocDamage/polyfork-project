@@ -3,7 +3,7 @@
 [ext_resource path="res://src/app/workspace/placement_toolbar.gd" type="Script" id="1"]
 
 [node name="PlacementToolbar" type="PanelContainer"]
-custom_minimum_size = Vector2(780, 50)
+custom_minimum_size = Vector2(850, 50)
 theme_type_variation = &"ElevatedPanel"
 script = ExtResource("1")
 
@@ -40,6 +40,14 @@ layout_mode = 2
 toggle_mode = true
 theme_type_variation = &"ToolButton"
 text = "Surface"
+
+[node name="VertexButton" type="Button" parent="Margin/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 38)
+layout_mode = 2
+toggle_mode = true
+theme_type_variation = &"ToolButton"
+text = "Vertex"
 
 [node name="ObjectButton" type="Button" parent="Margin/Row"]
 unique_name_in_owner = true
