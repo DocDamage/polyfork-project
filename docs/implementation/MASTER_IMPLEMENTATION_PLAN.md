@@ -6,9 +6,9 @@
 - Authoritative `master`: `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`.
 - This is the verified signed merge commit for PR #18.
 - Phases 0 through 13 are complete and merged.
-- Phase 14 — Scale and Polish implementation and verification are complete on `dev/phase14-scale-polish-milestone` and are awaiting the single completion PR to `master`.
+- Phase 14 — Scale and Polish is implementation/verification complete and completion PR #19 is OPEN against authoritative `master`; it is not merged.
 - Verified Phase 14 implementation head before documentation-only closeout: `b15439461cfae5d41d5951b5af808d20f2bb5f1b`.
-- Phase 15 remains blocked until Phase 14 is explicitly merged and the resulting authoritative `master` SHA is verified.
+- Phase 15 remains blocked until PR #19 is explicitly merged with user authorization and the resulting authoritative `master` SHA is verified.
 
 ## Phase 0 — Repository and contracts — COMPLETE
 Project skeleton, coding rules, docs, CI, task IDs, test harness, canonical UI reference, stable IDs, command interface, persistence versioning, and module boundaries.
@@ -58,7 +58,7 @@ Merged by PR #18. Resulting verified signed authoritative `master`:
 
 Delivered deterministic export/build manifests, runtime dependency closure, editor stripping/runtime-data preservation, Asset Library dependency resolution, licensing/attribution reports, Windows standalone export, repeat-export replacement, clean-package launch, Small/Medium/Large verification, exported keyboard/mouse/gamepad checks, canonical Build → Export UX, and strict inherited/runtime/rendered evidence while reusing the Phase 7 `PlaySession`.
 
-## Phase 14 — Scale and Polish — IMPLEMENTATION COMPLETE / COMPLETION PR NEXT
+## Phase 14 — Scale and Polish — COMPLETE / PR #19 OPEN — NOT MERGED
 Phase 14 was developed continuously on `dev/phase14-scale-polish-milestone` from exactly authoritative Phase 13 `master`.
 
 Architecture invariant retained: Phase 14 optimizes and polishes existing systems; it does not introduce a replacement editor/runtime architecture and does not permit quality policy to mutate authored project semantics.
@@ -92,9 +92,7 @@ Verified green on implementation head `b15439461cfae5d41d5951b5af808d20f2bb5f1b`
 
 The Windows gate launched Small/Low, Medium/Balanced, and Large/High clean packages, verified keyboard/mouse plus gamepad semantic input, reused the third-person Phase 7 controller, and passed repeat-export stale-file replacement.
 
-Detailed completed checkpoints are recorded in `docs/implementation/PHASE14_SCALE_POLISH_PLAN.md` and `TASK_BACKLOG.md`.
-
-Next authorized milestone action: open one Phase 14 completion PR targeting authoritative `master`. Do not merge it without explicit user authorization.
+All P14-T01 through P14-T10 checkpoints are complete. Completion PR #19 is open from `dev/phase14-scale-polish-milestone` to authoritative `master` and must not be merged without explicit user authorization.
 
 ## Phase 15 — Multiplayer foundations and collaboration roadmap — BLOCKED
 Potential later scope:
@@ -103,7 +101,7 @@ Potential later scope:
 - Competitive template hooks.
 - Collaboration design; implementation may be deferred.
 
-Do not begin Phase 15 until the Phase 14 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+Do not begin Phase 15 until PR #19 is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Release rule
 Work a phase continuously on its milestone branch. Intermediate commits and CI runs are expected; task-by-task PRs are not. At a milestone boundary, finish verification and documentation, then open one completion PR. Do not merge a completion PR without explicit user authorization, and do not start the next phase until the current completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.

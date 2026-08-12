@@ -1,7 +1,7 @@
 # Phase 14 — Scale and Polish Implementation Plan
 
 ## Completion state
-Phase 14 implementation, verification, rendered evidence, and documentation closeout are complete on `dev/phase14-scale-polish-milestone`.
+Phase 14 implementation, verification, rendered evidence, documentation closeout, and the completion-PR gate are complete on `dev/phase14-scale-polish-milestone`.
 
 Verified implementation head before documentation-only closeout:
 
@@ -13,7 +13,7 @@ Authoritative base remains:
 
 That base is the verified signed merge commit for PR #18 — Phase 13 — Export Pipeline. The obsolete repository default branch `main` was not used.
 
-The only milestone action remaining after this documentation commit is opening the single Phase 14 completion PR targeting authoritative `master`. That PR must not be merged without explicit user authorization.
+Phase 14 completion PR **#19** is open from `dev/phase14-scale-polish-milestone` to authoritative `master`. It is not merged and must not be merged without explicit user authorization.
 
 ## Milestone invariant — PRESERVED
 Phase 14 hardened the existing product instead of replacing working systems with parallel architectures.
@@ -149,8 +149,8 @@ Each clean package reused the Phase 7 third-person controller path and verified 
 
 No intentional performance-budget exceptions remain open at Phase 14 closeout.
 
-## P14-T10 — Milestone closeout — READY FOR COMPLETION PR
-Completed before the PR gate:
+## P14-T10 — Milestone closeout — COMPLETE — PR #19 OPEN
+Completed:
 1. Phase 14 benchmark/performance gates — PASS;
 2. accessibility/controller/adaptive-layout suites — PASS;
 3. Small/Medium/Large plus Stress scale verification — PASS;
@@ -159,8 +159,7 @@ Completed before the PR gate:
 6. rendered UI evidence capture and inspection — PASS;
 7. Phase 13 Windows export path after Phase 14 changes — PASS with Low/Balanced/High clean-package launches;
 8. accepted performance exceptions — none;
-9. implementation plan, backlog, and current handoff moved to Phase 14 closeout state.
+9. implementation plan, backlog, and current handoff moved to Phase 14 closeout state;
+10. single Phase 14 completion PR **#19** opened from the milestone branch to authoritative `master`.
 
-Remaining external milestone action: open one Phase 14 completion PR targeting authoritative `master`.
-
-Do not merge that PR without explicit user authorization. Do not begin Phase 15 until the Phase 14 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+PR #19 is open and awaiting explicit user merge authorization. Do not merge it without that authorization. Do not begin Phase 15 until PR #19 is explicitly merged and the resulting authoritative `master` SHA is verified.

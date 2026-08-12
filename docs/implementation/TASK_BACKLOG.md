@@ -20,7 +20,7 @@ All Phase 0 through Phase 13 checkpoints are complete and merged on authoritativ
 - [x] Phase 12 — AI Creation — PR #17
 - [x] Phase 13 — Export Pipeline — PR #18 at `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
 
-## Phase 14 — Scale and Polish — IMPLEMENTATION/VERIFICATION COMPLETE
+## Phase 14 — Scale and Polish — COMPLETE / PR #19 OPEN
 Milestone branch:
 
 `dev/phase14-scale-polish-milestone`
@@ -42,7 +42,7 @@ Verified implementation head before documentation-only closeout:
 - [x] P14-T07 Complete canonical visual-parity sweep for new/changed surfaces, retain the dark playful Nintendo/Apple-inspired design language, and capture/inspect full and compact rendered evidence
 - [x] P14-T08 Integrate performance preset controls into Settings, editor Play/procedural behavior, Export, packaged runtime policy, and standalone PlaySession with deterministic legacy fallback
 - [x] P14-T09 Add Phase 14 contracts, Small/Medium/Large/Stress scale gate, inherited Phase 6–13 gate, Godot Smoke, rendered evidence, and profiled Windows clean-package export/launch gate
-- [ ] P14-T10 Open the single Phase 14 completion PR targeting authoritative `master`; all implementation, verification, evidence, and documentation prerequisites are complete
+- [x] P14-T10 Open the single Phase 14 completion PR targeting authoritative `master` — PR #19 OPEN; do not merge without explicit user authorization
 
 Verification on `b15439461cfae5d41d5951b5af808d20f2bb5f1b`:
 - Phase 14 Contracts — run `31626516078` — PASS
@@ -62,4 +62,4 @@ No accepted Phase 14 performance exceptions remain open.
 Detailed checkpoint closeout is in `docs/implementation/PHASE14_SCALE_POLISH_PLAN.md`.
 
 ## Later phases
-Phase 15 is blocked. Do not begin it until the Phase 14 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
+Phase 15 is blocked. Do not begin it until PR #19 is explicitly merged into authoritative `master` with user authorization and the resulting `master` SHA is verified.

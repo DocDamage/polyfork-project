@@ -20,7 +20,7 @@ The repository default branch `main` remains obsolete starter code. **Never deve
 ## MERGED PROJECT STATE
 Phases **0 through 13 are complete and merged** into authoritative `master`.
 
-Phase 14 is **implemented and fully verified on its milestone branch but is not merged yet**.
+Phase 14 is **implemented, fully verified, and represented by open completion PR #19, but is not merged yet**.
 
 ## PHASE 14 BRANCH
 Milestone branch:
@@ -36,6 +36,23 @@ Verified Phase 14 implementation head before documentation-only closeout:
 `b15439461cfae5d41d5951b5af808d20f2bb5f1b`
 
 The branch has been developed continuously. No task-by-task Phase 14 PRs were opened.
+
+## PHASE 14 COMPLETION PR
+PR #19:
+
+`https://github.com/DocDamage/polyfork-project/pull/19`
+
+Title:
+
+`Phase 14 — Scale and Polish`
+
+Base: `master`
+
+Head: `dev/phase14-scale-polish-milestone`
+
+State: **OPEN — NOT MERGED**
+
+Do not merge PR #19 without explicit user authorization.
 
 ## PHASE 14 DELIVERED STATE
 Phase 14 delivered the Scale and Polish milestone, including:
@@ -83,20 +100,12 @@ No intentional Phase 14 performance exceptions remain open.
 The tracked `.polyforkAPI` file was removed during Phase 12, but historical credential material remains in Git history and must still be treated as exposed and rotated/revoked separately.
 
 ## NEXT AUTHORIZED ACTION
-Open **one** Phase 14 completion PR from:
+Review PR #19. Do **not** merge it without explicit user authorization.
 
-`dev/phase14-scale-polish-milestone`
-
-to authoritative:
-
-`master`
-
-Do **not** merge it without explicit user authorization.
-
-After the completion PR is opened, update this handoff/backlog with the PR number if needed. Do not begin Phase 15.
+Do not begin Phase 15.
 
 ## PHASE 15 BLOCK
 Phase 15 remains blocked until:
-1. the Phase 14 completion PR is explicitly merged by user authorization;
+1. PR #19 is explicitly merged by user authorization;
 2. the resulting authoritative `master` SHA is verified;
 3. a new Phase 15 handoff is explicitly established.
