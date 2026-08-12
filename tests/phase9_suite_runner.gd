@@ -2,6 +2,7 @@ extends SceneTree
 
 const Foundation = preload("res://tests/unit/phase9_procedural_contracts.gd")
 const Foliage = preload("res://tests/integration/phase9_foliage_scatter_contracts.gd")
+const Splines = preload("res://tests/integration/phase9_spline_contracts.gd")
 
 
 func _init() -> void:
@@ -14,6 +15,7 @@ func _run() -> void:
     match suite:
         "foundation": errors.append_array(Foundation.run_checks())
         "foliage": errors.append_array(Foliage.run_checks(root))
+        "splines": errors.append_array(Splines.run_checks(root))
         _: errors.append("Unknown Phase 9 suite: %s" % suite)
     if errors.is_empty():
         print("PASS: Phase 9 %s contract suite completed." % suite)
