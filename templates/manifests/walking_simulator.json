@@ -5,10 +5,10 @@
   "display": {"name": "Walking Simulator", "summary": "First-person exploration starter using the reusable movement/camera foundation with no implied combat systems.", "category": "exploration"},
   "required_runtime_modules": ["core.world", "core.terrain", "core.semantic_input", "phase6.gameplay", "play.first_person"],
   "starter_entities": [
-    {"starter_key": "player_start", "display_name": "Walker Start", "role": "player_spawn", "archetype_key": "player", "transform": {"position": [0.0, 2.0, 0.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}
+    {"starter_key": "player_start", "display_name": "Walker Start", "role": "player_spawn", "transform": {"position": [0.0, 2.0, 0.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}
   ],
   "input_mapping": {"profile": "semantic_default"},
-  "default_player_archetype": "player",
+  "default_player_archetype": null,
   "camera_configuration": {"controller": "first_person", "spawn_position": [0.0, 2.0, 0.0], "jump_enabled": false, "move_speed": 4.5, "eye_height": 1.58},
   "example_graph_references": [],
   "ui_hud_packages": [],
