@@ -62,7 +62,7 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 static func parse_http_response(result: int, response_code: int, body_text: String) -> Dictionary:
     if result != HTTPRequest.RESULT_SUCCESS: return {"ok": false, "errors": ["AI provider transport failed with result %d." % result], "response_code": response_code}
     if response_code < 200 or response_code >= 300: return {"ok": false, "errors": ["AI provider returned HTTP %d." % response_code], "response_code": response_code, "response_body": body_text.left(2000)}
-    var parsed: Variant = JSON.parse_string(body_text)
+    var parsed: Variant = _safe_json(body_text)
     if not parsed is Dictionary: return {"ok": false, "errors": ["AI provider returned malformed JSON."], "response_code": response_code}
     var root: Dictionary = parsed
     var choices_value: Variant = root.get("choices", [])
@@ -71,7 +71,7 @@ static func parse_http_response(result: int, response_code: int, body_text: Stri
     if not message_value is Dictionary: return {"ok": false, "errors": ["AI provider response message is invalid."], "response_code": response_code}
     var message: Dictionary = message_value
     var content_text: String = _content_text(message.get("content", "")); var structured: Variant = null
-    if not content_text.strip_edges().is_empty(): structured = JSON.parse_string(_strip_json_fence(content_text))
+    if not content_text.strip_edges().is_empty(): structured = _safe_json(_strip_json_fence(content_text))
     var usage: Dictionary = root.get("usage", {}).duplicate(true) if root.get("usage", {}) is Dictionary else {}
     return {"ok": true, "errors": [], "response_code": response_code, "message": message.duplicate(true), "content_text": content_text, "structured": structured, "tool_calls": _tool_calls(message.get("tool_calls", [])), "usage": usage}
 
@@ -82,7 +82,7 @@ static func _tool_calls(value: Variant) -> Array[Dictionary]:
         if not call_value is Dictionary: continue
         var function_value: Variant = call_value.get("function", {})
         if not function_value is Dictionary: continue
-        var arguments_value: Variant = JSON.parse_string(str(function_value.get("arguments", "{}")))
+        var arguments_value: Variant = _safe_json(str(function_value.get("arguments", "{}")))
         if not arguments_value is Dictionary: arguments_value = {}
         result.append({"call_id": str(call_value.get("id", "")), "tool": str(function_value.get("name", "")), "arguments": arguments_value})
     return result
@@ -104,3 +104,9 @@ static func _strip_json_fence(value: String) -> String:
         lines.remove_at(0)
         if lines[lines.size() - 1].strip_edges() == "```": lines.remove_at(lines.size() - 1)
     return "\n".join(lines).strip_edges()
+
+static func _safe_json(text: String) -> Variant:
+    var parser := JSON.new()
+    var error: Error = parser.parse(text)
+    if error != OK: return null
+    return parser.data
