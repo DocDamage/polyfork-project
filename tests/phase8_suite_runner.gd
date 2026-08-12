@@ -1,17 +1,16 @@
 extends SceneTree
 
 const GraphContracts = preload("res://tests/unit/phase8_visual_graph_contracts.gd")
+const GraphAuthoring = preload("res://tests/integration/phase8_visual_graph_authoring_contracts.gd")
 
 func _init() -> void: call_deferred("_run")
 
 func _run() -> void:
-    var suite := OS.get_environment("PHASE8_SUITE")
-    var errors: Array[String] = []
+    var suite := OS.get_environment("PHASE8_SUITE"); var errors: Array[String] = []
     match suite:
         "foundation": errors.append_array(GraphContracts.run_checks())
+        "authoring": errors.append_array(GraphAuthoring.run_checks(root))
         _: errors.append("Unknown Phase 8 suite: %s" % suite)
-    if errors.is_empty():
-        print("PASS: Phase 8 %s contract suite completed." % suite)
-        quit(0); return
+    if errors.is_empty(): print("PASS: Phase 8 %s contract suite completed." % suite); quit(0); return
     for error in errors: push_error(error)
     quit(1)

@@ -1,0 +1,41 @@
+extends RefCounted
+
+const StableId = preload("res://src/world/stable_id.gd")
+const WorldProject = preload("res://src/world/world_project.gd")
+const EditorSession = preload("res://src/editor/editor_session.gd")
+const GraphService = preload("res://src/visual_scripting/visual_graph_service.gd")
+const GraphRepository = preload("res://src/visual_scripting/visual_graph_repository.gd")
+
+static func run_checks(tree_root: Node) -> Array[String]:
+    var errors: Array[String] = []; var fixture := Node.new(); tree_root.add_child(fixture)
+    var project = WorldProject.new(); project.initialize_new("Phase 8 Authoring", &"small", "blank_sandbox")
+    var dirty: Array[int] = [0]; var editor = EditorSession.new(); fixture.add_child(editor)
+    var bind: Dictionary = editor.bind_project(project, func() -> Dictionary: dirty[0] += 1; return {"ok":true,"errors":[]})
+    if not bind.get("ok", false): fixture.queue_free(); return ["Phase 8 authoring fixture could not bind editor session."]
+    var root := "user://tests/phase8_authoring_%s" % StableId.generate(); var service = GraphService.new()
+    var graph_bind: Dictionary = service.bind_project(project, root, editor, func() -> Dictionary: dirty[0] += 1; return {"ok":true,"errors":[]})
+    if not graph_bind.get("ok", false): fixture.queue_free(); return ["Phase 8 graph service could not bind: %s" % graph_bind.get("errors", [])]
+    var create: Dictionary = service.create_graph("Interaction", "event"); var graph_id := str(create.get("graph_id", ""))
+    if not create.get("ok", false) or graph_id.is_empty(): errors.append("Graph creation must be command-backed and return stable identity.")
+    var start: Dictionary = service.add_node(graph_id, "event.start", Vector2(20, 30)); var print_node: Dictionary = service.add_node(graph_id, "debug.print", Vector2(320, 30))
+    if not start.get("ok", false) or not print_node.get("ok", false): errors.append("Supported visual nodes must be authorable.")
+    var connection: Dictionary = service.connect_nodes(graph_id, str(start.get("node_id", "")), "next", str(print_node.get("node_id", "")), "in", "exec")
+    if not connection.get("ok", false): errors.append("Visual nodes must connect through stable endpoint IDs.")
+    var variable: Dictionary = service.add_variable(graph_id, "Counter", "int", 0)
+    if not variable.get("ok", false): errors.append("Visual graph variables must be command-backed.")
+    if not service.move_node(graph_id, str(print_node.get("node_id", "")), Vector2(420, 80)).get("ok", false): errors.append("Visual node movement must be authorable.")
+    if not service.configure_node(graph_id, str(print_node.get("node_id", "")), {"tag":"authoring-test"}).get("ok", false): errors.append("Visual node properties must be configurable.")
+    if service.connect_nodes(graph_id, StableId.generate(), "next", str(print_node.get("node_id", "")), "in", "exec").get("ok", false): errors.append("Connections to missing nodes must reject without history mutation.")
+    var history_before_undo: Dictionary = editor.get_history_counts()
+    if int(history_before_undo.get("undo", 0)) < 7: errors.append("Graph authoring must use the shared universal command history.")
+    var graph_before_undo: Dictionary = service.get_graph(graph_id)
+    if not editor.undo_edit().get("ok", false): errors.append("Universal Undo must undo the latest graph authoring command.")
+    var graph_after_undo: Dictionary = service.get_graph(graph_id)
+    if graph_before_undo == graph_after_undo: errors.append("Undo must restore the prior graph snapshot.")
+    if not editor.redo_edit().get("ok", false): errors.append("Universal Redo must reapply the graph command.")
+    if service.get_graph(graph_id) != graph_before_undo: errors.append("Redo must restore graph authored state exactly.")
+    var reopened: Dictionary = GraphRepository.new(root).open_or_create(project)
+    if not reopened.get("ok", false) or reopened["state"].get_graph(graph_id).is_empty(): errors.append("Command-backed graph state must persist and reopen.")
+    if not project.registries.get("visual_graph_ids", []).has(graph_id): errors.append("Graph authoring must keep WorldProject registry identity synchronized.")
+    if dirty[0] < 1: errors.append("Graph authoring must signal project dirty state.")
+    fixture.queue_free(); return errors

@@ -9,7 +9,12 @@ on:
       - master
 
 jobs:
-  phase8-foundation:
+  phase8-contracts:
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [foundation, authoring]
+    name: phase8-${{ matrix.suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
@@ -24,26 +29,26 @@ jobs:
           unzip -q godot.zip
           chmod +x Godot_v4.7.1-stable_linux.x86_64
           ./Godot_v4.7.1-stable_linux.x86_64 --version
-      - name: Run Phase 8 foundation contracts
+      - name: Run Phase 8 contract suite
         shell: bash
         env:
-          PHASE8_SUITE: foundation
+          PHASE8_SUITE: ${{ matrix.suite }}
         run: |
           set -uo pipefail
           set +e
           timeout --signal=TERM --kill-after=10s 150s \
             ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . \
-            --script res://tests/phase8_suite_runner.gd 2>&1 | tee phase8-foundation.log
+            --script res://tests/phase8_suite_runner.gd 2>&1 | tee phase8-${PHASE8_SUITE}.log
           godot_status=${PIPESTATUS[0]}
           set -e
           if [ "$godot_status" -ne 0 ]; then exit "$godot_status"; fi
-          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' phase8-foundation.log; then exit 1; fi
-          grep -F "PASS: Phase 8 foundation contract suite completed." phase8-foundation.log
-      - name: Upload Phase 8 foundation log
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' phase8-${PHASE8_SUITE}.log; then exit 1; fi
+          grep -F "PASS: Phase 8 ${PHASE8_SUITE} contract suite completed." phase8-${PHASE8_SUITE}.log
+      - name: Upload Phase 8 contract log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase8-foundation-log
-          path: phase8-foundation.log
+          name: phase8-${{ matrix.suite }}-log
+          path: phase8-${{ matrix.suite }}.log
           if-no-files-found: error
           retention-days: 14
