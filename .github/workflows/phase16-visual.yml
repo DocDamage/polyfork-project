@@ -1,0 +1,55 @@
+name: Phase 16 Visual Evidence
+
+on:
+  push:
+    branches:
+      - dev/phase16-milestone
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  rendered-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 8 --retry-all-errors --retry-delay 3 --connect-timeout 20 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+          sudo apt-get update -y
+          sudo apt-get install -y xvfb libgl1 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64
+      - name: Capture Phase 16 running-app evidence
+        shell: bash
+        run: |
+          set -uo pipefail; set +e
+          timeout --signal=TERM --kill-after=10s 300s \
+            xvfb-run -a ./Godot_v4.7.1-stable_linux.x86_64 --path . \
+            --script res://tests/runtime/capture_phase16.gd 2>&1 | tee phase16-visual.log
+          status=${PIPESTATUS[0]}; set -e
+          if [ "$status" -ne 0 ]; then exit "$status"; fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' phase16-visual.log; then exit 1; fi
+          grep -F 'PASS: Phase 16 rendered product-completeness evidence captured.' phase16-visual.log
+          test -f artifacts/phase16/01-home-worlds-full.png
+          test -f artifacts/phase16/04-home-assets-compact.png
+          test -f artifacts/phase16/06-new-world-biome-compact.png
+          test -f artifacts/phase16/08-workspace-gizmo-orbit-compact.png
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase16-visual-evidence
+          path: |
+            phase16-visual.log
+            artifacts/phase16/*.png
+          if-no-files-found: error
+          retention-days: 14
