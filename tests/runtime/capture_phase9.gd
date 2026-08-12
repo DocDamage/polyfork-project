@@ -62,9 +62,9 @@ func _run() -> void:
             _fail("Phase 9 capture could not paint tree foliage.")
             return
     var road_points: Array[Vector3] = [Vector3(-82, 0, -48), Vector3(-24, 0, -8), Vector3(28, 0, 8), Vector3(84, 0, 44)]
-    var fence_points: Array[Vector3] = [Vector3(-76, 0, 52), Vector3(76, 0, 52)]
+    var fence_points: Array[Vector3] = [Vector3(-76, 0, 48), Vector3(76, 0, 48)]
     var road: Dictionary = service.create_spline("Creek Road", "road", road_points, {"width_m": 8.0, "sample_spacing_m": 4.0})
-    var fence: Dictionary = service.create_spline("North Fence", "fence", fence_points, {"sample_spacing_m": 7.0, "segment_source": {"kind": "primitive", "primitive": "post"}})
+    var fence: Dictionary = service.create_spline("North Fence", "fence", fence_points, {"sample_spacing_m": 4.0, "segment_source": {"kind": "primitive", "primitive": "post"}})
     if not road.get("ok", false) or not fence.get("ok", false):
         _fail("Phase 9 capture could not create road/fence splines.")
         return
@@ -91,6 +91,7 @@ func _run() -> void:
         _fail("Phase 9 capture could not resolve Foliage/Roads dock buttons.")
         return
     foliage_button.emit_signal("pressed")
+    app.call("_on_workspace_status", "Foliage scatter ready • painted grass and pine MultiMesh batches", false)
     await _settle()
     if not layer.call("is_open") or layer.call("get_panel").call("get_section") != &"foliage":
         _fail("Phase 9 capture could not open foliage mode.")
@@ -98,6 +99,10 @@ func _run() -> void:
     await _capture("01-foliage-scatter")
 
     roads_button.emit_signal("pressed")
+    camera.position = Vector3(72.0, 44.0, 96.0)
+    camera.fov = 54.0
+    camera.look_at(Vector3(0.0, 0.0, 22.0), Vector3.UP)
+    app.call("_on_workspace_status", "Road and fence splines ready • streamed procedural geometry", false)
     await _settle()
     if not layer.call("is_open") or layer.call("get_panel").call("get_section") != &"splines":
         _fail("Phase 9 capture could not open spline mode.")
