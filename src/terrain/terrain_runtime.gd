@@ -2,6 +2,7 @@ class_name PlayWorldTerrainRuntime
 extends Node3D
 
 signal streaming_changed(loaded_cell_ids: Array, unloaded_cell_ids: Array, blocked_dirty: Array)
+signal cell_refreshed(cell_id: String)
 
 const TerrainChunk = preload("res://src/terrain/terrain_chunk_node.gd")
 const StreamingPolicy = preload("res://src/terrain/terrain_streaming_policy.gd")
@@ -52,6 +53,7 @@ func refresh_cell(cell_id: String) -> Dictionary:
     var biome: Dictionary = _state.get_biome(str(cell.get("biome_id", "")))
     var result: Dictionary = chunk.apply_cell(cell, biome)
     result["changed"] = result.get("ok", false)
+    if result.get("ok", false): cell_refreshed.emit(cell_id)
     return result
 
 
