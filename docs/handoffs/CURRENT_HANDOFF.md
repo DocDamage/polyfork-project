@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 9 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 10 ACTIVE HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -10,173 +10,82 @@ The real project lives on:
 
 `master`
 
-Authoritative `master` before the Phase 9 merge:
+Current authoritative `master`:
 
-`6ea437f3d5ea1077773ef797e8f5895e84b5a7f1`
+`953d8b500beb1b65485104c85ab9bd5c4ff8224b`
 
-This is the verified signed merge commit for PR #13 — Phase 8 — Visual Scripting.
+This is the verified signed merge commit for PR #14 — Phase 9 — Foliage / Procedural / Splines.
 
 The repository default branch `main` remains obsolete starter code.
 
 **Never develop from `main`.**
 
-## Phase 9 completion PR
+## Phase 9 status
 
-PR #14:
+PR #14 is merged.
 
-`https://github.com/DocDamage/polyfork-project/pull/14`
+Phases 0 through 9 are complete on authoritative `master`.
 
-Title:
+Phase 9 delivered project-managed nondestructive foliage/scatter, terrain-coupled deterministic regeneration, real MultiMesh foliage, paint/erase strokes, roads/paths/fences, generated spline geometry, streaming, Asset Library/prefab source resolution, keyboard/mouse + gamepad authoring, persistence/failure testing, and rendered verification.
 
-`Phase 9 — Foliage / Procedural / Splines`
+## Phase 10 milestone branch
 
-Head branch:
+Phase 10 — Gameplay Framework Breadth — is active on:
 
-`dev/phase9-foliage-procedural-splines-milestone`
+`dev/phase10-gameplay-framework-milestone`
 
-Base:
+The branch was created from exactly:
 
-`master`
+`953d8b500beb1b65485104c85ab9bd5c4ff8224b`
 
-PR #14 is the **single** Phase 9 completion PR. It is intentionally draft and must not be merged without explicit user authorization.
+No obsolete `main` ancestry was used.
 
-All P09-T01 through P09-T08 are complete.
+## Phase 10 development rule
 
-## Verified pre-PR closeout head
+Work Phase 10 as one continuous milestone.
 
-`45215cc4ccc4017fbfbac937783f1cd48696afab`
+Use internal commits and CI freely, but do not stop after each P10 task for a pull request.
 
-Branch integrity at that head:
+At milestone completion:
 
-- merge base: `6ea437f3d5ea1077773ef797e8f5895e84b5a7f1`
-- ahead of authoritative `master`: 33 commits
-- behind authoritative `master`: 0 commits
-- obsolete `main`: not used
+1. run full Phase 10 and inherited verification;
+2. update implementation/QA/handoff documentation;
+3. open one Phase 10 completion PR targeting authoritative `master`;
+4. do not merge it without explicit user authorization.
 
-### Phase 9 Contracts
+## Architecture rules
 
-Run `31575884949` — **SUCCESS**
+Phase 10 must extend, not replace:
 
-Passing suites:
+- Phase 2 stable project/entity identity and crash-safe persistence;
+- universal command history and Undo/Redo;
+- Phase 3 runtime entity/editor bridge;
+- Phase 4 Asset Library;
+- Phase 5 terrain and streaming;
+- Phase 6 component/archetype/prefab/socket systems;
+- Phase 7 disposable PlaySession and semantic gameplay input;
+- Phase 8 Visual Scripting;
+- Phase 9 procedural/foliage/spline runtime.
 
-- foundation
-- foliage
-- splines
-- sources
-- scale
-- workspace
+Build remains authoritative. Mutable Play state is disposable unless explicitly captured by the Phase 10 save-state system. Play/runtime state must never silently write back into authored Build data.
 
-All dedicated Phase 9 suites use Godot `4.7.1.stable.official.a13da4feb` and reject raw `SCRIPT ERROR:` / engine `ERROR:` output.
+Persisted references must use stable IDs. Missing/corrupt references fail safely. Keyboard/mouse and gamepad remain first-class. Preserve the existing dark playful Nintendo-forward / Apple-clean UI direction.
 
-Representative scale result on this head:
+## Phase 10 checkpoints
 
-`25 terrain focus transitions, peak 2142 foliage instances, streamed road/fence regeneration in 3191 ms`
+- P10-T01 — runtime gameplay-state contracts/service, stable IDs, Play lifecycle, event bus, validation
+- P10-T02 — inventory/item/container state, transfers, pickups, interaction routing
+- P10-T03 — doors plus health/damage/healing/death runtime systems
+- P10-T04 — basic NPC navigation/AI goals, destinations, waits, target interaction
+- P10-T05 — dialogue scaffolding with stable conversations/lines/participants/choices
+- P10-T06 — quest scaffolding with stable quests/objectives and event-driven progress
+- P10-T07 — vehicles, seats, occupancy, enter/exit, throttle/steer/brake semantics
+- P10-T08 — explicit save-state snapshots and crash-safe restore without Build mutation
+- P10-T09 — Visual Scripting and semantic input integration plus repeated Play/rollback coverage
+- P10-T10 — Gameplay workspace UX, gamepad/keyboard coverage, scale/performance/failure QA, rendered evidence, docs closeout, single completion PR
 
-CI regression budget: `12000 ms`.
+## Immediate execution state
 
-This is a regression proxy, not an FPS claim.
+The Phase 9 stale merge-state documentation has been corrected and the Phase 10 milestone has been decomposed. Implementation is authorized to continue immediately on the Phase 10 branch without task-by-task PR interruptions.
 
-### Godot Smoke
-
-Run `31575884980` — **SUCCESS**
-
-### Phase 9 Visual Evidence
-
-Run `31575884968` — **SUCCESS**
-
-Artifact:
-
-- ID `9133148822`
-- digest `sha256:a3a52f44c844490903f655727fd18ad7083c43750a90a78f672ce04fb93d2c8d`
-- `01-foliage-scatter.png`
-- `02-road-fence.png`
-
-The exact pre-PR artifact was downloaded and manually inspected in addition to the automated rendered PASS gate.
-
-## Phase 9 delivered
-
-### Persistence and identity
-
-- schema-v1 `procedural_registry`
-- crash-safe `procedural/procedural.json`
-- stable foliage-set, scatter-layer, paint/erase-stroke, spline, and spline-point IDs
-- mirrored WorldProject procedural registries
-- corruption, future-schema, duplicate, cross-project, and invalid-reference failure paths
-
-### Foliage and scatter
-
-- built-in grass/shrub/tree/post sources with readable materials and correct terrain grounding
-- real Phase 4 Asset Library source resolution via stable asset IDs
-- real Phase 6 inherited-prefab resolution via stable prefab IDs
-- read-only external source folders
-- real `MultiMeshInstance3D` foliage batches per scatter layer × active terrain cell
-- deterministic seed/density/spacing/biome/height/slope/scale/yaw/normal rules
-- nondestructive paint and erase strokes
-- command-backed universal Undo/Redo
-- dirty/autosave and crash-safe persistence integration
-- terrain-refresh and Phase 5 streaming regeneration
-
-### Splines
-
-- stable-ID road/path/fence source records and control points
-- command-backed create/delete/add/move/delete-point/configure operations
-- open/closed path data, width, sample spacing, and terrain conformance
-- real road/path `ArrayMesh` ribbon triangles
-- real fence `MultiMeshInstance3D` segment batches
-- active-cell streamed appearance/unloading
-
-### Procedural workspace
-
-- existing Foliage and Roads dock entries
-- shared bottom-wide Procedural contextual panel
-- terrain-conforming world cursor
-- foliage/scatter selection and creation
-- Paint / Erase
-- radius / density controls
-- New Road / New Path / New Fence / Add Point
-- viewport-click authoring
-- arrows / D-pad cursor movement
-- Enter / gamepad A apply
-- gamepad X Paint/Erase toggle
-- contextual-tool switching
-- Back/Cancel behavior
-
-### QA
-
-- save/reopen
-- Undo/Redo
-- deterministic regeneration
-- missing-reference failures
-- real external Asset Library source
-- inherited prefab source
-- terrain refresh coupling
-- large-world streaming
-- representative scale/performance
-- real Main-scene/gamepad workspace paths
-- strict raw-log rejection
-- inherited Godot smoke
-- rendered foliage/road/fence evidence with manual inspection
-
-## Documentation
-
-Phase 9 closeout documentation:
-
-- `docs/implementation/TASK_BACKLOG.md`
-- `docs/implementation/MASTER_IMPLEMENTATION_PLAN.md`
-- `docs/systems/PROCEDURAL_FOLIAGE_SPLINES.md`
-- `docs/qa/PHASE9_QA.md`
-- this handoff
-
-## Current gate
-
-This PR-number handoff update is the final Phase 9 branch mutation before merge review.
-
-Required now:
-
-1. verify all PR-triggered Phase 9 and inherited workflows on the final PR head;
-2. confirm PR #14 remains mergeable and targets authoritative `master`;
-3. merge only after explicit user authorization.
-
-After PR #14 is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 10 milestone branch.
-
-**Do not begin Phase 10 before PR #14 is explicitly merged.**
+Do not begin Phase 11 until the Phase 10 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
