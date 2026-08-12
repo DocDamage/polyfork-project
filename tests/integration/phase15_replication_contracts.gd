@@ -17,16 +17,16 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     var fixture: Dictionary = _build_fixture()
     var project_data: Dictionary = fixture["project_data"]
     var gameplay_data: Dictionary = fixture["gameplay_data"]
-    var host_actor_id := str(fixture["host_actor_id"])
-    var client_actor_id := str(fixture["client_actor_id"])
-    var target_id := str(fixture["target_id"])
-    var door_id := str(fixture["door_id"])
+    var host_actor_id: String = str(fixture["host_actor_id"])
+    var client_actor_id: String = str(fixture["client_actor_id"])
+    var target_id: String = str(fixture["target_id"])
+    var door_id: String = str(fixture["door_id"])
 
     var host_adapter = Adapter.new()
     var client_adapter = Adapter.new()
     tree.root.add_child(host_adapter)
     tree.root.add_child(client_adapter)
-    var port := 32500 + int(Time.get_ticks_msec() % 500)
+    var port: int = 32500 + int(Time.get_ticks_msec() % 500)
     var host_config: Dictionary = Contract.default_config()
     host_config["role"] = Contract.ROLE_HOST
     host_config["address"] = "*"
@@ -56,7 +56,7 @@ static func run_checks(tree: SceneTree) -> Array[String]:
         _cleanup_nodes([client_adapter, host_adapter])
         return ["Replication client did not complete the host handshake."]
 
-    var client_peer_id := client_adapter.get_local_peer_id()
+    var client_peer_id: int = int(client_adapter.get_local_peer_id())
     var host_assign: Dictionary = host_adapter.get_identity_registry().assign_authored_entity(1, host_actor_id)
     var host_client_assign: Dictionary = host_adapter.get_identity_registry().assign_authored_entity(client_peer_id, client_actor_id)
     var client_host_assign: Dictionary = client_adapter.get_identity_registry().assign_authored_entity(1, host_actor_id)
@@ -89,11 +89,11 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     if not damage_request.get("ok", false) or not damage_request.get("pending", false): errors.append("Client damage must be sent as a pending host-authoritative request.")
     for _index in range(240):
         await tree.process_frame
-        var host_value := _current_health(host_services, target_id)
-        var client_value := _current_health(client_services, target_id)
+        var host_value: float = _current_health(host_services, target_id)
+        var client_value: float = _current_health(client_services, target_id)
         if is_equal_approx(host_value, 75.0) and is_equal_approx(client_value, 75.0) and client_replication.pending_request_count() == 0: break
-    var host_health := _current_health(host_services, target_id)
-    var client_health := _current_health(client_services, target_id)
+    var host_health: float = _current_health(host_services, target_id)
+    var client_health: float = _current_health(client_services, target_id)
     if not is_equal_approx(host_health, 75.0): errors.append("Host must authoritatively commit replicated damage.")
     if not is_equal_approx(client_health, 75.0): errors.append("Client health state must converge to the host result.")
     if client_replication.pending_request_count() != 0: errors.append("Accepted client gameplay requests must leave the pending queue.")
@@ -118,7 +118,7 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     for _index in range(240):
         await tree.process_frame
         if client_replication.pending_request_count() == 0: break
-    var health_after_spoof := _current_health(host_services, target_id)
+    var health_after_spoof: float = _current_health(host_services, target_id)
     if not is_equal_approx(health_after_spoof, 75.0): errors.append("Host must reject client actions that claim an authored entity owned by another peer.")
 
     host_replication.clear(); client_replication.clear()
@@ -133,7 +133,7 @@ static func _current_health(services: Dictionary, entity_id: String) -> float:
 static func _build_fixture() -> Dictionary:
     var project = WorldProject.new()
     project.initialize_new("Phase 15 Replication", &"small", "blank_sandbox")
-    var cell_id := StableId.generate()
+    var cell_id: String = StableId.generate()
     var cells: Array[String] = [cell_id]
     project.cell_ids = cells
     var host_actor = WorldEntity.new(); host_actor.initialize_new("Host Actor", cell_id)
@@ -181,10 +181,10 @@ static func _cleanup_nodes(nodes: Array) -> void:
         node.free()
 
 static func _attach(entity, instances: Array[Dictionary], component_key: String, patch: Dictionary) -> void:
-    var definition := _definition(component_key)
+    var definition: Dictionary = _definition(component_key)
     var values: Dictionary = GameplayContracts.defaults_for(definition)
     for key in patch.keys(): values[key] = patch[key]
-    var record := {
+    var record: Dictionary = {
         "document_type": GameplayContracts.COMPONENT_INSTANCE,
         "schema_version": GameplayContracts.SCHEMA_VERSION,
         "instance_id": StableId.generate(),
