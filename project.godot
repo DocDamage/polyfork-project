@@ -7,6 +7,7 @@ config/name="PlayWorld Studio"
 run/main_scene="res://src/main/Main.tscn"
 
 [autoload]
+ScalePolish="*res://src/scale/scale_polish_service.gd"
 ExportWorkspace="*res://src/app/workspace/export_workspace_layer.gd"
 
 [display]
