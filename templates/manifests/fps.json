@@ -1,0 +1,18 @@
+{
+  "document_type": "playworld_template_manifest",
+  "schema_version": 1,
+  "template_id": "fps",
+  "display": {"name": "FPS", "summary": "Playable first-person movement and look foundation without fake combat systems.", "category": "first_person"},
+  "required_runtime_modules": ["core.world", "core.terrain", "core.semantic_input", "phase6.gameplay", "play.first_person"],
+  "starter_entities": [
+    {"starter_key": "player_start", "display_name": "FPS Player Start", "role": "player_spawn", "archetype_key": "player", "transform": {"position": [8.0, 2.0, 8.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}
+  ],
+  "input_mapping": {"profile": "semantic_default"},
+  "default_player_archetype": "20000000-0000-4000-8000-00000000000a",
+  "camera_configuration": {"controller": "first_person", "spawn_position": [8.0, 2.0, 8.0], "jump_enabled": true, "move_speed": 6.0, "eye_height": 1.58},
+  "example_graph_references": [],
+  "ui_hud_packages": ["hud_basic"],
+  "export_settings": {"preset_id": null},
+  "tutorial_steps": [{"id": "movement", "title": "Move and look", "body": "Use the semantic gameplay controls in Play mode. Weapons and combat are intentionally not part of this Phase 7 starter."}],
+  "planned_modules": ["combat"]
+}

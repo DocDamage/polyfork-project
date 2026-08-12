@@ -176,10 +176,10 @@ func _sync_selected_biome() -> void:
 
 func _restore_empty_state() -> void:
     if _viewport_center == null or _workspace == null: return
-    var should_show := true
-    if _workspace.has_method("get_runtime_entity_count"):
+    var should_show: bool = not _workspace.has_method("get_mode") or _workspace.get_mode() == &"build"
+    if should_show and _workspace.has_method("get_runtime_entity_count"):
         should_show = int(_workspace.call("get_runtime_entity_count")) == 0
-    if _workspace.has_method("is_placement_active") and bool(_workspace.call("is_placement_active")):
+    if should_show and _workspace.has_method("is_placement_active") and bool(_workspace.call("is_placement_active")):
         should_show = false
     _viewport_center.visible = should_show
 

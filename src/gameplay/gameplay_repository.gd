@@ -33,18 +33,16 @@ func open_or_create(project) -> Dictionary:
     if project == null: return _failure("Gameplay repository requires a world project.")
     var make_error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(root_directory))
     if make_error != OK and make_error != ERR_ALREADY_EXISTS: return _failure("Unable to create gameplay storage directory.")
-    var state = GameplayState.new(); var created: Array[String] = []
+    var state = GameplayState.new(); var created: Array[String] = []; var updated: Array[String] = []
     for section_value in DOCUMENTS.keys():
         var section := str(section_value); var load_result: Dictionary = _load_or_seed(section)
         if not load_result.get("ok", false): return load_result
         _assign_section(state, section, _dictionary_array(load_result.get("records", [])))
         if load_result.get("created", false): created.append(section)
-    # Gameplay records may legitimately outlive a currently loaded/deleted world entity so
-    # Delete/Undo and streamed availability remain recoverable. Internal gameplay references
-    # stay strict here; authoring services separately require live world targets before edits.
+        if load_result.get("updated", false): updated.append(section)
     var errors: Array[String] = state.validate(null)
     if not errors.is_empty(): return {"ok": false, "errors": errors}
-    return {"ok": true, "errors": [], "state": state, "created_sections": created, "root": root_directory}
+    return {"ok": true, "errors": [], "state": state, "created_sections": created, "updated_sections": updated, "root": root_directory}
 
 
 func flush_sections(state, sections: Array[String]) -> Dictionary:
@@ -82,10 +80,29 @@ func _load_or_seed(section: String) -> Dictionary:
         if not read.get("ok", false): return _failure("Gameplay %s document is corrupt or unreadable." % section)
         var errors: Array[String] = _validate_document(section, read.get("data", {}))
         if not errors.is_empty(): return {"ok": false, "errors": errors}
-        return {"ok": true, "errors": [], "records": _dictionary_array(read["data"].get(str(DOCUMENTS[section][2]), [])), "created": false}
+        var records := _dictionary_array(read["data"].get(str(DOCUMENTS[section][2]), []))
+        var merge_result := _merge_missing_builtins(section, records)
+        if merge_result.get("changed", false):
+            var write: Dictionary = _write_section(section, merge_result["records"])
+            if not write.get("ok", false): return write
+            records = _dictionary_array(merge_result["records"])
+        return {"ok": true, "errors": [], "records": records, "created": false, "updated": merge_result.get("changed", false)}
     var records: Array[Dictionary] = _dictionary_array(_seed_records(section)); var write: Dictionary = _write_section(section, records)
     if not write.get("ok", false): return write
-    return {"ok": true, "errors": [], "records": records.duplicate(true), "created": true}
+    return {"ok": true, "errors": [], "records": records.duplicate(true), "created": true, "updated": false}
+
+
+func _merge_missing_builtins(section: String, records: Array[Dictionary]) -> Dictionary:
+    var seeds := _seed_records(section)
+    if seeds.is_empty(): return {"changed": false, "records": records}
+    var id_field := _id_field(section); var known: Dictionary = {}; var result := _dictionary_array(records); var changed := false
+    for record in result: known[str(record.get(id_field, ""))] = true
+    for seed_value in seeds:
+        if not seed_value is Dictionary: continue
+        var seed: Dictionary = seed_value; var record_id := str(seed.get(id_field, ""))
+        if known.has(record_id): continue
+        result.append(seed.duplicate(true)); known[record_id] = true; changed = true
+    return {"changed": changed, "records": result}
 
 
 func _write_section(section: String, records: Array) -> Dictionary:

@@ -73,11 +73,21 @@ func refresh_runtime(preserve_selection: bool = true) -> Dictionary:
     var result: Dictionary = _bridge.rebuild(_project.entity_records)
     if not result.get("ok", false): return result
     if preserve_selection and not selected.is_empty():
-        var surviving: Array[String] = []
-        for entity_id in selected:
-            if _bridge.has_entity(entity_id): surviving.append(entity_id)
-        if not surviving.is_empty(): _selection.set_selected(surviving, primary)
+        restore_selection(selected, primary)
     return result
+
+
+func restore_selection(entity_ids: Array[String], primary_entity_id: String = "") -> Dictionary:
+    var surviving: Array[String] = []
+    for entity_id in entity_ids:
+        if _bridge.has_entity(entity_id):
+            surviving.append(entity_id)
+    if surviving.is_empty():
+        return _selection.clear()
+    var resolved_primary := primary_entity_id
+    if resolved_primary.is_empty() or not surviving.has(resolved_primary):
+        resolved_primary = surviving[0]
+    return _selection.set_selected(surviving, resolved_primary)
 
 
 func begin_proxy_placement(display_name: String = "Proxy Object") -> Dictionary:
@@ -287,6 +297,21 @@ func _resolve_cell_id(position_value: Vector3) -> String:
 func _can_mutate() -> bool: return _project != null and _dirty_callback.is_valid()
 
 
+func _new_entity_record(display_name: String, cell_id: String) -> Dictionary:
+    return {
+        "document_type": WorldEntity.DOCUMENT_TYPE,
+        "schema_version": WorldEntity.SCHEMA_VERSION,
+        "entity_id": StableId.generate(),
+        "display_name": display_name.strip_edges() if not display_name.strip_edges().is_empty() else "Entity",
+        "cell_id": cell_id,
+        "asset_id": null,
+        "prefab_id": null,
+        "parent_entity_id": null,
+        "component_instance_ids": [],
+        "transform": _transform_dict(Vector3.ZERO, Vector3.ZERO, Vector3.ONE)
+    }
+
+
 func _find_record(entity_id: String) -> Dictionary:
     if _project == null: return {}
     for record in _project.entity_records:
@@ -294,14 +319,24 @@ func _find_record(entity_id: String) -> Dictionary:
     return {}
 
 
-func _new_entity_record(display_name: String, cell_id: String) -> Dictionary:
-    return {"document_type": WorldEntity.DOCUMENT_TYPE, "schema_version": WorldEntity.SCHEMA_VERSION, "entity_id": StableId.generate(), "display_name": display_name.strip_edges() if not display_name.strip_edges().is_empty() else "Proxy Object", "cell_id": cell_id, "asset_id": null, "prefab_id": null, "parent_entity_id": null, "component_instance_ids": [], "transform": _transform_dict(Vector3(0.0, 0.5, 0.0), Vector3.ZERO, Vector3.ONE)}
+func _history_failure(result: Dictionary) -> Dictionary:
+    return _failure(str(result.get("errors", ["Command history operation failed."])[0]))
 
 
-func _on_selection_changed(entity_ids: Array, primary_entity_id: String, runtime_node: Node3D) -> void: selection_changed.emit(entity_ids, primary_entity_id, runtime_node)
-func _history_failure(result: Dictionary) -> Dictionary: return _failure(str(result.get("error", "Editor command failed.")))
+func _on_selection_changed(entity_ids: Array, primary_entity_id: String, runtime_node: Node3D) -> void:
+    selection_changed.emit(entity_ids, primary_entity_id, runtime_node)
+
+
+static func _vector3(value: Array) -> Vector3:
+    return Vector3(float(value[0]), float(value[1]), float(value[2]))
+
+
+static func _transform_dict(position_value: Vector3, rotation_value: Vector3, scale_value: Vector3) -> Dictionary:
+    return {
+        "position": [position_value.x, position_value.y, position_value.z],
+        "rotation_degrees": [rotation_value.x, rotation_value.y, rotation_value.z],
+        "scale": [scale_value.x, scale_value.y, scale_value.z]
+    }
+
+
 func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}
-
-
-static func _vector3(value: Array) -> Vector3: return Vector3(float(value[0]), float(value[1]), float(value[2]))
-static func _transform_dict(position_value: Vector3, rotation_value: Vector3, scale_value: Vector3) -> Dictionary: return {"position": [position_value.x, position_value.y, position_value.z], "rotation_degrees": [rotation_value.x, rotation_value.y, rotation_value.z], "scale": [scale_value.x, scale_value.y, scale_value.z]}

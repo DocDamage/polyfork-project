@@ -8,6 +8,7 @@ signal tool_selected(tool: StringName)
 const EditorSession = preload("res://src/editor/editor_session.gd")
 const AssetLibraryService = preload("res://src/assets/asset_library_service.gd")
 const AssetPlacementHandoff = preload("res://src/assets/asset_placement_handoff.gd")
+const PlaySession = preload("res://src/runtime/play_session.gd")
 
 @onready var home_button: Button = %HomeButton
 @onready var world_title: Label = %WorldTitle
@@ -28,6 +29,7 @@ var _configuration: Dictionary = {}
 var _mode: StringName = &"build"
 var _active_transform_tool: StringName = &"select"
 var _session
+var _play_session
 var _asset_library
 var _asset_handoff = AssetPlacementHandoff.new()
 
@@ -35,6 +37,9 @@ var _asset_handoff = AssetPlacementHandoff.new()
 func _ready() -> void:
     _session = EditorSession.new()
     editor_viewport.get_world_root().add_child(_session)
+    _play_session = PlaySession.new()
+    editor_viewport.get_world_root().add_child(_play_session)
+    _play_session.exit_requested.connect(_request_build_mode)
     _session.selection_changed.connect(_on_selection_changed)
     _session.project_changed.connect(_on_project_changed)
     _session.placement_changed.connect(_on_placement_changed)
@@ -54,6 +59,10 @@ func _ready() -> void:
 
 
 func bind_project(project, dirty_callback: Callable, project_directory: String = "") -> Dictionary:
+    if _play_session != null and _play_session.is_active():
+        _mode = &"build"
+        _play_session.exit_play()
+        mode_switch.set_mode(&"build")
     var result: Dictionary = _session.bind_project(project, dirty_callback)
     if not result.get("ok", false): status_state.text = "Editor project bind failed"; return result
     var resolved_directory := project_directory
@@ -92,9 +101,11 @@ func get_configuration() -> Dictionary: return _configuration.duplicate(true)
 func get_mode() -> StringName: return _mode
 func get_asset_library(): return _asset_library
 func get_asset_browser(): return bottom_dock.get_asset_browser()
+func get_play_session(): return _play_session
 
 
 func register_asset_source(path: String, display_name: String = "") -> Dictionary:
+    if _mode != &"build": return _failure("Asset sources can only be changed in Build mode.")
     if _asset_library == null: return _failure("No Asset Library is bound to this workspace.")
     var result: Dictionary = _asset_library.register_source(path, display_name)
     bottom_dock.refresh_asset_browser()
@@ -102,13 +113,15 @@ func register_asset_source(path: String, display_name: String = "") -> Dictionar
 
 
 func begin_asset_placement(asset_record: Dictionary) -> Dictionary:
+    if _mode != &"build": return _failure("Asset placement is unavailable in Play mode.")
     if _asset_library == null: return _failure("No Asset Library is bound to this workspace.")
     var result: Dictionary = _asset_handoff.begin(_session, _asset_library, asset_record)
     if result.get("ok", false): bottom_dock.close_asset_drawer()
     return _report_result(result, "Asset placement ready")
 
 
-func show_inspector(context: Dictionary) -> void: inspector_panel.show_context(context)
+func show_inspector(context: Dictionary) -> void:
+    if _mode == &"build": inspector_panel.show_context(context)
 func hide_inspector() -> void:
     if not _session.get_selected_ids().is_empty(): _session.clear_selection()
     else: inspector_panel.clear_context()
@@ -116,11 +129,13 @@ func is_inspector_open() -> bool: return inspector_panel.is_open()
 func is_asset_drawer_open() -> bool: return bottom_dock.is_asset_drawer_open()
 func is_tool_wheel_open() -> bool: return tool_wheel.is_open()
 func close_asset_drawer() -> void: bottom_dock.close_asset_drawer()
-func open_asset_drawer() -> void: bottom_dock.open_asset_drawer()
-func open_tool_wheel() -> void: tool_wheel.open_wheel()
-func select_entity(entity_id: String) -> Dictionary: return _session.select_entity(entity_id)
-func toggle_entity_selection(entity_id: String) -> Dictionary: return _session.toggle_entity(entity_id)
-func select_runtime_node(node: Node, additive: bool = false) -> Dictionary: return _session.select_runtime_node(node, additive)
+func open_asset_drawer() -> void:
+    if _mode == &"build": bottom_dock.open_asset_drawer()
+func open_tool_wheel() -> void:
+    if _mode == &"build": tool_wheel.open_wheel()
+func select_entity(entity_id: String) -> Dictionary: return _failure("Selection is unavailable in Play mode.") if _mode != &"build" else _session.select_entity(entity_id)
+func toggle_entity_selection(entity_id: String) -> Dictionary: return _failure("Selection is unavailable in Play mode.") if _mode != &"build" else _session.toggle_entity(entity_id)
+func select_runtime_node(node: Node, additive: bool = false) -> Dictionary: return _failure("Selection is unavailable in Play mode.") if _mode != &"build" else _session.select_runtime_node(node, additive)
 func clear_selection() -> Dictionary: return _session.clear_selection()
 func get_selected_entity_id() -> String: return _session.get_primary_entity_id()
 func get_selected_entity_ids() -> Array[String]: return _session.get_selected_ids()
@@ -128,16 +143,16 @@ func get_selected_runtime_node(): return _session.get_primary_node()
 func get_runtime_entity_node(entity_id: String): return _session.get_bridge().get_entity_node(entity_id)
 func get_runtime_entity_count() -> int: return _session.get_bridge().entity_count()
 func get_runtime_entity_ids() -> Array[String]: return _session.get_bridge().entity_ids()
-func begin_proxy_placement(display_name: String = "Proxy Object") -> Dictionary: return _report_result(_session.begin_proxy_placement(display_name), "Placement preview ready")
+func begin_proxy_placement(display_name: String = "Proxy Object") -> Dictionary: return _failure("Placement is unavailable in Play mode.") if _mode != &"build" else _report_result(_session.begin_proxy_placement(display_name), "Placement preview ready")
 func update_placement_preview(position_value: Vector3, context: Dictionary = {}) -> Dictionary: return _session.update_placement_preview(position_value, context)
 func commit_placement() -> Dictionary: return _report_result(_session.commit_placement(), "Object placed")
 func cancel_placement() -> Dictionary: var result: Dictionary = _session.cancel_placement(); _update_editor_controls(); return result
-func nudge_selection(mode: StringName, delta: Vector3) -> Dictionary: return _report_result(_session.nudge_selected(mode, delta), "Transform applied")
-func duplicate_selection() -> Dictionary: return _report_result(_session.duplicate_selected(), "Selection duplicated")
-func delete_selection() -> Dictionary: return _report_result(_session.delete_selected(), "Selection deleted")
-func group_selection() -> Dictionary: return _report_result(_session.group_selected(), "Selection grouped")
-func undo_edit() -> Dictionary: return _report_result(_session.undo_edit(), "Undo")
-func redo_edit() -> Dictionary: return _report_result(_session.redo_edit(), "Redo")
+func nudge_selection(mode: StringName, delta: Vector3) -> Dictionary: return _failure("Transforms are unavailable in Play mode.") if _mode != &"build" else _report_result(_session.nudge_selected(mode, delta), "Transform applied")
+func duplicate_selection() -> Dictionary: return _failure("Duplicate is unavailable in Play mode.") if _mode != &"build" else _report_result(_session.duplicate_selected(), "Selection duplicated")
+func delete_selection() -> Dictionary: return _failure("Delete is unavailable in Play mode.") if _mode != &"build" else _report_result(_session.delete_selected(), "Selection deleted")
+func group_selection() -> Dictionary: return _failure("Grouping is unavailable in Play mode.") if _mode != &"build" else _report_result(_session.group_selected(), "Selection grouped")
+func undo_edit() -> Dictionary: return _failure("Undo is unavailable in Play mode.") if _mode != &"build" else _report_result(_session.undo_edit(), "Undo")
+func redo_edit() -> Dictionary: return _failure("Redo is unavailable in Play mode.") if _mode != &"build" else _report_result(_session.redo_edit(), "Redo")
 func set_snap_enabled(mode: StringName, enabled: bool) -> Dictionary: return _session.set_snap_enabled(mode, enabled)
 func drop_selection_to_ground() -> Dictionary: return _report_result(_session.drop_selection_to_ground(), "Dropped to ground")
 func snap_selection_to_surface(position_value: Vector3, normal: Vector3) -> Dictionary: return _report_result(_session.snap_selection_to_surface(position_value, normal), "Surface snapped")
@@ -148,6 +163,7 @@ func get_history_counts() -> Dictionary: return _session.get_history_counts()
 
 
 func handle_cancel() -> bool:
+    if _mode == &"play": _request_build_mode(); return true
     if tool_wheel.is_open(): tool_wheel.close_wheel(); return true
     if _session.is_placement_active(): _session.cancel_placement(); return true
     if is_asset_drawer_open(): close_asset_drawer(); return true
@@ -156,7 +172,8 @@ func handle_cancel() -> bool:
 
 
 func focus_primary() -> void: mode_switch.focus_primary()
-func focus_bottom_dock() -> void: bottom_dock.focus_primary()
+func focus_bottom_dock() -> void:
+    if _mode == &"build": bottom_dock.focus_primary()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -181,6 +198,7 @@ func _apply_direction(direction: Vector2) -> bool:
 
 
 func _on_selection_changed(entity_ids: Array, primary_entity_id: String, runtime_node: Node3D) -> void:
+    if _mode != &"build": inspector_panel.hide(); _update_editor_controls(); return
     if primary_entity_id.is_empty() or runtime_node == null:
         if inspector_panel.get_context().get("source") == "entity_selection": inspector_panel.clear_context()
         _update_editor_controls(); return
@@ -192,7 +210,7 @@ func _on_selection_changed(entity_ids: Array, primary_entity_id: String, runtime
 func _on_project_changed(project_data: Dictionary) -> void:
     _configuration = project_data.duplicate(true); _update_project_status()
     var primary: String = _session.get_primary_entity_id()
-    if not primary.is_empty():
+    if not primary.is_empty() and _mode == &"build":
         var record: Dictionary = _session.get_bridge().get_entity_record(primary)
         if not record.is_empty(): inspector_panel.show_context(_entity_inspector_context(record, _session.get_selected_ids().size()))
     _update_editor_controls()
@@ -203,6 +221,7 @@ func _on_placement_changed(active: bool, _preview_record: Dictionary) -> void:
 
 
 func _on_viewport_node_pressed(node: Node, hit_position: Vector3, hit_normal: Vector3) -> void:
+    if _mode != &"build": return
     if _session.is_placement_active():
         _session.update_placement_preview(hit_position, {"surface_position": hit_position, "surface_normal": hit_normal}); commit_placement(); return
     var result: Dictionary = _session.select_runtime_node(node, Input.is_key_pressed(KEY_SHIFT))
@@ -214,6 +233,7 @@ func _on_asset_library_status(message: String, _is_error: bool) -> void: status_
 
 
 func _on_placement_action(action: StringName, enabled: bool) -> void:
+    if _mode != &"build": return
     match action:
         &"place":
             if _session.is_placement_active(): _session.cancel_placement()
@@ -227,6 +247,7 @@ func _on_placement_action(action: StringName, enabled: bool) -> void:
 
 
 func _on_tool_wheel_selected(tool: StringName) -> void:
+    if _mode != &"build": return
     match tool:
         &"place": begin_proxy_placement()
         &"duplicate": duplicate_selection()
@@ -237,6 +258,7 @@ func _on_tool_wheel_selected(tool: StringName) -> void:
 
 
 func _on_transform_tool_selected(tool: StringName) -> void:
+    if _mode != &"build": return
     match tool:
         &"duplicate": duplicate_selection()
         &"delete": delete_selection()
@@ -245,7 +267,7 @@ func _on_transform_tool_selected(tool: StringName) -> void:
 
 
 func _on_inspector_closed() -> void:
-    if not _session.get_selected_ids().is_empty(): _session.clear_selection()
+    if _mode == &"build" and not _session.get_selected_ids().is_empty(): _session.clear_selection()
 
 
 func _configure_focus_navigation() -> void:
@@ -275,13 +297,45 @@ func _update_project_status() -> void:
 
 func _update_editor_controls() -> void:
     var counts: Dictionary = _session.get_history_counts(); placement_toolbar.set_history_state(int(counts.get("undo", 0)) > 0, int(counts.get("redo", 0)) > 0); placement_toolbar.set_group_enabled(_session.get_selected_ids().size() >= 2)
-    viewport_center.visible = not _session.is_placement_active() and get_runtime_entity_count() == 0; placement_toolbar.visible = _mode == &"build"; transform_toolbar.visible = _mode == &"build"
+    var is_build := _mode == &"build"
+    viewport_center.visible = is_build and not _session.is_placement_active() and get_runtime_entity_count() == 0
+    placement_toolbar.visible = is_build
+    transform_toolbar.visible = is_build
+    bottom_dock.visible = is_build
+    if not is_build:
+        tool_wheel.close_wheel()
+        bottom_dock.close_asset_drawer()
+        inspector_panel.hide()
 
 
-func _on_mode_changed(mode: StringName) -> void: _mode = mode; _apply_mode_label(); _update_editor_controls(); mode_changed.emit(_mode)
-func _on_tool_selected(tool: StringName) -> void: tool_selected.emit(tool)
+func _on_mode_changed(mode: StringName) -> void:
+    if mode == _mode: return
+    if mode == &"play":
+        var result: Dictionary = _play_session.enter_play(_session)
+        if not result.get("ok", false):
+            status_state.text = "Play startup failed: %s" % str(result.get("errors", ["Unknown error"])[0])
+            mode_switch.set_mode(&"build")
+            return
+        _mode = &"play"
+        status_state.text = "Playing • %s" % str(result.get("controller", "none")).replace("_", " ").capitalize()
+    else:
+        _mode = &"build"
+        var exit_result: Dictionary = _play_session.exit_play()
+        if not exit_result.get("ok", false): status_state.text = "Play cleanup failed: %s" % str(exit_result.get("errors", []))
+        else: _update_project_status()
+    _apply_mode_label(); _update_editor_controls(); mode_changed.emit(_mode)
+
+
+func _request_build_mode() -> void:
+    if _mode == &"play": mode_switch.set_mode(&"build")
+
+
+func _on_tool_selected(tool: StringName) -> void:
+    if _mode == &"build": tool_selected.emit(tool)
 func _apply_mode_label() -> void: mode_badge.text = "%s MODE" % str(_mode).to_upper(); status_mode.text = str(_mode).capitalize()
-func _request_home() -> void: home_requested.emit()
+func _request_home() -> void:
+    if _mode == &"play": _request_build_mode()
+    home_requested.emit()
 
 
 func _format_vector(value: Variant) -> String:

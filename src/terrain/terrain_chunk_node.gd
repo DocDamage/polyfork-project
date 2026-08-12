@@ -35,11 +35,14 @@ func apply_cell(cell: Dictionary, biome: Dictionary) -> Dictionary:
     mesh_instance.set_meta(CELL_ID_META, cell_id)
     add_child(mesh_instance)
     var shape: Shape3D = mesh.create_trimesh_shape()
+    if shape is ConcavePolygonShape3D:
+        shape.backface_collision = true
     if shape != null:
         var body := StaticBody3D.new()
         body.name = "TerrainCollision"
         body.set_meta(CELL_ID_META, cell_id)
         var collision := CollisionShape3D.new()
+        collision.name = "CollisionShape3D"
         collision.shape = shape
         body.add_child(collision)
         add_child(body)

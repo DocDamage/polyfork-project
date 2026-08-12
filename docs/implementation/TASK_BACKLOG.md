@@ -67,7 +67,7 @@ Phase 5 is complete and merged on authoritative `master` by PR #10.
 - [x] P05-T08 Complete Phase 5 integration, scale/performance, gamepad, failure-path, persistence, streaming, and rendered visual verification
 
 ## Phase 6 — Components, Archetypes, Prefabs
-Phase 6 implementation and verification are complete on `dev/phase6-components-prefabs-milestone`. The completion PR targeting authoritative `master` is the only remaining milestone gate.
+Phase 6 is complete and merged on authoritative `master` by PR #11.
 
 - [x] P06-T01 Implement versioned component-definition, component-instance, archetype, prefab, socket, and attachment persistence contracts
 - [x] P06-T02 Implement the initial reusable component registry with defaults, dependencies, conflicts, and validation
@@ -78,7 +78,19 @@ Phase 6 implementation and verification are complete on `dev/phase6-components-p
 - [x] P06-T07 Implement named typed sockets, socket editing, command-backed attachments, and runtime attachment resolution without path-based identity
 - [x] P06-T08 Complete Phase 6 workspace, persistence/restart, scale, keyboard/mouse, gamepad, failure-path, inheritance, attachment, and rendered visual verification
 
+## Phase 7 — Instant Play + Templates
+Phase 7 implementation and verification are complete on `dev/phase7-instant-play-templates-milestone`. Its single completion PR targeting authoritative `master` is the remaining milestone gate.
+
+- [x] P07-T01 Implement versioned template manifests, registry, runtime-module resolution, validation, and failure-safe application
+- [x] P07-T02 Implement deterministic starter materialization, stable starter identity, reusable Player archetype, and project-managed template configuration
+- [x] P07-T03 Implement isolated Build → Play → Build lifecycle, authored-state protection, selection restoration, autosave suspension, and semantic gameplay-input ownership
+- [x] P07-T04 Implement reusable third-person movement/camera/controller foundation on real Phase 5 terrain collision
+- [x] P07-T05 Implement reusable first-person movement/camera/controller foundation on the same runtime and semantic input layer
+- [x] P07-T06 Deliver Blank Sandbox, Third-Person Adventure, FPS, Survival, RPG, Driving, and Walking Simulator manifests without genre-locking projects
+- [x] P07-T07 Verify save/reopen identity, module editability, failure rollback, repeated Play transitions, streaming compatibility, and representative performance
+- [x] P07-T08 Complete keyboard/mouse, gamepad, strict-log, inherited regression, and rendered visual verification for Build/Play and both playable controller foundations
+
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
 
-Do not begin Phase 7 until the Phase 6 completion PR is explicitly merged into authoritative `master`.
+Do not begin Phase 8 until the Phase 7 completion PR is explicitly merged into authoritative `master`.

@@ -4,15 +4,7 @@ extends Control
 signal back_requested
 signal create_requested(configuration: Dictionary)
 
-const TEMPLATES := [
-    {"id": "blank_sandbox", "name": "Blank Sandbox"},
-    {"id": "third_person_adventure", "name": "Third-Person Adventure"},
-    {"id": "fps", "name": "FPS"},
-    {"id": "survival", "name": "Survival"},
-    {"id": "rpg", "name": "RPG"},
-    {"id": "driving", "name": "Driving"},
-    {"id": "walking_simulator", "name": "Walking Simulator"}
-]
+const TemplateRegistry = preload("res://src/templates/template_registry.gd")
 
 @onready var back_button: Button = %BackButton
 @onready var world_name_edit: LineEdit = %WorldNameEdit
@@ -24,11 +16,18 @@ const TEMPLATES := [
 @onready var create_hint: Label = $SafeArea/Content/BottomRow/CreateHint
 
 var _selected_world_size: StringName = &"medium"
+var _template_registry = TemplateRegistry.new()
 
 
 func _ready() -> void:
     _configure_world_size_buttons()
-    _populate_templates()
+    var template_result: Dictionary = _template_registry.load_builtin()
+    if template_result.get("ok", false):
+        _populate_templates()
+    else:
+        template_option.clear()
+        create_button.disabled = true
+        set_error_message("Template registry could not load: %s" % str(template_result.get("errors", [])))
     _configure_focus_navigation()
     back_button.pressed.connect(_request_back)
     create_button.pressed.connect(_request_create)
@@ -64,11 +63,17 @@ func _configure_world_size_buttons() -> void:
 
 func _populate_templates() -> void:
     template_option.clear()
-    for template in TEMPLATES:
+    var default_index := 0
+    for manifest in _template_registry.list_manifests():
         var index := template_option.item_count
-        template_option.add_item(template["name"])
-        template_option.set_item_metadata(index, template["id"])
-    template_option.select(1)
+        var template_id := str(manifest.get("template_id", ""))
+        var display: Dictionary = manifest.get("display", {})
+        template_option.add_item(str(display.get("name", template_id)))
+        template_option.set_item_metadata(index, template_id)
+        if template_id == "third_person_adventure":
+            default_index = index
+    if template_option.item_count > 0:
+        template_option.select(default_index)
 
 
 func _configure_focus_navigation() -> void:
@@ -127,6 +132,9 @@ func _request_create() -> void:
     if clean_name.is_empty():
         set_error_message("Enter a world name before creating the project.")
         world_name_edit.grab_focus()
+        return
+    if template_option.item_count == 0:
+        set_error_message("No valid project templates are available.")
         return
 
     var template_index := template_option.selected

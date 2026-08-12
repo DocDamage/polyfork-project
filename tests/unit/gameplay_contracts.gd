@@ -29,7 +29,7 @@ static func run_checks() -> Array[String]:
     project.cell_ids = test_cells
     var state_errors := state.validate(project)
     if not state_errors.is_empty(): errors.append("Seed component/archetype state must cross-validate: %s" % [state_errors])
-    if state.archetypes.size() != 9: errors.append("Initial archetype registry must contain the nine documented presets.")
+    if state.archetypes.size() != 10: errors.append("Archetype registry must contain the nine Phase 6 presets plus the reusable Phase 7 player archetype.")
 
     var no_existing: Array[String] = []
     var plan := state.dependency_plan(Components.id_for("vehicle_body"), no_existing)

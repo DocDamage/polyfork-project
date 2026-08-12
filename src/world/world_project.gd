@@ -20,6 +20,7 @@ var registries: Dictionary = {
     "archetype_ids": [],
     "visual_graph_ids": []
 }
+var runtime_config: Dictionary = {}
 var editor: Dictionary = {"last_mode": "build"}
 var export_settings: Dictionary = {"preset_id": null}
 var dependencies: Array = []
@@ -34,6 +35,7 @@ func initialize_new(project_title: String, profile_id: StringName, starting_temp
     title = project_title.strip_edges()
     world_profile = profile_id
     template_id = starting_template_id.strip_edges()
+    runtime_config = {}
     var now_msec := int(Time.get_unix_time_from_system() * 1000.0)
     var now_unix := int(now_msec / 1000)
     created_at_unix = now_unix
@@ -55,6 +57,7 @@ func load_dictionary(data: Dictionary) -> Array[String]:
     entity_records = _dictionary_array(data.get("entities", []))
     environment = data.get("environment", {}).duplicate(true)
     registries = data.get("registries", {}).duplicate(true)
+    runtime_config = data.get("runtime", {}).duplicate(true)
     editor = data.get("editor", {}).duplicate(true)
     export_settings = data.get("export", {}).duplicate(true)
     dependencies = data.get("dependencies", []).duplicate(true)
@@ -97,6 +100,9 @@ static func validate_dictionary(data: Dictionary) -> Array[String]:
         for key in ["prefab_ids", "archetype_ids", "visual_graph_ids"]:
             _validate_id_array(registry_data.get(key, []), "registries.%s" % key, errors)
 
+    if data.has("runtime") and not data.get("runtime") is Dictionary:
+        errors.append("World project runtime must be a dictionary.")
+
     for timestamp_key in ["created_at_unix", "updated_at_unix"]:
         if int(data.get(timestamp_key, 0)) <= 0:
             errors.append("World project %s must be a positive Unix timestamp." % timestamp_key)
@@ -128,6 +134,7 @@ func to_dictionary() -> Dictionary:
         "entities": entity_records.duplicate(true),
         "environment": environment.duplicate(true),
         "registries": registries.duplicate(true),
+        "runtime": runtime_config.duplicate(true),
         "editor": editor.duplicate(true),
         "export": export_settings.duplicate(true),
         "dependencies": dependencies.duplicate(true),
