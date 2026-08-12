@@ -136,24 +136,22 @@ func _open_templates_overlay() -> void:
 
 func _open_asset_library_overlay() -> void:
     _overlay_mode = ROUTE_ASSET_LIBRARY
-    var recent: Dictionary = _repository.get_recent_project()
-    var project = recent.get("project")
-    if not recent.get("ok", false) or project == null:
-        _library = null
-        _creator_overlay.call("present", "Asset Library", "Register source folders after creating your first world.", [], {"status": "No project is available yet."}); return
-    var project_dir: String = _repository.get_project_directory(str(project.project_id))
-    _library = AssetLibrary.new(project_dir)
+    _library = AssetLibrary.new("", _shared_asset_library_root())
     var load_result: Dictionary = _library.load_library()
     if not load_result.get("ok", false):
-        _creator_overlay.call("present", "Asset Library", "Library for %s" % str(project.title), [], {"status": "Could not load library: %s" % str(load_result.get("errors", []))}); return
-    _present_library(str(project.title))
+        _creator_overlay.call("present", "Asset Library", "Universal external asset library", [], {"status": "Could not load library: %s" % str(load_result.get("errors", []))}); return
+    for project in _repository.list_projects():
+        var migration: Dictionary = _library.migrate_legacy_sources(_repository.get_project_directory(str(project.project_id)))
+        if not migration.get("ok", false):
+            _creator_overlay.call("present", "Asset Library", "Universal external asset library", [], {"status": "Legacy source migration failed: %s" % str(migration.get("errors", []))}); return
+    _present_library()
 
-func _present_library(project_title: String = "") -> void:
+func _present_library() -> void:
     if _library == null: return
     var items: Array[Dictionary] = []
     for source in _library.get_sources(false):
         items.append({"id": "", "title": str(source.get("display_name", "Asset source")), "subtitle": str(source.get("root_path", ""))})
-    _creator_overlay.call("present", "Asset Library", "Registered source folders for %s. Originals remain read-only." % project_title, items, {
+    _creator_overlay.call("present", "Asset Library", "Universal source folders shared by every world. Originals remain read-only.", items, {
         "allow_path": true,
         "path_placeholder": "C:\\Assets or another external folder",
         "show_primary": true,
@@ -186,19 +184,17 @@ func _on_library_path_submitted(path: String) -> void:
     var result: Dictionary = _library.register_source(path)
     if not result.get("ok", false):
         _creator_overlay.call("set_status", "Could not add source: %s" % str(result.get("errors", []))); return
-    _present_library(_recent_project_title())
+    _present_library()
 
 func _on_overlay_primary_requested() -> void:
     if _overlay_mode != ROUTE_ASSET_LIBRARY or _library == null: return
     var result: Dictionary = _library.scan_all()
     if not result.get("ok", false):
         _creator_overlay.call("set_status", "Scan completed with errors: %s" % str(result.get("errors", []))); return
-    _present_library(_recent_project_title())
+    _present_library()
 
-func _recent_project_title() -> String:
-    var recent: Dictionary = _repository.get_recent_project()
-    var project = recent.get("project")
-    return str(project.title) if project != null else "recent project"
+func _shared_asset_library_root() -> String:
+    return str(ProjectSettings.get_setting("playworld/assets/library_root", "user://asset_library"))
 
 func _close_creator_overlay() -> void:
     _overlay_mode = &""
