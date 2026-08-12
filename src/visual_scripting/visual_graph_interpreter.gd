@@ -69,7 +69,7 @@ func _execute_macro(node_id: String, node: Dictionary) -> Dictionary:
         var input: Dictionary = input_value; var input_name := str(input.get("name", "")); var value_result: Dictionary = _input_value(node_id, input_name)
         if not value_result.get("ok", false): return value_result
         inputs[input_name] = value_result.get("value")
-    var child = PlayWorldVisualGraphInterpreter.new(); child.step_budget = max(1, step_budget - _steps)
+    var child = get_script().new(); child.step_budget = max(1, step_budget - _steps)
     var child_stack: Array[String] = _macro_stack.duplicate(); child_stack.append(current_graph_id)
     var child_context: Dictionary = _context.duplicate(false); child_context["macro_inputs"] = inputs; child_context["plans"] = _plans; child_context["macro_stack"] = child_stack
     var result: Dictionary = child.execute(macro_plan, child_context)
