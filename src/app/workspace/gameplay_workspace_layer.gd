@@ -101,7 +101,9 @@ func _on_gameplay_changed() -> void:
 
 func _refresh_selection() -> void:
     if not _bound or _session == null: return
-    var ids: Array[String] = _session.get_selected_ids(); var primary := _session.get_primary_entity_id(); var primary_name := ""
+    var ids: Array[String] = _session.get_selected_ids()
+    var primary: String = _session.get_primary_entity_id()
+    var primary_name := ""
     var component_views: Array[Dictionary] = []; var socket_views: Array[Dictionary] = []; var prefab_name := ""
     if not primary.is_empty():
         var record: Dictionary = _session.get_bridge().get_entity_record(primary); primary_name = str(record.get("display_name", "Entity"))
@@ -109,25 +111,25 @@ func _refresh_selection() -> void:
             var definition: Dictionary = _gameplay.get_state().get_definition(str(instance.get("definition_id", "")))
             component_views.append({"instance_id": instance.get("instance_id"), "definition_id": instance.get("definition_id"), "display_name": definition.get("display_name", "Component"), "values": instance.get("values", {}).duplicate(true)})
         socket_views = _gameplay.sockets_for_entity(primary)
-        var prefab_id = record.get("prefab_id")
+        var prefab_id: Variant = record.get("prefab_id")
         if prefab_id != null and not str(prefab_id).is_empty(): prefab_name = str(_gameplay.get_state().get_prefab(str(prefab_id)).get("display_name", "Prefab"))
     _panel.set_selection(ids, primary_name, component_views, socket_views, prefab_name)
 
 
 func _on_archetype_requested(archetype_id: String) -> void:
-    var entity_id := _session.get_primary_entity_id()
+    var entity_id: String = _session.get_primary_entity_id()
     if entity_id.is_empty(): _report(_failure("Select one object before applying an archetype."), ""); return
     _report(_gameplay.apply_archetype(entity_id, archetype_id), "Archetype applied")
 
 
 func _on_component_requested(definition_id: String) -> void:
-    var entity_id := _session.get_primary_entity_id()
+    var entity_id: String = _session.get_primary_entity_id()
     if entity_id.is_empty(): _report(_failure("Select one object before adding a component."), ""); return
     _report(_gameplay.add_component(entity_id, definition_id), "Component added")
 
 
 func _on_save_prefab_requested(display_name: String) -> void:
-    var entity_id := _session.get_primary_entity_id()
+    var entity_id: String = _session.get_primary_entity_id()
     if entity_id.is_empty(): _report(_failure("Select a prefab root object first."), ""); return
     var result: Dictionary = _prefabs.save_prefab(entity_id, display_name)
     if result.get("ok", false): _panel.set_prefabs(_gameplay.get_prefabs())
@@ -136,16 +138,16 @@ func _on_save_prefab_requested(display_name: String) -> void:
 
 func _on_instantiate_prefab_requested(prefab_id: String) -> void:
     var position := Vector3.ZERO
-    var runtime_node = _session.get_primary_node()
+    var runtime_node: Node3D = _session.get_primary_node()
     if runtime_node != null: position = runtime_node.global_position + Vector3(2.0, 0.0, 2.0)
     var result: Dictionary = _prefabs.instantiate_prefab(prefab_id, position)
     _report(result, "Prefab placed")
 
 
 func _on_socket_requested(socket_name: String, category: String) -> void:
-    var entity_id := _session.get_primary_entity_id()
+    var entity_id: String = _session.get_primary_entity_id()
     if entity_id.is_empty(): _report(_failure("Select one object before adding a socket."), ""); return
-    var resolved_name := socket_name.strip_edges()
+    var resolved_name: String = socket_name.strip_edges()
     if resolved_name.is_empty(): resolved_name = category
     _report(_sockets.add_socket(entity_id, resolved_name, category, _identity_transform()), "Socket added")
 
