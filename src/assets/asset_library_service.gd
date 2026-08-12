@@ -19,9 +19,10 @@ var _importer
 var _thumbnails
 var _semantic = SemanticSearch.new()
 
-func _init(project_dir: String) -> void:
+func _init(project_dir: String, explicit_library_root: String = "") -> void:
     project_directory = project_dir.trim_suffix("/")
-    managed_root = project_directory.path_join("asset_library")
+    managed_root = explicit_library_root.trim_suffix("/")
+    if managed_root.is_empty(): managed_root = project_directory.path_join("asset_library")
     _registry = SourceRegistry.new(managed_root)
     _catalog = AssetCatalog.new(managed_root)
     _importer = AssetImporter.new(managed_root.path_join("imports"))
@@ -32,7 +33,31 @@ func load_library() -> Dictionary:
     if not source_result.get("ok", false): return source_result
     var catalog_result: Dictionary = _catalog.load_catalog()
     if not catalog_result.get("ok", false): return catalog_result
-    return {"ok": true, "errors": [], "sources": get_sources(), "records": get_records(true)}
+    return {"ok": true, "errors": [], "sources": get_sources(), "records": get_records(true), "managed_root": managed_root}
+
+func migrate_legacy_sources(legacy_project_directory: String) -> Dictionary:
+    var legacy_root := legacy_project_directory.trim_suffix("/").path_join("asset_library")
+    if legacy_root == managed_root or not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(legacy_root)):
+        return {"ok": true, "errors": [], "migrated": 0, "changed": false}
+    var legacy = SourceRegistry.new(legacy_root)
+    var loaded: Dictionary = legacy.load_registry()
+    if not loaded.get("ok", false): return loaded
+    var migrated := 0
+    var changed := false
+    for source in legacy.get_sources(false):
+        var result: Dictionary = _registry.register_source(str(source.get("root_path", "")), str(source.get("display_name", "")))
+        if not result.get("ok", false): return result
+        if bool(result.get("changed", false)):
+            migrated += 1
+            changed = true
+        if not bool(source.get("enabled", true)):
+            var registered: Dictionary = result.get("source", {})
+            var source_id := str(registered.get("source_id", ""))
+            if not source_id.is_empty(): _registry.set_source_enabled(source_id, false)
+    if changed:
+        var scan_result: Dictionary = scan_all()
+        if not scan_result.get("ok", false): return scan_result
+    return {"ok": true, "errors": [], "migrated": migrated, "changed": changed}
 
 func register_source(root_path: String, display_name: String = "") -> Dictionary:
     var result: Dictionary = _registry.register_source(root_path, display_name)
