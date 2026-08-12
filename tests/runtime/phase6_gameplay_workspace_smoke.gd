@@ -35,8 +35,8 @@ func _check_workspace(main_instance: Control, workspace: Control, errors: Array[
     if layer == null or gameplay_button == null:
         errors.append("Real workspace must expose the Phase 6 Gameplay layer and dock entry."); return
     var service = layer.call("get_service"); var panel = layer.call("get_panel")
-    if service == null or panel == null or service.get_definitions().size() != 21 or service.get_archetypes().size() != 9:
-        errors.append("Gameplay workspace must bind the complete component and archetype registries."); return
+    if service == null or panel == null or service.get_definitions().size() != 21 or service.get_archetypes().size() != 10:
+        errors.append("Gameplay workspace must bind the 21 Phase 6 components, nine Phase 6 archetypes, and reusable Phase 7 player archetype."); return
 
     var begin: Dictionary = workspace.call("begin_proxy_placement", "Gameplay Runtime Object")
     if not begin.get("ok", false): errors.append("Gameplay smoke must begin a real Phase 3 placement."); return
