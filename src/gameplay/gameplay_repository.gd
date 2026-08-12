@@ -3,6 +3,7 @@ extends RefCounted
 
 const SafeJsonWriter = preload("res://src/world/safe_json_writer.gd")
 const Contracts = preload("res://src/gameplay/gameplay_contracts.gd")
+const NarrativeContracts = preload("res://src/gameplay/gameplay_narrative_contracts.gd")
 const GameplayState = preload("res://src/gameplay/gameplay_state.gd")
 const BuiltinComponents = preload("res://src/gameplay/builtin_component_library.gd")
 const BuiltinArchetypes = preload("res://src/gameplay/builtin_archetype_library.gd")
@@ -14,7 +15,9 @@ const DOCUMENTS := {
     "prefabs": ["prefabs.json", "prefab_registry", "prefabs"],
     "sockets": ["sockets.json", "socket_registry", "sockets"],
     "attachments": ["attachments.json", "attachment_registry", "attachments"],
-    "prefab_instances": ["prefab_instances.json", "prefab_instance_registry", "prefab_instances"]
+    "prefab_instances": ["prefab_instances.json", "prefab_instance_registry", "prefab_instances"],
+    "dialogues": ["dialogues.json", "dialogue_registry", "dialogues"],
+    "quests": ["quests.json", "quest_registry", "quests"]
 }
 
 var project_directory: String
@@ -53,7 +56,7 @@ func flush_sections(state, sections: Array[String]) -> Dictionary:
         unique[section] = true
     var saved: Array[String] = []; var ordered: Array = unique.keys(); ordered.sort()
     for section_value in ordered:
-        var section := str(section_value); var result := _write_section(section, state.get(section))
+        var section := str(section_value); var result: Dictionary = _write_section(section, state.get(section))
         if not result.get("ok", false): return {"ok": false, "errors": result.get("errors", []), "saved_sections": saved}
         saved.append(section)
     return {"ok": true, "errors": [], "saved_sections": saved}
@@ -138,6 +141,8 @@ func _assign_section(state, section: String, records: Array[Dictionary]) -> void
         "sockets": state.sockets = records
         "attachments": state.attachments = records
         "prefab_instances": state.prefab_instances = records
+        "dialogues": state.dialogues = records
+        "quests": state.quests = records
 
 
 func _record_validator(section: String) -> Callable:
@@ -149,6 +154,8 @@ func _record_validator(section: String) -> Callable:
         "sockets": return Callable(Contracts, "validate_socket")
         "attachments": return Callable(Contracts, "validate_attachment")
         "prefab_instances": return Callable(Contracts, "validate_prefab_instance")
+        "dialogues": return Callable(NarrativeContracts, "validate_dialogue")
+        "quests": return Callable(NarrativeContracts, "validate_quest")
     return Callable()
 
 
@@ -161,6 +168,8 @@ func _id_field(section: String) -> String:
         "sockets": return "socket_id"
         "attachments": return "attachment_id"
         "prefab_instances": return "instance_id"
+        "dialogues": return "dialogue_id"
+        "quests": return "quest_id"
     return "id"
 
 
