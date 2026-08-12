@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 14 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 15 HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -11,101 +11,109 @@ The real project lives on:
 
 Current authoritative `master`:
 
-`cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
+`14085eb703b72d930f39121d3da18362d43cc77d`
 
-This is the verified signed merge commit for **PR #18 — Phase 13 — Export Pipeline**. PR #18 is confirmed merged.
+This is the verified signed merge commit for **PR #19 — Phase 14 — Scale and Polish**. PR #19 is confirmed merged.
 
 The repository default branch `main` remains obsolete starter code. **Never develop from `main`.**
 
 ## MERGED PROJECT STATE
-Phases **0 through 13 are complete and merged** into authoritative `master`.
+Phases **0 through 14 are complete and merged** into authoritative `master`.
 
-Phase 14 is **implemented, fully verified, and represented by open completion PR #19, but is not merged yet**.
-
-## PHASE 14 BRANCH
-Milestone branch:
-
-`dev/phase14-scale-polish-milestone`
-
-It was created from exactly authoritative Phase 13 `master`:
-
-`cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
+Phase 14 delivered deterministic performance presets/budgets, Small/Medium/Large/Stress verification, streaming/procedural hardening, accessibility completion, keyboard/gamepad polish, adaptive layouts, canonical visual parity, performance-aware Play/export behavior, strict regressions, Godot Smoke, rendered evidence, and Windows clean-package verification.
 
 Verified Phase 14 implementation head before documentation-only closeout:
 
 `b15439461cfae5d41d5951b5af808d20f2bb5f1b`
 
-The branch has been developed continuously. No task-by-task Phase 14 PRs were opened.
+## ACTIVE PHASE 15 BRANCH
+Phase 15 — Multiplayer Foundations and Collaboration Roadmap is authorized and active.
 
-## PHASE 14 COMPLETION PR
-PR #19:
+Milestone branch:
 
-`https://github.com/DocDamage/polyfork-project/pull/19`
+`dev/phase15-multiplayer-collaboration-milestone`
 
-Title:
+It was created from exactly authoritative Phase 14 `master`:
 
-`Phase 14 — Scale and Polish`
+`14085eb703b72d930f39121d3da18362d43cc77d`
 
-Base: `master`
+No Phase 15 implementation code has been written yet at handoff establishment.
 
-Head: `dev/phase14-scale-polish-milestone`
+## PHASE 15 PLAN
+Detailed plan:
 
-State: **OPEN — NOT MERGED**
+`docs/implementation/PHASE15_MULTIPLAYER_COLLABORATION_PLAN.md`
 
-Do not merge PR #19 without explicit user authorization.
+Internal checkpoints:
 
-## PHASE 14 DELIVERED STATE
-Phase 14 delivered the Scale and Polish milestone, including:
-- deterministic Low/Balanced/High performance profiles and explicit budgets;
-- deterministic Small/Medium/Large/Stress benchmark fixtures;
-- terrain unchanged-target streaming fast path;
-- incremental/no-op procedural streaming hardening;
-- foliage visibility/shadow quality controls that preserve authored scatter data;
-- performance-aware Play streaming and Environment cadence with accumulated simulation delta;
-- persistent user-only performance, UI-scale, reduced-motion, and density preferences;
-- application-wide focusability and minimum interaction-target policy;
-- real Settings UI replacing the Home placeholder;
-- explicit Home/Settings keyboard/gamepad focus navigation;
-- keyboard/gamepad input-context detection and consistent control hints;
-- adaptive full/compact Home, Settings, and workspace behavior;
-- preserved canonical dark playful Nintendo/Apple-inspired UI language;
-- performance-aware Export UI refresh/status;
-- validated performance-policy propagation through editor Play, procedural rendering behavior, Windows export, standalone loading, and the existing Phase 7 `PlaySession`;
-- backward-compatible Balanced fallback for legacy export packages;
-- strict Phase 14 contracts, scale stress, inherited Phase 6–13 regressions, Godot Smoke, rendered evidence, and real Windows profiled clean-package launch verification.
+**P15-T01 through P15-T10**
 
-Phase 14 did not replace the existing editor/runtime architecture and did not make authored project semantics dependent on quality preset selection.
+Use them as continuous implementation checkpoints. Do not stop for task-by-task PRs.
 
-## VERIFIED PHASE 14 MATRIX
-All six gates passed on implementation head `b15439461cfae5d41d5951b5af808d20f2bb5f1b`:
-- Phase 14 Contracts — `31626516078` — PASS;
-- Phase 14 Scale Stress — `31626516104` — PASS;
-- Phase 14 Inherited Regressions — `31626516105` — PASS;
-- Godot Smoke — `31626516120` — PASS;
-- Phase 14 Visual Evidence — `31626516053` — PASS;
-- Phase 14 Windows Export — `31626516187` — PASS.
+## NEXT AUTHORIZED MILESTONE
+**Phase 15 — Multiplayer Foundations and Collaboration Roadmap**
 
-The Windows export gate built, repeated, copied, and launched:
-- Small with Low preset;
-- Medium with Balanced preset;
-- Large with High preset.
+The milestone must cover at minimum:
+- runtime-only network/session identity compatible with authored persistent stable IDs;
+- Offline / Host / Client session roles and explicit connection lifecycle;
+- project-owned Godot 4.7.1 networking adapter using ENet for the bounded local/LAN/loopback prototype path;
+- host-authoritative gameplay state and validated client action requests;
+- two-peer co-op player spawning, ownership, presence, movement, join/leave, and clean teardown through the existing Phase 7 PlaySession/template/controller paths;
+- bounded generic Phase 10 gameplay replication, prioritizing reusable systems rather than one-off mechanics;
+- multiplayer capability declarations, player-count limits, spawn/team/session metadata, and simple score/objective hooks;
+- bounded Visual Scripting multiplayer events/actions where they fit the existing graph architecture cleanly;
+- accessible Offline/Host/Join Play UX with keyboard-only and gamepad navigation, compact/adaptive behavior, and Phase 14 focus/glyph consistency;
+- host-only runtime save authority, disconnect/rejoin hardening, duplicate/incompatible identity rejection, and complete Play → Build cleanup;
+- Phase 13/14 export integration for multiplayer-capable packages;
+- deterministic two-process exported Windows host/client verification;
+- inherited Phase 6–14 regression coverage;
+- Godot Smoke;
+- rendered multiplayer UI/runtime evidence;
+- a concrete collaborative-authoring roadmap covering identity/permissions, command/conflict model, asset sync, presence, history, security/privacy, offline/reconnect, hosted service requirements, and reuse boundaries with runtime networking;
+- documentation closeout and one Phase 15 completion PR.
 
-Each clean standalone package reused the Phase 7 third-person controller path, verified keyboard/mouse and gamepad semantic input, consumed the intended packaged preset, and passed strict runtime logs.
+## ARCHITECTURE RULES
+- Do not replace the existing editor/runtime architecture.
+- Do not rewrite authored stable IDs into network IDs. Session/network identity must be layered on top and disposable.
+- Offline single-player must remain first-class and unchanged when multiplayer is disabled.
+- Existing Phase 10 gameplay state remains the gameplay source of truth; networking adapts/replicates it rather than creating parallel gameplay systems.
+- Existing Phase 7 semantic gameplay input remains the player-input abstraction.
+- The host is authoritative for replicated gameplay state and runtime save authority in this milestone.
+- Multiplayer lifecycle alone must never mutate authored project data.
+- Real-time collaborative editor mutation is not implemented in Phase 15; only its future architecture/roadmap is required.
 
-Rendered Phase 14 evidence includes full and compact Settings and workspace/export captures at 1600×900 and 1024×640. The captured PNGs were inspected for clipping, overlap, focus visibility, compact-layout usability, and canonical visual consistency.
+## OUT OF SCOPE FOR PHASE 15
+Do not expand this milestone into:
+- production matchmaking;
+- cloud relay/account infrastructure;
+- NAT traversal service;
+- voice chat;
+- anti-cheat platform integration;
+- rollback netcode;
+- dedicated-server fleet orchestration;
+- full real-time collaborative editor implementation.
 
-No intentional Phase 14 performance exceptions remain open.
+## DEVELOPMENT RULE
+Work continuously on:
+
+`dev/phase15-multiplayer-collaboration-milestone`
+
+Intermediate commits and CI runs are expected.
+
+Do **not** stop for task-by-task pull requests.
+
+At Phase 15 completion:
+1. finish P15-T01 through P15-T10;
+2. run the full Phase 15 verification matrix;
+3. run inherited Phase 6–14 regression gates;
+4. run Godot Smoke;
+5. capture rendered UI/runtime evidence;
+6. verify exported Windows two-process host/client behavior;
+7. close the implementation plan, backlog, master plan, and current handoff;
+8. open **one** Phase 15 completion PR targeting authoritative `master`;
+9. **do not merge it without explicit user authorization**.
+
+Do not begin Phase 16 until the Phase 15 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## SECURITY REMINDER
-The tracked `.polyforkAPI` file was removed during Phase 12, but historical credential material remains in Git history and must still be treated as exposed and rotated/revoked separately.
-
-## NEXT AUTHORIZED ACTION
-Review PR #19. Do **not** merge it without explicit user authorization.
-
-Do not begin Phase 15.
-
-## PHASE 15 BLOCK
-Phase 15 remains blocked until:
-1. PR #19 is explicitly merged by user authorization;
-2. the resulting authoritative `master` SHA is verified;
-3. a new Phase 15 handoff is explicitly established.
+The historical `.polyforkAPI` credential material remains present in Git history and must still be treated as exposed. Rotate/revoke it separately.
