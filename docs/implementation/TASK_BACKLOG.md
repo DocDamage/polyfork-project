@@ -115,18 +115,20 @@ Phase 9 is complete and merged on authoritative `master` by PR #14 at `953d8b500
 - [x] P09-T08 Complete save/reopen, Undo/Redo, real external Asset Library/prefab source resolution, missing-reference failures, large-world streaming, terrain coupling, scale/performance, strict-log, inherited smoke, gamepad, and rendered visual verification
 
 ## Phase 10 — Gameplay Framework Breadth
-Phase 10 is active as one continuous milestone on `dev/phase10-gameplay-framework-milestone`, based exactly on authoritative `master` `953d8b500beb1b65485104c85ab9bd5c4ff8224b`. Do not open task-by-task PRs.
+Phase 10 implementation is complete on `dev/phase10-gameplay-framework-milestone`, based exactly on authoritative `master` `953d8b500beb1b65485104c85ab9bd5c4ff8224b`. The milestone is completion-PR gated; do not merge without explicit user authorization.
 
-- [ ] P10-T01 Implement Phase 10 runtime gameplay-state contracts/service keyed by stable entity/component IDs, with disposable Play initialization, validation, event bus, and safe missing-reference behavior
-- [ ] P10-T02 Implement reusable inventory/item/container state, quantity/capacity rules, transfers, pickups, interaction routing, and stable item/reference semantics
-- [ ] P10-T03 Implement reusable doors plus health/damage/healing/death runtime state and interaction/damage event surfaces without genre-specific combat assumptions
-- [ ] P10-T04 Implement basic NPC navigation/AI goals, destinations, wait/idle behavior, target interaction, terrain/runtime integration, and deterministic safe fallback behavior
-- [ ] P10-T05 Implement dialogue scaffolding with stable dialogue/conversation/line IDs, participant references, conditions, choices, runtime progression, and failure-safe missing references
-- [ ] P10-T06 Implement quest scaffolding with stable quest/objective IDs, objective progress, complete/fail state, event-driven updates, and dialogue/interaction hooks
-- [ ] P10-T07 Implement reusable vehicle runtime state with stable vehicle/seat references, driver/passenger occupancy, enter/exit, throttle/steer/brake semantics, and controller/keyboard input routing
-- [ ] P10-T08 Implement explicit save-state component snapshots for opted-in Play fields, crash-safe project-managed save files, schema/corruption handling, and restore without mutating authored Build data
-- [ ] P10-T09 Expose reusable Phase 10 gameplay actions/events to Visual Scripting and the existing Phase 7 semantic input/runtime lifecycle, including repeated Play transition and rollback coverage
-- [ ] P10-T10 Complete Gameplay workspace integration, keyboard/mouse + gamepad UX, save/reopen/failure/scale/performance tests, inherited regression, strict-log gates, rendered evidence, documentation closeout, and one Phase 10 completion PR
+- [x] P10-T01 Implement Phase 10 runtime gameplay-state contracts/service keyed by stable entity/component IDs, with disposable Play initialization, validation, event bus, and safe missing-reference behavior
+- [x] P10-T02 Implement reusable inventory/item/container state, quantity/capacity rules, transfers, pickups, interaction routing, and stable item/reference semantics
+- [x] P10-T03 Implement reusable doors plus health/damage/healing/death runtime state and interaction/damage event surfaces without genre-specific combat assumptions
+- [x] P10-T04 Implement basic NPC navigation/AI goals, destinations, wait/idle behavior, target interaction, terrain/runtime integration, and deterministic safe fallback behavior
+- [x] P10-T05 Implement dialogue scaffolding with stable dialogue/conversation/line IDs, participant references, conditions, choices, runtime progression, and failure-safe missing references
+- [x] P10-T06 Implement quest scaffolding with stable quest/objective IDs, objective progress, complete/fail state, event-driven updates, and dialogue/interaction hooks
+- [x] P10-T07 Implement reusable vehicle runtime state with stable vehicle/seat references, driver/passenger occupancy, enter/exit, throttle/steer/brake semantics, and controller/keyboard input routing
+- [x] P10-T08 Implement explicit save-state component snapshots for opted-in Play fields, crash-safe project-managed save files, schema/corruption handling, and restore without mutating authored Build data
+- [x] P10-T09 Expose reusable Phase 10 gameplay actions/events to Visual Scripting and the existing Phase 7 semantic input/runtime lifecycle, including repeated Play transition and rollback coverage
+- [x] P10-T10 Complete Gameplay workspace integration, keyboard/mouse + gamepad UX, save/reopen/failure/scale/performance tests, inherited regression gate preparation, strict-log gates, rendered evidence, documentation closeout, and one Phase 10 completion PR
+
+Phase 10 push validation includes Godot Smoke, the nine-suite Phase 10 contract matrix, representative 256-entity/768-component scale coverage, and rendered Gameplay/Play evidence. The completion PR is the authoritative inherited Phase 6–9 regression gate against `master`.
 
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
