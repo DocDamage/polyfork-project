@@ -86,25 +86,27 @@ Completed milestone breadth:
 
 Phase 11 was merged by PR #16 at authoritative `master` commit `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
 
-## Phase 12 — AI Creation — IN PROGRESS
-Phase 12 is developed as one continuous milestone on `dev/phase12-ai-creation-milestone`, created from exactly authoritative `master` commit `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
+## Phase 12 — AI Creation — IMPLEMENTATION COMPLETE / COMPLETION PR PENDING
+Phase 12 was developed as one continuous milestone on `dev/phase12-ai-creation-milestone`, created from exactly authoritative `master` commit `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
 
-The milestone must add AI-assisted authoring without granting providers direct write access to project files. Providers only receive bounded query/context surfaces and return validated structured proposals. Authored Build data remains authoritative; Preview is read-only; Execute is routed through the existing command/transaction system so a complete AI operation is one Undo entry.
+Completed milestone breadth:
+- schema-v1 AI request, proposal, action, provider-settings, and execution-history contracts with stable local identities, bounded prompts/context/action counts, and strict untrusted-output validation;
+- user-scoped provider settings under `user://polyfork/ai/providers.json`, with local-only/cloud-consent privacy policy and no credential values persisted into projects or AI history;
+- real OpenAI-compatible HTTP provider support for loopback/local or HTTPS cloud endpoints, environment-variable credential lookup, cancellation/timeouts, structured content/tool-call parsing, malformed/remote-error handling, and explicit local/cloud disclosure;
+- bounded read-only project tools over the real Phase 4 Asset Library and authored project state, including entities, gameplay, terrain/biomes, Visual Scripting, procedural data, Environment state, stable IDs, and sanitized license metadata;
+- provider proposals normalized locally so providers cannot select persisted IDs, with sequential proposal-local aliases for newly placed entities and strict live reference/missing-asset checks;
+- Suggest mode with bounded read-only provider/tool rounds and zero authored mutation;
+- Preview mode with deterministic impact summaries/source-asset lineage and zero authored mutation;
+- Execute mode compiled through existing world/gameplay/Visual Scripting/procedural/Environment snapshot commands inside one outer universal transaction, providing all-or-nothing rollback and exactly one Undo/Redo step;
+- crash-safe project-managed `ai/history.json` execution history with applied/undone status, exact source Asset Library IDs, save/reopen/corruption checks, and no credentials;
+- representative cross-system AI actions for existing-asset/proxy placement and transforms, dependency-aware gameplay composition, validated Visual Scripting graph creation, procedural foliage authoring, and Environment authoring without duplicate subsystem state;
+- native AI workspace behind the existing AI dock entry with provider configuration, local/cloud disclosure, Suggest/Preview/Execute, Preview-before-Execute, cancellation/status, keyboard/mouse, and Y/X/A gamepad paths;
+- Build-only provider authoring enforcement so AI requests/Execute cannot mutate authored state during Play;
+- removal of the unused tracked `.polyforkAPI` token file from the active branch and explicit `.gitignore` protection for local Polyfork token files; historical credential material must still be rotated/revoked separately;
+- seven dedicated Phase 12 contract suites covering foundation/privacy/provider parsing, atomic rollback, crash-safe history, cross-system Execute/Undo/Redo, real workspace/gamepad, bounded provider orchestration, and a 256-entity/64-action scale boundary;
+- inherited Phase 6–11 regression coverage, Godot Smoke, strict-log gates, and rendered Phase 12 visual evidence for validated Preview, atomic Execute, and complete Undo restoration.
 
-Planned milestone breadth:
-- provider-agnostic request/response contracts and provider profiles supporting local and cloud endpoints without persisting credentials in project data;
-- explicit local-only/cloud-consent privacy policy, cloud disclosure, bounded context, and environment/user-scoped credential lookup;
-- real provider adapter support through an OpenAI-compatible structured-chat protocol usable with local or cloud endpoints, while keeping provider interfaces extensible;
-- read-only query tools over the actual Phase 4 Asset Library and current project state, including entities, gameplay, terrain/biomes, Visual Scripting, procedural systems, and environment state;
-- stable schema-v1 AI proposals/actions with strict validation, limits, stable-ID references, and rejection of unavailable/missing assets or unsupported actions;
-- Suggest mode for read-only recommendations and structured plans;
-- Preview mode for deterministic impact summaries/diffs without mutation;
-- Execute mode that composes existing world/gameplay/visual/procedural/environment commands into one atomic universal transaction with rollback and one-step Undo/Redo;
-- project-managed AI execution history recording provider/mode/proposal/transaction lineage and the exact source asset IDs used, without storing credentials;
-- native AI workspace behind the existing AI dock entry with provider/mode/prompt/context/result controls, clear cloud/local disclosure, keyboard/mouse and gamepad authoring paths;
-- deterministic contract, failure, privacy, missing-asset, transaction, scale/performance, inherited regression, Godot Smoke, and rendered visual-evidence gates.
-
-Phase 12 remains completion-PR gated. Open one completion PR targeting authoritative `master` only after the full milestone is implemented and verified. Do not merge it without explicit user authorization. Phase 13 remains blocked until the Phase 12 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+Phase 12 is completion-PR gated. Open one completion PR targeting authoritative `master`; do not merge it without explicit user authorization. Phase 13 remains blocked until the Phase 12 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Phase 13 — Export pipeline
 - Strip editor-only systems.
