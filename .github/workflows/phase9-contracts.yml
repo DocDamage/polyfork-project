@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [foundation, foliage, splines]
+        suite: [foundation, foliage, splines, workspace]
     name: phase9-${{ matrix.suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 8
