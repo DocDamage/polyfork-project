@@ -61,8 +61,10 @@ func _run() -> void:
         if not paint.get("ok", false):
             _fail("Phase 9 capture could not paint tree foliage.")
             return
-    var road: Dictionary = service.create_spline("Creek Road", "road", [Vector3(-82, 0, -48), Vector3(-24, 0, -8), Vector3(28, 0, 8), Vector3(84, 0, 44)], {"width_m": 8.0, "sample_spacing_m": 4.0})
-    var fence: Dictionary = service.create_spline("North Fence", "fence", [Vector3(-76, 0, 52), Vector3(76, 0, 52)], {"sample_spacing_m": 7.0, "segment_source": {"kind": "primitive", "primitive": "post"}})
+    var road_points: Array[Vector3] = [Vector3(-82, 0, -48), Vector3(-24, 0, -8), Vector3(28, 0, 8), Vector3(84, 0, 44)]
+    var fence_points: Array[Vector3] = [Vector3(-76, 0, 52), Vector3(76, 0, 52)]
+    var road: Dictionary = service.create_spline("Creek Road", "road", road_points, {"width_m": 8.0, "sample_spacing_m": 4.0})
+    var fence: Dictionary = service.create_spline("North Fence", "fence", fence_points, {"sample_spacing_m": 7.0, "segment_source": {"kind": "primitive", "primitive": "post"}})
     if not road.get("ok", false) or not fence.get("ok", false):
         _fail("Phase 9 capture could not create road/fence splines.")
         return
