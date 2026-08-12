@@ -19,40 +19,37 @@
 - Ghost placement, contextual toolbar, controller tool wheel, rendered verification.
 
 ## Phase 4 — Universal asset library — COMPLETE
-- Strictly read-only external source-folder registry.
-- Deterministic incremental scanning, SHA-256 indexing, stable asset-ID reconciliation, metadata/licensing, thumbnails, search/filter/favorites/collections, and Phase 3 placement handoff.
-- Merged to authoritative `master` by PR #9.
+- Read-only external source registry, deterministic cataloging/import analysis, thumbnails/search/favorites/collections, and Phase 3 placement handoff.
+- Merged by PR #9.
 
 ## Phase 5 — Terrain + streaming — COMPLETE
-- Runtime terrain sculpting, world partition cells, dirty-cell persistence, deterministic streaming, biome data/material hooks, and rendered verification.
-- Merged to authoritative `master` by PR #10.
+- Terrain sculpting, partition cells, dirty-cell persistence, deterministic streaming, biome hooks, and rendered verification.
+- Merged by PR #10.
 
 ## Phase 6 — Components, archetypes, prefabs — COMPLETE
-- Versioned component/archetype/prefab/socket/attachment contracts.
-- Initial component registry, reversible archetype workflows, managed prefab inheritance/overrides, named sockets, runtime attachments, gameplay workspace, and persistence/scale verification.
-- Merged to authoritative `master` by PR #11.
+- Versioned gameplay composition, archetypes, prefab inheritance/overrides, sockets/attachments, gameplay workspace, and persistence/scale verification.
+- Merged by PR #11.
 
-## Phase 7 — Instant Play and templates — COMPLETE ON MILESTONE BRANCH; MERGE-GATED
-- Real Build → Play → Build transition over the same authored world/viewport foundation.
-- Disposable Play state that cannot rewrite authoritative Build data or authoring Undo/Redo history.
-- Semantic `play_*` gameplay input layer with keyboard/mouse and gamepad mappings owned only for the Play session.
-- Reusable third-person and first-person `CharacterBody3D` controller/camera foundations using Phase 5 terrain collision and streaming focus.
-- Stable reusable Player archetype and deterministic template starter identity.
-- Data-driven manifest/registry/application/module-editing system.
-- Seven initial templates: Blank Sandbox, Third-Person Adventure, FPS, Survival, RPG, Driving, Walking Simulator.
-- Projects may add/remove available runtime modules and change controller style after creation; templates are starters, not permanent genre forks.
-- Save/reopen, failure rollback, unsupported module/profile, repeated transition, input ownership, autosave suspension, representative performance, gamepad, strict-log, and rendered visual verification.
+## Phase 7 — Instant Play and templates — COMPLETE
+- Disposable Build → Play → Build lifecycle, semantic gameplay input, third-person/FPS foundations, deterministic template system, seven starter templates, module editability, persistence/performance/visual verification.
+- Merged by PR #12 at authoritative `master` commit `06df50b6ffb752731d21f1ced88eb2cf1191f542`.
 
-Phase 7 must merge through its single completion PR targeting authoritative `master` before Phase 8 begins.
+## Phase 8 — Visual scripting — IMPLEMENTATION COMPLETE; MERGE-GATED
+- Stable schema-v1 graph/node/connection/variable contracts and project-managed crash-safe graph persistence under `visual_scripting/graphs.json`.
+- Command-backed graph authoring through the existing universal Undo/Redo history and project dirty-state path.
+- Deterministic compiler with node/port/type/cardinality validation, macro reference validation, dependency-cycle rejection, and executable plans.
+- Bounded interpreter for event, flow, value, math, logic, variable, entity-position, macro, and debug nodes.
+- Reusable macro/function graphs with typed interfaces, nested calls, output propagation, compile-time cycle detection, and runtime recursion guards.
+- Native Godot `GraphEdit`/`GraphNode` Logic workspace integrated into the existing dark playful Nintendo-forward / Apple-clean shell.
+- Searchable node palette, graph creation, native connect/disconnect/delete/move, JSON property editing, keyboard/mouse, gamepad X/Y shortcuts, Back/Cancel behavior, and shared history.
+- Debug toolbar with Validate, Run, Breakpoint, Resume, stable-node selection, paused/error state, and live trace/status.
+- Phase 7 PlaySession integration: project-owned event graphs compile and execute at Play entry against disposable runtime state; graph failure rejects Play startup without mutating authored Build data.
+- Stable project graph-reference validation for Phase 7 template `example_graph_references`.
+- Representative 120-graph compile+execute regression workload, strict raw-log gates, baseline/inherited smoke, and rendered Logic/debugger evidence.
 
-## Phase 8 — Visual scripting
-- Graph schema/editor.
-- Initial runtime node set.
-- Graph compiler/interpreter layer.
-- Reusable macros/functions.
-- Debugger/validation.
+Phase 8 is complete on `dev/phase8-visual-scripting-milestone` and must merge through one completion PR to authoritative `master` before Phase 9 begins.
 
-## Phase 9 — Foliage/procedural/splines
+## Phase 9 — Foliage/procedural/splines — NOT STARTED / MERGE-GATED
 - MultiMesh foliage sets.
 - Scatter/paint/erase.
 - Nondestructive procedural sets.

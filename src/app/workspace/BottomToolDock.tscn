@@ -33,94 +33,78 @@ theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 14
-
 [node name="DrawerContent" type="VBoxContainer" parent="AssetDrawer/DrawerMargin"]
 layout_mode = 2
 theme_override_constants/separation = 10
-
 [node name="DrawerHeader" type="HBoxContainer" parent="AssetDrawer/DrawerMargin/DrawerContent"]
 layout_mode = 2
 theme_override_constants/separation = 8
-
 [node name="DrawerTitle" type="Label" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerHeader"]
 layout_mode = 2
 theme_type_variation = &"HeadingLabel"
 text = "Assets"
-
 [node name="AssetSearch" type="LineEdit" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerHeader"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(330, 42)
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Search assets..."
-
 [node name="DensityButton" type="Button" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerHeader"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(108, 42)
 layout_mode = 2
 text = "Large Cards"
-
 [node name="DrawerBody" type="PanelContainer" parent="AssetDrawer/DrawerMargin/DrawerContent"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_type_variation = &"ElevatedPanel"
-
 [node name="BodyMargin" type="MarginContainer" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
-
 [node name="PreviewCards" type="HBoxContainer" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/BodyMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
-
 [node name="Preview1" type="PanelContainer" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/BodyMargin/PreviewCards"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"ElevatedPanel"
-
 [node name="Text" type="Label" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/BodyMargin/PreviewCards/Preview1"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
 text = "LARGE CARD\n\nIndexed asset\npreview"
 horizontal_alignment = 1
 vertical_alignment = 1
-
 [node name="Preview2" type="PanelContainer" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/BodyMargin/PreviewCards"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"ElevatedPanel"
-
 [node name="Text" type="Label" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/BodyMargin/PreviewCards/Preview2"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
 text = "LARGE CARD\n\nIndexed asset\npreview"
 horizontal_alignment = 1
 vertical_alignment = 1
-
 [node name="Preview3" type="PanelContainer" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/BodyMargin/PreviewCards"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"ElevatedPanel"
-
 [node name="Text" type="Label" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/BodyMargin/PreviewCards/Preview3"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
 text = "LARGE CARD\n\nIndexed asset\npreview"
 horizontal_alignment = 1
 vertical_alignment = 1
-
 [node name="Preview4" type="PanelContainer" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/BodyMargin/PreviewCards"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"ElevatedPanel"
-
 [node name="Text" type="Label" parent="AssetDrawer/DrawerMargin/DrawerContent/DrawerBody/BodyMargin/PreviewCards/Preview4"]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
@@ -141,71 +125,61 @@ offset_bottom = -54.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_type_variation = &"DrawerPanel"
-
 [node name="DockMargin" type="MarginContainer" parent="DockPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 5
-
 [node name="Tools" type="HBoxContainer" parent="DockPanel/DockMargin"]
 layout_mode = 2
 theme_override_constants/separation = 5
 alignment = 1
-
 [node name="TerrainButton" type="Button" parent="DockPanel/DockMargin/Tools"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(116, 50)
 layout_mode = 2
 theme_type_variation = &"ToolButton"
 text = "Terrain"
-
 [node name="AssetsButton" type="Button" parent="DockPanel/DockMargin/Tools"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(116, 50)
 layout_mode = 2
 theme_type_variation = &"ToolButton"
 text = "Assets"
-
 [node name="FoliageButton" type="Button" parent="DockPanel/DockMargin/Tools"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(116, 50)
 layout_mode = 2
 theme_type_variation = &"ToolButton"
 text = "Foliage"
-
 [node name="RoadsButton" type="Button" parent="DockPanel/DockMargin/Tools"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(116, 50)
 layout_mode = 2
 theme_type_variation = &"ToolButton"
 text = "Roads"
-
 [node name="WaterButton" type="Button" parent="DockPanel/DockMargin/Tools"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(116, 50)
 layout_mode = 2
 theme_type_variation = &"ToolButton"
 text = "Water"
-
 [node name="GameplayButton" type="Button" parent="DockPanel/DockMargin/Tools"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(116, 50)
 layout_mode = 2
 theme_type_variation = &"ToolButton"
 text = "Gameplay"
-
 [node name="AIButton" type="Button" parent="DockPanel/DockMargin/Tools"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 50)
 layout_mode = 2
 theme_type_variation = &"ToolButton"
 text = "AI"
-
 [node name="MoreButton" type="Button" parent="DockPanel/DockMargin/Tools"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 50)
 layout_mode = 2
 theme_type_variation = &"ToolButton"
-text = "More"
+text = "Logic"

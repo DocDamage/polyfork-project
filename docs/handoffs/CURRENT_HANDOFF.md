@@ -1,160 +1,193 @@
-# POLYFORK PROJECT — PHASE 7 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 8 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
 Use the GitHub connector for repository work.
 
 ## Authoritative branch
+
 The real project lives on:
 
 `master`
 
-Authoritative `master` after the Phase 6 merge:
+Authoritative `master` before the Phase 8 merge:
 
-`14d87bb12a3423dc54fc186f47f491a393537420`
+`06df50b6ffb752731d21f1ced88eb2cf1191f542`
 
-That commit is the verified GitHub merge commit for PR #11 — Phase 6 — Components, Archetypes, Prefabs.
+This is the verified merge commit for PR #12 — Phase 7 — Instant Play + Templates.
 
 The repository default branch `main` remains obsolete starter code.
 
 **Never develop from `main`.**
 
 ## Current milestone status
-Phases 0 through 6 are merged on authoritative `master`.
 
-Phase 7 — Instant Play + Templates — is implementation-complete and verified on:
+Phases 0 through 7 are merged on authoritative `master`.
 
-`dev/phase7-instant-play-templates-milestone`
+Phase 8 — Visual Scripting — is implementation-complete and verified on:
 
-All internal Phase 7 checkpoints P07-T01 through P07-T08 are complete.
+`dev/phase8-visual-scripting-milestone`
 
-Verified implementation head before documentation closeout:
+All internal checkpoints P08-T01 through P08-T08 are complete.
 
-`cfa60cf0bab8637325dc76d8de74a46cabce45f0`
+Phase 8 completion PR:
 
-Verified documentation-closeout head before this PR-number-only handoff update:
-
-`cd4a002ef36c0eb8c4415a76482e6edbd6a818a3`
-
-Completion PR:
-
-- PR #12 — `https://github.com/DocDamage/polyfork-project/pull/12`
-- Title: `Phase 7 — Instant Play + Templates`
+- PR #13 — `https://github.com/DocDamage/polyfork-project/pull/13`
+- Title: `Phase 8 — Visual Scripting`
 - Base: `master`
-- Head: `dev/phase7-instant-play-templates-milestone`
-- Status: **DRAFT — DO NOT MERGE WITHOUT EXPLICIT USER AUTHORIZATION**
+- Head: `dev/phase8-visual-scripting-milestone`
+- Status: **DRAFT / OPEN — DO NOT MERGE WITHOUT EXPLICIT USER AUTHORIZATION**
 
-## Branch integrity
-Before the PR-number-only handoff update:
-- authoritative `master`: `14d87bb12a3423dc54fc186f47f491a393537420`
-- merge base: `14d87bb12a3423dc54fc186f47f491a393537420`
-- Phase 7 branch: ahead only
+Verified implementation/visual candidate before documentation closeout:
+
+`9136c572a8526409e6f6550d79b4afb73adeae30`
+
+Verified documentation-only pre-PR head:
+
+`5f6ab9c41fd07b8d1c9e12ca2c3e94ff8dabb0e5`
+
+This handoff-only PR-number commit is the final pre-merge branch mutation. All workflows on its resulting SHA must be green before PR #13 is considered merge-ready.
+
+## Branch integrity before this handoff-only commit
+
+- authoritative `master`: `06df50b6ffb752731d21f1ced88eb2cf1191f542`
+- merge base: `06df50b6ffb752731d21f1ced88eb2cf1191f542`
+- Phase 8 branch: ahead only
+- ahead of `master`: 16 commits
 - behind `master`: 0 commits
 
-The milestone therefore starts from the exact merged Phase 6 source of truth and contains no `main` ancestry drift.
+No obsolete `main` ancestry was used.
 
-## Green verification on the documentation-closeout head
-- Godot Smoke: `31564651116` — SUCCESS
-  - runtime smoke harness
-  - Phase 1 visual regression capture
-  - Phase 4 Asset Library visual regression capture
-  - Phase 5 Terrain visual regression capture
-- Phase 7 Contracts: `31564651165` — SUCCESS
-  - `phase7-templates`
-  - `phase7-play`
-  - `phase7-playable-controllers`
-- Phase 7 Visual Evidence: `31564651054` — SUCCESS
-- Phase 7 visual evidence artifact: `9129005998`
+## Verified pre-PR runs
 
-All Phase 7 workflows use Godot `4.7.1.stable.official.a13da4feb`. Strict CI rejects `SCRIPT ERROR:` and engine `ERROR:` output.
+### Phase 8 Contracts
+Run `31569145553` — SUCCESS
 
-Representative lifecycle verification completed 100 Build/Play transitions in 27 ms against a broad 12,000 ms CI regression budget. This is a regression proxy, not a hardware FPS claim.
+Passing suites:
+- foundation
+- authoring
+- compiler
+- runtime
+- macros
+- workspace
+- debugger
+- play
+- scale
 
-## Phase 7 delivered
+### Godot Smoke
+Run `31569145551` — SUCCESS
 
-### Real Build ↔ Play lifecycle
-- Build remains the authoritative authored project state.
-- Play deep-loads authored data into disposable runtime state rather than converting the editor into the game.
-- Play-time runtime mutations do not alter authored project data or authoring Undo/Redo history.
-- Build selection is cleared for gameplay and restored on return.
-- Autosave is suspended while disposable Play state owns the session and resumes in Build.
-- Startup failures roll back input, selection, camera, runtime state, and exclusions safely.
-- Repeated Build → Play → Build transitions do not accumulate runtime player nodes.
+Passing inherited jobs:
+- runtime smoke
+- Phase 1 visual capture
+- Phase 4 Asset Library visual capture
+- Phase 5 Terrain visual capture
 
-### Semantic gameplay input
-- gameplay uses a dedicated `play_*` semantic layer separate from editor `ui_*` navigation
-- keyboard/mouse and gamepad mappings drive the same controller actions
-- the Play session removes only gameplay actions it created
-- pre-existing editor/user mappings are preserved
-- Escape/Back/B reliably returns from Play
-- mouse capture is released on exit/failure
+### Phase 8 Visual Evidence
+Run `31569145576` — SUCCESS
 
-### Reusable player/controller foundations
-- one stable reusable Phase 7 `player` archetype extends the nine Phase 6 presets
-- third-person `CharacterBody3D` movement, jump, mouse/right-stick look, camera distance/height
-- first-person `CharacterBody3D` movement, jump option, mouse/right-stick look, eye height
-- both run in the existing editor SubViewport world and drive Phase 5 streaming focus
-- both use real Phase 5 terrain collision/gravity
-- terrain trimesh collision is explicitly two-sided to support robust character contact
-- authored player-start proxy/collision is excluded from Play and restored in Build by stable entity ID
+Artifact:
+- ID `9130618921`
+- digest `sha256:7d80d1d41f61ce543c47c2eb40b80d452f80468fecf41dd274cfaeb8426fe0c0`
 
-### Template system
-Seven schema-v1 built-in manifests are data-driven:
-- Blank Sandbox
-- Third-Person Adventure
-- FPS
-- Survival
-- RPG
-- Driving
-- Walking Simulator
+All dedicated Phase 8 verification runs use Godot `4.7.1.stable.official.a13da4feb` and reject `SCRIPT ERROR:` / engine `ERROR:` output.
 
-Manifests declare required runtime modules, deterministic starter entities, semantic input profile, player archetype, camera configuration, graph/HUD references, export settings, tutorials, and planned later-phase modules.
+Representative scale result: 120 graphs compiled and executed in 17 ms against a broad 12,000 ms CI regression budget. This is a regression proxy, not an FPS claim.
 
-Required unavailable modules, corrupt/incomplete manifests, duplicate IDs, unsupported schema versions, and unsupported input profiles fail closed. Failed application does not partially mutate the project.
+## Phase 8 delivered
 
-Starter world entities receive deterministic stable IDs derived from project/template/starter identity. Materialization is idempotent and leaves a clean authoring history baseline.
+### Graph contracts and persistence
+- schema-v1 project graph registry
+- crash-safe `visual_scripting/graphs.json`
+- stable graph/node/connection/variable identity
+- mirrored `WorldProject.registries.visual_graph_ids`
+- corrupt/future-schema/duplicate/invalid references fail closed
 
-Projects may enable/disable available runtime modules and change controller style after creation without rewriting template identity; templates are starters, not permanent genre forks.
+### Command-backed graph authoring
+- graph create/delete/configure
+- node create/delete/move/configure
+- connection/disconnection
+- graph variables
+- persistence rollback on failed writes
+- shared universal Undo/Redo and project dirty-state path
 
-Driving uses a real Phase 6 Vehicle archetype prototype but does not fabricate later vehicle-driving behavior.
+### Compiler and bounded runtime
+- deterministic executable plans
+- exec/data port validation
+- data type compatibility
+- input cardinality validation
+- event entry validation
+- data dependency-cycle rejection
+- hard runtime step budget
+- variables, flow, math, logic, entity position, and debug trace
 
-### Persistence and identity
-Verified across save/reopen:
-- template ID and runtime module configuration
-- semantic input profile
-- reusable player archetype reference
-- controller/spawn configuration
-- deterministic starter entity IDs
-- world-cell ownership
-- transforms
-- component-instance references
+### Macros/functions
+- Macro Entry / Macro Return
+- typed macro interfaces
+- dynamic Call Macro ports
+- nested execution and output propagation
+- missing-target rejection
+- compile-time dependency-cycle rejection
+- independent runtime recursion guard
 
-External Phase 4 Asset Library source folders remain read-only.
+### Logic workspace
+- bottom dock exposes `Logic`
+- native Godot `GraphEdit` / `GraphNode`
+- searchable node palette
+- event/macro creation
+- native connect/disconnect/delete/move
+- JSON property editing
+- gamepad X/Y authoring shortcuts
+- reliable Back/Cancel and contextual-tool switching
+- shared existing app theme and workspace rather than a parallel editor fork
+
+### Debugger
+- Validate
+- Run
+- Breakpoint
+- Resume
+- stable node selection
+- paused/completed/error state
+- live debug trace/status
+- resume continues existing interpreter state rather than restarting
+
+### Real Play integration
+- active project's graph service is the Phase 7 PlaySession graph provider
+- project registry compiles at Play entry
+- enabled event graphs execute in deterministic graph-ID order
+- stable entity operations target only disposable Play runtime state
+- graph failure rejects Play startup and follows the existing rollback path
+- authored Build project data remains unchanged
+- real Main-scene integration test verifies graph execution count and clean return to Build
+
+### Template graph references
+- template graph references must be stable project graph UUIDs
+- missing and malformed references fail closed
+- no scene paths or hidden template-specific editor forks
 
 ## Rendered evidence inspected
-The Phase 7 artifact contains:
-- `01-third-person-play.png`
-- `02-build-restored.png`
-- `03-fps-play.png`
 
-Manual inspection confirms:
-- Third-Person Play shows the transient player on terrain without the authored player-start proxy or Build-only empty-state UI.
-- Returning to Build restores the editor transform controls, bottom tool dock, and authored editor presentation.
-- FPS Play shows a clean first-person world with Play-only status and no duplicate player-start proxy.
+`01-visual-scripting-graph.png` shows a real connected Start/Literal/Add/Print event graph in the native Logic workspace.
+
+`02-debugger-paused.png` shows the same graph paused at a real `debug.print` breakpoint with Breakpoint active, Resume enabled, stable-node status, and the debugger toolbar visible.
+
+The captures were manually inspected in addition to the automated rendered PASS gate.
 
 ## Documentation closeout
-Updated for actual Phase 7 implementation:
+
+Updated for actual Phase 8 implementation:
 - `docs/implementation/TASK_BACKLOG.md`
 - `docs/implementation/MASTER_IMPLEMENTATION_PLAN.md`
-- `docs/systems/TEMPLATE_SYSTEM.md`
-- `docs/systems/INPUT_GAMEPAD_TOUCH.md`
+- `docs/systems/VISUAL_SCRIPTING.md`
+- `docs/qa/PHASE8_QA.md`
 - this handoff
 
 ## Next action
-1. verify this PR-number-only handoff commit remains green on inherited and Phase 7 gates;
-2. review draft PR #12 and its checks;
-3. merge PR #12 only after explicit user authorization.
 
-After PR #12 is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 8 milestone branch.
+1. verify the final handoff-only PR head remains green across Phase 8, baseline, and all PR-triggered inherited gates;
+2. review PR #13 and its checks;
+3. merge only after explicit user authorization.
 
-**Do not begin Phase 8 before PR #12 is explicitly merged.**
+After PR #13 is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 9 milestone branch.
+
+**Do not begin Phase 9 before PR #13 is explicitly merged.**
