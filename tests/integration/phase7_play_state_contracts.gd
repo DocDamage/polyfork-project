@@ -9,7 +9,7 @@ const GameplayInput = preload("res://src/input/gameplay_input_map.gd")
 const AutosaveService = preload("res://src/world/autosave_service.gd")
 
 class FakeRepository extends RefCounted:
-    var checkpoints := 0
+    var checkpoints: int = 0
     func create_checkpoint(_project) -> Dictionary:
         checkpoints += 1
         return {"ok": true, "errors": []}
@@ -19,7 +19,7 @@ static func run_checks(tree_root: Node) -> Array[String]:
     var errors: Array[String] = []
     GameplayInput.uninstall_owned()
     var fixture := Node3D.new(); fixture.name = "Phase7PlayStateFixture"; tree_root.add_child(fixture)
-    var project = _project_fixture(); var entity_id := str(project.entity_records[0]["entity_id"])
+    var project = _project_fixture(); var entity_id: String = str(project.entity_records[0]["entity_id"])
     var editor = EditorSession.new(); fixture.add_child(editor)
     var bind: Dictionary = editor.bind_project(project, func() -> Dictionary: return {"ok": true, "errors": []})
     if not bind.get("ok", false): fixture.queue_free(); return ["Play state fixture could not bind editor session."]
@@ -27,7 +27,7 @@ static func run_checks(tree_root: Node) -> Array[String]:
     var play = PlaySession.new(); fixture.add_child(play)
     var streaming_positions: Array[Vector3] = []
     play.configure_streaming(func(position_value: Vector3) -> Dictionary: streaming_positions.append(position_value); return {"ok": true, "errors": []})
-    var authored_before := project.to_dictionary(); var history_before := editor.get_history_counts()
+    var authored_before: Dictionary = project.to_dictionary(); var history_before: Dictionary = editor.get_history_counts()
     var enter: Dictionary = play.enter_play(editor)
     if not enter.get("ok", false): errors.append("Play session must start from valid authored data: %s" % enter.get("errors", []))
     else:
@@ -52,7 +52,7 @@ static func run_checks(tree_root: Node) -> Array[String]:
         var repeat_exit: Dictionary = play.exit_play()
         if not repeat_exit.get("ok", false): errors.append("Repeated Play -> Build transition must succeed."); break
     if play.get_child_count() != 0: errors.append("Repeated Play transitions must not accumulate disposable runtime nodes.")
-    var original_runtime := project.runtime_config.duplicate(true); project.runtime_config["resolved_modules"] = ["unknown.phase7.module"]
+    var original_runtime: Dictionary = project.runtime_config.duplicate(true); project.runtime_config["resolved_modules"] = ["unknown.phase7.module"]
     var failed: Dictionary = play.enter_play(editor)
     if failed.get("ok", false) or play.is_active(): errors.append("Failed Play startup must reject and remain safely in Build state.")
     if InputMap.has_action(GameplayInput.MOVE_FORWARD): errors.append("Failed Play startup must not leak gameplay input actions.")
@@ -65,16 +65,16 @@ static func run_checks(tree_root: Node) -> Array[String]:
 
 static func _check_input_bindings() -> Array[String]:
     var errors: Array[String] = []; GameplayInput.install_profile({"profile": "semantic_default"})
-    var move_events := InputMap.action_get_events(GameplayInput.MOVE_FORWARD); var has_key := false; var has_stick := false
+    var move_events: Array[InputEvent] = InputMap.action_get_events(GameplayInput.MOVE_FORWARD); var has_key: bool = false; var has_stick: bool = false
     for event in move_events:
         if event is InputEventKey: has_key = true
         if event is InputEventJoypadMotion: has_stick = true
     if not has_key or not has_stick: errors.append("Gameplay movement must map equivalent keyboard and left-stick actions.")
-    var look_events := InputMap.action_get_events(GameplayInput.LOOK_RIGHT); var has_right_stick := false
+    var look_events: Array[InputEvent] = InputMap.action_get_events(GameplayInput.LOOK_RIGHT); var has_right_stick: bool = false
     for event in look_events:
         if event is InputEventJoypadMotion: has_right_stick = true
     if not has_right_stick: errors.append("Gameplay look must map to right-stick semantic actions.")
-    var exit_events := InputMap.action_get_events(GameplayInput.EXIT); var has_back := false
+    var exit_events: Array[InputEvent] = InputMap.action_get_events(GameplayInput.EXIT); var has_back: bool = false
     for event in exit_events:
         if event is InputEventJoypadButton and event.button_index in [JOY_BUTTON_BACK, JOY_BUTTON_B]: has_back = true
     if not has_back: errors.append("Gameplay input must provide reliable gamepad Back/Cancel behavior.")
@@ -94,7 +94,7 @@ static func _check_autosave_suspension(project) -> Array[String]:
 
 static func _project_fixture():
     var project = WorldProject.new(); project.initialize_new("Play State", &"small", "third_person_adventure")
-    var cell_id := StableId.generate(); var entity_id := StableId.generate(); project.cell_ids = [cell_id]
+    var cell_id: String = StableId.generate(); var entity_id: String = StableId.generate(); project.cell_ids = [cell_id]
     project.entity_records = [{"document_type": WorldEntity.DOCUMENT_TYPE, "schema_version": WorldEntity.SCHEMA_VERSION, "entity_id": entity_id, "display_name": "Player Start", "cell_id": cell_id, "asset_id": null, "prefab_id": null, "parent_entity_id": null, "component_instance_ids": [], "transform": {"position": [0.0, 2.0, 0.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}]
     project.runtime_config = {"schema_version": 1, "template_id": "third_person_adventure", "resolved_modules": ["core.world", "core.semantic_input", "play.third_person"], "planned_modules": [], "starter_entities": [], "starter_entity_ids": {"player_start": entity_id}, "materialized": true, "spawn_entity_id": entity_id, "input_mapping": {"profile": "semantic_default"}, "default_player_archetype": null, "camera_configuration": {"controller": "third_person", "spawn_position": [0.0, 2.0, 0.0]}, "example_graph_references": [], "ui_hud_packages": [], "tutorial_steps": []}
     project.dependencies = project.runtime_config["resolved_modules"].duplicate()
