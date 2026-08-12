@@ -22,8 +22,8 @@ static func run_checks(tree: SceneTree) -> Array[String]:
     if not created.get("ok", false): errors.append("Export workspace fixture project must be created.")
     else:
         var project = created.get("project"); var project_directory: String = repository.get_project_directory(str(project.project_id))
-        var project_bind: Dictionary = workspace.bind_project(project, Callable(), project_directory)
-        if not project_bind.get("ok", false): errors.append("Canonical workspace must bind the export UI fixture project.")
+        var project_bind: Dictionary = workspace.bind_project(project, Callable(workspace, "queue_redraw"), project_directory)
+        if not project_bind.get("ok", false): errors.append("Canonical workspace must bind the export UI fixture project: %s" % str(project_bind.get("errors", [])))
         layer.refresh_state()
         if export_button != null and export_button.disabled: errors.append("Export must become available for a valid Build-mode project with no transient placement.")
         layer.open_panel()
