@@ -57,8 +57,8 @@ static func _materialize_template(registry, template_id: String) -> Array[String
     var before_count: int = project.entity_records.size(); var second: Dictionary = application.materialize_starters(project, manifest, session, gameplay, func(_position: Vector3) -> String: return cell_id)
     if not second.get("ok", false) or bool(second.get("changed", true)): errors.append("Repeated template materialization must be a safe no-op.")
     if project.entity_records.size() != before_count: errors.append("Repeated template materialization must not duplicate runtime starter nodes.")
-    var runtime_json: String = JSON.stringify(project.runtime_config)
-    var entities_json: String = JSON.stringify(project.entity_records)
+    var runtime_signature: Dictionary = _runtime_signature(project.runtime_config)
+    var entity_signatures: Array[String] = _entity_signatures(project.entity_records)
     var save_result: Dictionary = repository.save_project(project)
     if not save_result.get("ok", false): errors.append("Materialized template project must save: %s" % save_result.get("errors", []))
     else:
@@ -66,8 +66,8 @@ static func _materialize_template(registry, template_id: String) -> Array[String
         if not reopen.get("ok", false): errors.append("Materialized template project must reopen: %s" % reopen.get("errors", []))
         else:
             var reopened = reopen["project"]
-            if JSON.stringify(reopened.runtime_config) != runtime_json: errors.append("Template runtime configuration values must persist across reopen.")
-            if JSON.stringify(reopened.entity_records) != entities_json: errors.append("Template starter entity values and identity must persist across reopen.")
+            if _runtime_signature(reopened.runtime_config) != runtime_signature: errors.append("Template runtime configuration values must persist across reopen.")
+            if _entity_signatures(reopened.entity_records) != entity_signatures: errors.append("Template starter entity values and identity must persist across reopen.")
     session.free()
     return errors
 
@@ -87,6 +87,68 @@ static func _module_editability(registry) -> Array[String]:
     if project.template_id != original_template: errors.append("Runtime module changes must not rewrite or genre-lock project identity.")
     if service.set_enabled(project, "future.fake.module", true).get("ok", false): errors.append("Unknown module additions must reject clearly.")
     return errors
+
+
+static func _runtime_signature(runtime: Dictionary) -> Dictionary:
+    var camera: Dictionary = runtime.get("camera_configuration", {})
+    return {
+        "template_id": str(runtime.get("template_id", "")),
+        "resolved_modules": _string_list(runtime.get("resolved_modules", [])),
+        "planned_modules": _string_list(runtime.get("planned_modules", [])),
+        "input_profile": str(runtime.get("input_mapping", {}).get("profile", "")),
+        "default_player_archetype": _optional_text(runtime.get("default_player_archetype")),
+        "controller": str(camera.get("controller", "")),
+        "spawn_position": _number_triplet(camera.get("spawn_position", [])),
+        "starter_ids": _starter_id_list(runtime.get("starter_entity_ids", {})),
+        "materialized": bool(runtime.get("materialized", false)),
+        "spawn_entity_id": _optional_text(runtime.get("spawn_entity_id")),
+        "example_graph_references": _string_list(runtime.get("example_graph_references", [])),
+        "ui_hud_packages": _string_list(runtime.get("ui_hud_packages", []))
+    }
+
+
+static func _entity_signatures(records: Array) -> Array[String]:
+    var signatures: Array[String] = []
+    for value in records:
+        var record: Dictionary = value
+        var transform: Dictionary = record.get("transform", {})
+        signatures.append("|".join([
+            str(record.get("entity_id", "")),
+            str(record.get("cell_id", "")),
+            _optional_text(record.get("asset_id")),
+            _optional_text(record.get("prefab_id")),
+            _optional_text(record.get("parent_entity_id")),
+            ",".join(_string_list(record.get("component_instance_ids", []))),
+            _number_triplet(transform.get("position", [])),
+            _number_triplet(transform.get("rotation_degrees", [])),
+            _number_triplet(transform.get("scale", []))
+        ]))
+    signatures.sort()
+    return signatures
+
+
+static func _starter_id_list(value: Variant) -> Array[String]:
+    var result: Array[String] = []
+    if value is Dictionary:
+        for key in value.keys(): result.append("%s:%s" % [str(key), str(value[key])])
+    result.sort()
+    return result
+
+
+static func _string_list(value: Variant) -> Array[String]:
+    var result: Array[String] = []
+    if value is Array:
+        for item in value: result.append(str(item))
+    return result
+
+
+static func _number_triplet(value: Variant) -> String:
+    if not value is Array or value.size() != 3: return ""
+    return "%.6f,%.6f,%.6f" % [float(value[0]), float(value[1]), float(value[2])]
+
+
+static func _optional_text(value: Variant) -> String:
+    return "" if value == null else str(value)
 
 
 static func _find_entity(records: Array, entity_id: String) -> Dictionary:
