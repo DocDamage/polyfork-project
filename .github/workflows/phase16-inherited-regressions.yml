@@ -1,0 +1,86 @@
+name: Phase 16 Inherited Regressions
+
+on:
+  push:
+    branches:
+      - dev/phase16-milestone
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  inherited-phase4-through-phase15:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 8 --retry-all-errors --retry-delay 3 --connect-timeout 20 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+          ./Godot_v4.7.1-stable_linux.x86_64 --version
+      - name: Run inherited contract suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT=./Godot_v4.7.1-stable_linux.x86_64
+          run_phase() {
+            local phase="$1"
+            local runner="tests/phase${phase}_suite_runner.gd"
+            local env_name="PHASE${phase}_SUITE"
+            if [ ! -f "$runner" ]; then
+              echo "No phase ${phase} suite runner; covered by Godot Smoke."
+              return 0
+            fi
+            mapfile -t suites < <(sed -n 's/^[[:space:]]*"\([^"]*\)"[[:space:]]*:.*/\1/p' "$runner" | sort -u)
+            if [ "${#suites[@]}" -eq 0 ]; then
+              echo "No discoverable suites in $runner" >&2
+              return 1
+            fi
+            for suite in "${suites[@]}"; do
+              local log="phase${phase}-${suite}.log"
+              echo "Running Phase ${phase}: ${suite}"
+              set +e
+              env "${env_name}=${suite}" timeout --signal=TERM --kill-after=10s 240s \
+                "$GODOT" --headless --path . --script "res://${runner}" 2>&1 | tee "$log"
+              local status=${PIPESTATUS[0]}
+              set -e
+              if [ "$status" -ne 0 ]; then return "$status"; fi
+              if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' "$log"; then return 1; fi
+              grep -F "PASS: Phase ${phase} ${suite} contract suite completed." "$log"
+            done
+          }
+          for phase in 4 5 6 7 8 9 10 11 12 13 14 15; do run_phase "$phase"; done
+      - name: Run inherited playable and scale runtime gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT=./Godot_v4.7.1-stable_linux.x86_64
+          run_runtime() {
+            local script="$1" marker="$2" log="$3"
+            set +e
+            timeout --signal=TERM --kill-after=10s 360s "$GODOT" --headless --path . --script "$script" 2>&1 | tee "$log"
+            local status=${PIPESTATUS[0]}
+            set -e
+            if [ "$status" -ne 0 ]; then return "$status"; fi
+            if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' "$log"; then return 1; fi
+            grep -F "$marker" "$log"
+          }
+          run_runtime res://tests/runtime/phase7_playable_smoke.gd 'PASS: Phase 7 playable controller smoke completed.' phase7-playable.log
+          run_runtime res://tests/runtime/phase14_scale_stress.gd 'PASS: Phase 14 Small/Medium/Large/Stress scale smoke completed.' phase14-scale-stress.log
+      - name: Upload inherited regression logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase16-inherited-regression-logs
+          path: phase*.log
+          if-no-files-found: error
+          retention-days: 14
