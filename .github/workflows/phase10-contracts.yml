@@ -50,6 +50,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: phase10-${{ matrix.suite }}-log
-          path: phase10-${PHASE10_SUITE}.log
+          path: phase10-${{ matrix.suite }}.log
           if-no-files-found: error
           retention-days: 14
