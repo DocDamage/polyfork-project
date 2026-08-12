@@ -8,8 +8,8 @@ const TerrainRepository = preload("res://src/terrain/terrain_repository.gd")
 const TerrainRuntime = preload("res://src/terrain/terrain_runtime.gd")
 const SculptCommand = preload("res://src/terrain/terrain_sculpt_command.gd")
 const BiomeCommand = preload("res://src/terrain/terrain_biome_command.gd")
-
 const AUTOSAVE_INTERVAL := 2.0
+const BIOME_PRESET_NAMES := {"meadow": "Meadow", "desert": "Desert", "alpine": "Alpine"}
 
 var _project
 var _editor_session
@@ -25,13 +25,11 @@ var _strength := 4.0
 var _save_accumulator := 0.0
 var _cursor_visual: MeshInstance3D
 
-
 func _init() -> void:
     name = "TerrainController"
     _runtime.name = "TerrainRuntime"
     add_child(_runtime)
     _create_cursor_visual()
-
 
 func bind_project(project, project_directory: String, editor_session, dirty_callback: Callable) -> Dictionary:
     if project == null or editor_session == null or not dirty_callback.is_valid(): return _failure("Terrain controller requires a project, editor session, and dirty callback.")
@@ -42,6 +40,9 @@ func bind_project(project, project_directory: String, editor_session, dirty_call
     var open_result: Dictionary = _repository.open_or_create(project)
     if not open_result.get("ok", false): return open_result
     _state = open_result.get("state")
+    if bool(open_result.get("created", false)):
+        var biome_result: Dictionary = _apply_initial_biome_preset(str(project.runtime_config.get("biome_preset", "meadow")))
+        if not biome_result.get("ok", false): return biome_result
     var resolver_result: Dictionary = _editor_session.bind_cell_resolver(Callable(_state, "cell_id_at_position"))
     if not resolver_result.get("ok", false): return resolver_result
     var runtime_result: Dictionary = _runtime.bind_state(_state)
@@ -52,13 +53,11 @@ func bind_project(project, project_directory: String, editor_session, dirty_call
         var dirty_result: Variant = _dirty_callback.call()
         if dirty_result is Dictionary and not dirty_result.get("ok", false): return _failure("Terrain topology initialized but project dirty signaling failed.")
     set_cursor(Vector3.ZERO); brush_changed.emit(get_brush_state())
-    return {"ok": true, "errors": [], "created": open_result.get("created", false), "recovered_cells": open_result.get("recovered_cells", []), "cell_count": _state.cell_ids().size()}
-
+    return {"ok": true, "errors": [], "created": open_result.get("created", false), "recovered_cells": open_result.get("recovered_cells", []), "cell_count": _state.cell_ids().size(), "biome_preset": str(project.runtime_config.get("biome_preset", "meadow"))}
 
 func set_mode(mode: StringName) -> Dictionary:
     if not [&"raise", &"lower", &"smooth", &"flatten"].has(mode): return _failure("Unsupported terrain brush mode.")
     _mode = mode; brush_changed.emit(get_brush_state()); return {"ok": true, "errors": []}
-
 
 func set_cursor(position_value: Vector3) -> Dictionary:
     if _state == null: return _failure("Terrain controller is not bound.")
@@ -70,27 +69,22 @@ func set_cursor(position_value: Vector3) -> Dictionary:
     _update_cursor_visual(); brush_changed.emit(get_brush_state())
     return {"ok": true, "errors": [], "cursor": _cursor, "cell_id": cell_id}
 
-
 func move_cursor(delta: Vector2) -> Dictionary:
     var cell: Dictionary = _state.get_cell_at_position(_cursor)
     var step: float = 64.0
     if not cell.is_empty(): step = float(cell.get("cell_size_m", 1024.0)) / float(max(1, int(cell.get("resolution", 17)) - 1))
     return set_cursor(_cursor + Vector3(delta.x * step, 0.0, delta.y * step))
 
-
 func set_radius(value: float) -> Dictionary:
     if value <= 0.0: return _failure("Terrain brush radius must be positive.")
     _radius = clamp(value, 16.0, 512.0); _update_cursor_visual(); brush_changed.emit(get_brush_state()); return {"ok": true, "errors": []}
-
 
 func set_strength(value: float) -> Dictionary:
     if value <= 0.0: return _failure("Terrain brush strength must be positive.")
     _strength = clamp(value, 0.05, 32.0); brush_changed.emit(get_brush_state()); return {"ok": true, "errors": []}
 
-
 func set_cursor_visible(value: bool) -> void:
     if _cursor_visual != null: _cursor_visual.visible = value
-
 
 func cycle_mode() -> StringName:
     var modes: Array[StringName] = [&"raise", &"lower", &"smooth", &"flatten"]
@@ -98,7 +92,6 @@ func cycle_mode() -> StringName:
     _mode = modes[(index + 1) % modes.size()]
     brush_changed.emit(get_brush_state())
     return _mode
-
 
 func apply_brush() -> Dictionary:
     if _state == null: return _failure("Terrain controller is not bound.")
@@ -114,7 +107,6 @@ func apply_brush() -> Dictionary:
     set_cursor(_cursor); terrain_status.emit("Terrain sculpt applied", false)
     return {"ok": true, "errors": [], "cell_id": cell_id}
 
-
 func assign_biome(biome_id: String) -> Dictionary:
     if _state == null: return _failure("Terrain controller is not bound.")
     var cell_id: String = _state.cell_id_at_position(_cursor)
@@ -127,7 +119,6 @@ func assign_biome(biome_id: String) -> Dictionary:
     terrain_status.emit("Biome assigned", false)
     return {"ok": true, "errors": [], "cell_id": cell_id}
 
-
 func update_streaming_focus(position_value: Vector3) -> Dictionary:
     var result: Dictionary = _runtime.update_focus(position_value)
     if not result.get("ok", false): return result
@@ -135,7 +126,6 @@ func update_streaming_focus(position_value: Vector3) -> Dictionary:
     if not entity_result.get("ok", false): return entity_result
     result["entity_count"] = _editor_session.get_bridge().entity_count()
     return result
-
 
 func flush_dirty() -> Dictionary:
     if _repository == null or _state == null: return _failure("Terrain controller is not bound.")
@@ -147,7 +137,6 @@ func flush_dirty() -> Dictionary:
         if not entity_result.get("ok", false): return entity_result
     return result
 
-
 func advance(delta: float) -> Dictionary:
     if _state == null: return {"ok": true, "attempted": false, "errors": []}
     _save_accumulator += max(0.0, delta)
@@ -157,13 +146,27 @@ func advance(delta: float) -> Dictionary:
     if not result.get("ok", false): terrain_status.emit(str(result.get("errors", ["Terrain autosave failed."])[0]), true)
     return result
 
-
 func get_state(): return _state
 func get_runtime(): return _runtime
 func get_repository(): return _repository
 func get_biomes() -> Array: return [] if _state == null else _state.biome_registry.get("biomes", []).duplicate(true)
 func get_brush_state() -> Dictionary: return {"mode": str(_mode), "cursor": _cursor, "radius": _radius, "strength": _strength, "cell_id": "" if _state == null else _state.cell_id_at_position(_cursor)}
 
+func _apply_initial_biome_preset(preset_id: String) -> Dictionary:
+    if _state == null or _repository == null: return _failure("Initial biome requires bound terrain state.")
+    var target_name: String = str(BIOME_PRESET_NAMES.get(preset_id.to_lower(), "Meadow"))
+    var target_id := ""
+    for biome in _state.biome_registry.get("biomes", []):
+        if str(biome.get("display_name", "")) == target_name: target_id = str(biome.get("biome_id", "")); break
+    if target_id.is_empty(): return _failure("Starting biome preset is unavailable: %s" % preset_id)
+    for cell_id in _state.cell_ids():
+        var record: Dictionary = _state.get_cell(cell_id)
+        record["biome_id"] = target_id
+        var state_result: Dictionary = _state.set_cell(record, true)
+        if not state_result.get("ok", false): return state_result
+    var save_result: Dictionary = _repository.flush_dirty(_state)
+    if not save_result.get("ok", false): return save_result
+    return {"ok": true, "errors": [], "biome_id": target_id, "preset_id": preset_id}
 
 func _sync_editor_streaming() -> Dictionary:
     if _editor_session == null or _state == null: return _failure("Terrain entity streaming requires a bound editor session.")
@@ -178,7 +181,6 @@ func _sync_editor_streaming() -> Dictionary:
         if not terrain_ids.has(entity_cell) and not active_ids.has(entity_cell): active_ids.append(entity_cell)
     active_ids.sort(); return bridge.set_active_cell_ids(active_ids)
 
-
 func _create_cursor_visual() -> void:
     _cursor_visual = MeshInstance3D.new(); _cursor_visual.name = "TerrainBrushCursor"
     var immediate := ImmediateMesh.new(); immediate.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
@@ -190,12 +192,10 @@ func _create_cursor_visual() -> void:
     _cursor_visual.material_override = material; _cursor_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF; _cursor_visual.visible = false
     add_child(_cursor_visual)
 
-
 func _update_cursor_visual() -> void:
     if _cursor_visual == null: return
     _cursor_visual.position = _cursor + Vector3(0.0, 0.18, 0.0)
     _cursor_visual.scale = Vector3(_radius, 1.0, _radius)
-
 
 func _history_failure(result: Dictionary) -> Dictionary: return _failure(str(result.get("error", "Terrain command failed.")))
 func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}
