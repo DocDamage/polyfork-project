@@ -25,7 +25,7 @@ func _ready() -> void:
     if not input_result.get("ok", false):
         push_error("Standalone runtime input verification failed: %s" % str(input_result.get("errors", [])))
         get_tree().quit(1); return
-    print("Polyfork standalone runtime started. project=%s entities=%d controller=%s preset=%s" % [str(_bundle.get("project_data", {}).get("project_id", "")), int(result.get("entity_count", 0)), str(result.get("controller", "")), str(_bundle.get("performance_profile", {}).get("preset_id", "balanced"))])
+    print("Polyfork standalone runtime started. project=%s entities=%d controller=%s preset=%s" % [str(_bundle.get("project_data", {}).get("project_id", "")), int(result.get("entity_count", 0)), str(result.get("controller", "")), str(result.get("performance_preset", _bundle.get("performance_profile", {}).get("preset_id", "balanced")))])
     print("Polyfork standalone input verified. keyboard_mouse=%s gamepad=%s" % [str(input_result.get("keyboard_mouse", false)), str(input_result.get("gamepad", false))])
     if OS.get_environment("POLYFORK_EXPORT_SMOKE") == "1":
         print("PASS: Phase 13 standalone export runtime smoke completed.")
@@ -56,6 +56,9 @@ func start_runtime() -> Dictionary:
         var quality_result: Dictionary = _procedural_runtime.configure_performance_profile(profile_value)
         if not quality_result.get("ok", false): return quality_result
     _play_session = PlaySession.new(); add_child(_play_session)
+    if profile_value is Dictionary and not profile_value.is_empty():
+        var play_profile_result: Dictionary = _play_session.configure_performance_profile(profile_value)
+        if not play_profile_result.get("ok", false): return play_profile_result
     _play_session.configure_project_directory("user://polyfork_runtime/%s" % str(_bundle.get("project_data", {}).get("project_id", "unknown")))
     _play_session.configure_visual_graph_provider(Callable(self, "_visual_graphs"))
     _play_session.configure_gameplay_state_provider(Callable(self, "_gameplay_snapshot"))

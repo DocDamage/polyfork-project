@@ -20,6 +20,7 @@ const RuntimeDialogueService = preload("res://src/gameplay/runtime_dialogue_serv
 const RuntimeQuestService = preload("res://src/gameplay/runtime_quest_service.gd")
 const RuntimeVehicleService = preload("res://src/gameplay/runtime_vehicle_service.gd")
 const RuntimeSaveStateService = preload("res://src/gameplay/runtime_save_state_service.gd")
+const PerformanceProfiles = preload("res://src/scale/performance_profiles.gd")
 
 var _runtime_state = RuntimeState.new()
 var _gameplay_runtime = RuntimeGameplayState.new()
@@ -47,15 +48,32 @@ var _primary_id := ""
 var _streaming_callback := Callable()
 var _previous_camera: Camera3D
 var _spawn_entity_id := ""
+var _performance_profile: Dictionary = PerformanceProfiles.get_profile(PerformanceProfiles.DEFAULT)
+var _streaming_elapsed := 0.0
+var _environment_elapsed := 0.0
 
 func _init() -> void:
     name = "PlaySession"
+
+func _ready() -> void:
+    _bind_scale_policy()
 
 func configure_streaming(callback: Callable) -> void: _streaming_callback = callback
 func configure_visual_graph_provider(provider: Callable) -> void: _visual_graph_provider = provider
 func configure_gameplay_state_provider(provider: Callable) -> void: _gameplay_state_provider = provider
 func configure_environment_state_provider(provider: Callable) -> void: _environment_state_provider = provider
 func configure_project_directory(project_directory: String) -> void: _project_directory = project_directory.trim_suffix("/")
+
+func configure_performance_profile(profile: Dictionary) -> Dictionary:
+    var errors: Array[String] = PerformanceProfiles.validate_profile(profile)
+    if not errors.is_empty(): return {"ok": false, "errors": errors}
+    _performance_profile = PerformanceProfiles.get_profile(profile.get("preset_id", PerformanceProfiles.DEFAULT))
+    _streaming_elapsed = 0.0
+    _environment_elapsed = 0.0
+    return {"ok": true, "errors": [], "profile": _performance_profile.duplicate(true)}
+
+func get_performance_profile() -> Dictionary:
+    return _performance_profile.duplicate(true)
 
 func enter_play(editor_session) -> Dictionary:
     if _active: return _failure("Play session is already active.")
@@ -125,6 +143,8 @@ func enter_play(editor_session) -> Dictionary:
         return failed
 
     _active = true
+    _streaming_elapsed = 0.0
+    _environment_elapsed = 0.0
     _update_streaming_focus()
     _advance_environment(0.0)
     state_changed.emit(true)
@@ -140,11 +160,13 @@ func enter_play(editor_session) -> Dictionary:
         "visual_graphs": _last_visual_result.get("executed_graphs", 0),
         "environment_active": _environment_active,
         "weather_profile_id": _environment_runtime.get_active_weather_profile_id() if _environment_active and _environment_runtime != null else "",
+        "performance_preset": str(_performance_profile.get("preset_id", "balanced")),
     }
 
 func exit_play() -> Dictionary:
     if not _active and _editor_session == null:
         _clear_environment_runtime(); _clear_runtime_services(); _gameplay_runtime.clear(); _runtime_state.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        _streaming_elapsed = 0.0; _environment_elapsed = 0.0
         return {"ok": true, "errors": [], "changed": false}
     _free_player()
     _clear_environment_runtime()
@@ -160,6 +182,8 @@ func exit_play() -> Dictionary:
     _editor_session = null
     _active = false
     _spawn_entity_id = ""
+    _streaming_elapsed = 0.0
+    _environment_elapsed = 0.0
     if editor_session != null:
         var refresh_result: Dictionary = editor_session.refresh_runtime(false)
         if not refresh_result.get("ok", false):
@@ -187,9 +211,18 @@ func get_last_visual_graph_result() -> Dictionary: return _last_visual_result.du
 
 func _physics_process(delta: float) -> void:
     if not _active: return
-    _update_streaming_focus()
+    _streaming_elapsed += delta
+    _environment_elapsed += delta
+    var streaming_interval: float = float(_performance_profile.get("streaming_focus_interval_ms", 0)) / 1000.0
+    if streaming_interval <= 0.0 or _streaming_elapsed >= streaming_interval:
+        _streaming_elapsed = 0.0
+        _update_streaming_focus()
     _update_vehicle_input()
-    _advance_environment(delta)
+    var environment_interval: float = float(_performance_profile.get("environment_update_interval_ms", 0)) / 1000.0
+    if environment_interval <= 0.0 or _environment_elapsed >= environment_interval:
+        var environment_delta: float = _environment_elapsed
+        _environment_elapsed = 0.0
+        _advance_environment(environment_delta)
     var npc_result: Dictionary = _npc_runtime.advance(delta)
     if not npc_result.get("ok", false): push_warning("NPC runtime advance failed: %s" % str(npc_result.get("errors", [])))
     var vehicle_result: Dictionary = _vehicle_runtime.advance(delta)
@@ -323,6 +356,25 @@ func _on_environment_event(event_name: String, payload: Dictionary) -> void:
     var result: Dictionary = _gameplay_runtime.emit_event(event_name, "", "", payload)
     if not result.get("ok", false): push_warning("Environment gameplay event routing failed: %s" % str(result.get("errors", [])))
 
+func _bind_scale_policy() -> void:
+    var scale_service: Node = get_node_or_null("/root/ScalePolish")
+    if scale_service == null: return
+    _apply_scale_service_profile(scale_service)
+    var callback: Callable = Callable(self, "_on_scale_preferences_changed")
+    if scale_service.has_signal("preferences_changed") and not scale_service.is_connected("preferences_changed", callback):
+        scale_service.connect("preferences_changed", callback)
+
+func _apply_scale_service_profile(scale_service: Node) -> void:
+    if not scale_service.has_method("get_effective_profile"): return
+    var profile_value: Variant = scale_service.call("get_effective_profile")
+    if profile_value is Dictionary:
+        var result: Dictionary = configure_performance_profile(profile_value)
+        if not result.get("ok", false): push_warning("Play performance profile update failed: %s" % str(result.get("errors", [])))
+
+func _on_scale_preferences_changed(_settings: Dictionary) -> void:
+    var scale_service: Node = get_node_or_null("/root/ScalePolish")
+    if scale_service != null: _apply_scale_service_profile(scale_service)
+
 func _clear_environment_runtime() -> void:
     _environment_active = false
     if _environment_runtime == null: return
@@ -351,6 +403,7 @@ func _rollback_startup() -> void:
     _editor_session = null
     _spawn_entity_id = ""
     _selected_ids.clear(); _primary_id = ""; _active = false
+    _streaming_elapsed = 0.0; _environment_elapsed = 0.0
 
 func _free_player() -> void:
     if _player == null: return

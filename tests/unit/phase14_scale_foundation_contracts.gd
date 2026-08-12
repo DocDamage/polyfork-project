@@ -4,6 +4,7 @@ const Profiles = preload("res://src/scale/performance_profiles.gd")
 const Benchmarks = preload("res://src/scale/benchmark_contract.gd")
 const Preferences = preload("res://src/scale/user_preferences.gd")
 const Glyphs = preload("res://src/scale/controller_glyphs.gd")
+const PlaySession = preload("res://src/runtime/play_session.gd")
 
 static func run_checks() -> Array[String]:
     var errors: Array[String] = []
@@ -46,4 +47,11 @@ static func run_checks() -> Array[String]:
     if str(normalized.get("density", "")) != "comfortable": errors.append("Invalid density must normalize to Comfortable.")
     if not Glyphs.action_hint(&"confirm", &"gamepad").begins_with("A"): errors.append("Gamepad confirm hint must use the canonical A glyph.")
     if not Glyphs.action_hint(&"back", &"keyboard_mouse").begins_with("Esc"): errors.append("Keyboard back hint must use the canonical Escape glyph.")
+
+    var play_session = PlaySession.new()
+    var low_result: Dictionary = play_session.configure_performance_profile(Profiles.get_profile(Profiles.LOW))
+    if not low_result.get("ok", false): errors.append("PlaySession must accept a validated Phase 14 performance profile.")
+    elif str(play_session.get_performance_profile().get("preset_id", "")) != "low": errors.append("PlaySession must retain the selected performance policy without changing authored state.")
+    if play_session.configure_performance_profile({"preset_id": "invalid"}).get("ok", true): errors.append("PlaySession must reject malformed performance policy.")
+    play_session.free()
     return errors
