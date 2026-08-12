@@ -35,11 +35,12 @@ func open_or_create(project) -> Dictionary:
     if make_error != OK and make_error != ERR_ALREADY_EXISTS: return _failure("Unable to create gameplay storage directory.")
     var state = GameplayState.new()
     var created: Array[String] = []
-    for section in DOCUMENTS.keys():
-        var load_result: Dictionary = _load_or_seed(str(section))
+    for section_value in DOCUMENTS.keys():
+        var section := str(section_value)
+        var load_result: Dictionary = _load_or_seed(section)
         if not load_result.get("ok", false): return load_result
-        state.set(str(section), load_result.get("records", []))
-        if load_result.get("created", false): created.append(str(section))
+        _assign_section(state, section, _dictionary_array(load_result.get("records", [])))
+        if load_result.get("created", false): created.append(section)
     var errors: Array[String] = state.validate(project)
     if not errors.is_empty(): return {"ok": false, "errors": errors}
     return {"ok": true, "errors": [], "state": state, "created_sections": created, "root": root_directory}
@@ -82,8 +83,8 @@ func _load_or_seed(section: String) -> Dictionary:
         if not read.get("ok", false): return _failure("Gameplay %s document is corrupt or unreadable." % section)
         var errors: Array[String] = _validate_document(section, read.get("data", {}))
         if not errors.is_empty(): return {"ok": false, "errors": errors}
-        return {"ok": true, "errors": [], "records": read["data"].get(str(DOCUMENTS[section][2]), []).duplicate(true), "created": false}
-    var records: Array = _seed_records(section)
+        return {"ok": true, "errors": [], "records": _dictionary_array(read["data"].get(str(DOCUMENTS[section][2]), [])), "created": false}
+    var records: Array[Dictionary] = _dictionary_array(_seed_records(section))
     var write: Dictionary = _write_section(section, records)
     if not write.get("ok", false): return write
     return {"ok": true, "errors": [], "records": records.duplicate(true), "created": true}
@@ -121,6 +122,17 @@ func _validate_document(section: String, data: Dictionary) -> Array[String]:
     return errors
 
 
+func _assign_section(state, section: String, records: Array[Dictionary]) -> void:
+    match section:
+        "definitions": state.definitions = records
+        "instances": state.instances = records
+        "archetypes": state.archetypes = records
+        "prefabs": state.prefabs = records
+        "sockets": state.sockets = records
+        "attachments": state.attachments = records
+        "prefab_instances": state.prefab_instances = records
+
+
 func _record_validator(section: String) -> Callable:
     match section:
         "definitions": return Callable(Contracts, "validate_component_definition")
@@ -149,6 +161,13 @@ func _seed_records(section: String) -> Array:
     if section == "definitions": return BuiltinComponents.definitions()
     if section == "archetypes": return BuiltinArchetypes.definitions()
     return []
+
+
+static func _dictionary_array(records: Array) -> Array[Dictionary]:
+    var result: Array[Dictionary] = []
+    for record in records:
+        if record is Dictionary: result.append(record.duplicate(true))
+    return result
 
 
 static func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}
