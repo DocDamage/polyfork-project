@@ -10,10 +10,13 @@ const RuntimeModules = preload("res://src/templates/runtime_module_registry.gd")
 const ThirdPersonController = preload("res://src/runtime/third_person_controller.gd")
 const FirstPersonController = preload("res://src/runtime/first_person_controller.gd")
 const VisualGraphRuntime = preload("res://src/visual_scripting/visual_graph_runtime_session.gd")
+const RuntimeGameplayState = preload("res://src/gameplay/runtime_gameplay_state.gd")
 
 var _runtime_state = RuntimeState.new()
+var _gameplay_runtime = RuntimeGameplayState.new()
 var _visual_runtime = VisualGraphRuntime.new()
 var _visual_graph_provider := Callable()
+var _gameplay_state_provider := Callable()
 var _last_visual_result: Dictionary = {}
 var _editor_session
 var _player: CharacterBody3D
@@ -27,6 +30,7 @@ var _spawn_entity_id := ""
 func _init() -> void: name = "PlaySession"
 func configure_streaming(callback: Callable) -> void: _streaming_callback = callback
 func configure_visual_graph_provider(provider: Callable) -> void: _visual_graph_provider = provider
+func configure_gameplay_state_provider(provider: Callable) -> void: _gameplay_state_provider = provider
 
 func enter_play(editor_session) -> Dictionary:
     if _active: return _failure("Play session is already active.")
@@ -40,6 +44,18 @@ func enter_play(editor_session) -> Dictionary:
     if not input_result.get("ok", false): return input_result
     var state_result: Dictionary = _runtime_state.load_authored_project(project_data)
     if not state_result.get("ok", false): GameplayInput.uninstall_owned(); return state_result
+
+    var gameplay_snapshot: Dictionary = {"definitions": [], "instances": [], "sockets": [], "attachments": []}
+    if _gameplay_state_provider.is_valid():
+        var gameplay_value: Variant = _gameplay_state_provider.call()
+        if not gameplay_value is Dictionary:
+            _runtime_state.clear(); GameplayInput.uninstall_owned()
+            return _failure("Gameplay state provider returned an invalid value.")
+        gameplay_snapshot = gameplay_value.duplicate(true)
+    var gameplay_result: Dictionary = _gameplay_runtime.initialize(project_data, gameplay_snapshot)
+    if not gameplay_result.get("ok", false):
+        _runtime_state.clear(); GameplayInput.uninstall_owned()
+        return gameplay_result
 
     _editor_session = editor_session; _selected_ids = editor_session.get_selected_ids(); _primary_id = editor_session.get_primary_entity_id(); _previous_camera = get_viewport().get_camera_3d(); editor_session.clear_selection()
     _spawn_entity_id = _optional_id(runtime_config.get("spawn_entity_id"))
@@ -59,12 +75,20 @@ func enter_play(editor_session) -> Dictionary:
     if not _last_visual_result.get("ok", false): var failed := _last_visual_result.duplicate(true); _rollback_startup(); return failed
 
     _active = true; _update_streaming_focus(); state_changed.emit(true)
-    return {"ok": true, "errors": [], "controller": controller, "entity_count": state_result.get("entity_count", 0), "spawn_entity_id": _spawn_entity_id, "visual_graphs": _last_visual_result.get("executed_graphs", 0)}
+    return {
+        "ok": true,
+        "errors": [],
+        "controller": controller,
+        "entity_count": state_result.get("entity_count", 0),
+        "gameplay_component_count": gameplay_result.get("component_count", 0),
+        "spawn_entity_id": _spawn_entity_id,
+        "visual_graphs": _last_visual_result.get("executed_graphs", 0),
+    }
 
 func exit_play() -> Dictionary:
     if not _active and _editor_session == null:
-        GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE; return {"ok": true, "errors": [], "changed": false}
-    _free_player(); _runtime_state.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        _runtime_state.clear(); _gameplay_runtime.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE; return {"ok": true, "errors": [], "changed": false}
+    _free_player(); _runtime_state.clear(); _gameplay_runtime.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     if is_instance_valid(_previous_camera): _previous_camera.current = true
     _previous_camera = null; var editor_session = _editor_session
     if editor_session != null: editor_session.get_bridge().clear_excluded_entity_ids()
@@ -78,6 +102,7 @@ func exit_play() -> Dictionary:
 
 func is_active() -> bool: return _active
 func get_runtime_state(): return _runtime_state
+func get_gameplay_runtime(): return _gameplay_runtime
 func get_player(): return _player
 func get_last_visual_graph_result() -> Dictionary: return _last_visual_result.duplicate(true)
 
@@ -108,7 +133,7 @@ func _update_streaming_focus() -> void:
     if result is Dictionary and not result.get("ok", false): push_warning("Play streaming focus update failed: %s" % str(result.get("errors", [])))
 
 func _rollback_startup() -> void:
-    _free_player(); _runtime_state.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+    _free_player(); _runtime_state.clear(); _gameplay_runtime.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     if is_instance_valid(_previous_camera): _previous_camera.current = true
     _previous_camera = null
     if _editor_session != null:
