@@ -44,7 +44,7 @@ func add_component(entity_id: String, definition_id: String, values: Dictionary 
     if not _entity_exists(entity_id): return _failure("Component target entity does not exist.")
     var stage = _clone_state()
     var project_after := _project_snapshot()
-    var existing := stage.definition_ids_for_entity(entity_id)
+    var existing: Array[String] = stage.definition_ids_for_entity(entity_id)
     if existing.has(definition_id): return _failure("Entity already has this component.")
     var plan: Dictionary = stage.dependency_plan(definition_id, existing)
     if not plan.get("ok", false): return plan
@@ -103,7 +103,7 @@ func apply_archetype(entity_id: String, archetype_id: String) -> Dictionary:
     if not _entity_exists(entity_id): return _failure("Archetype target entity does not exist.")
     var stage = _clone_state(); var archetype: Dictionary = stage.get_archetype(archetype_id)
     if archetype.is_empty(): return _failure("Archetype does not exist.")
-    var project_after := _project_snapshot(); var existing := stage.definition_ids_for_entity(entity_id)
+    var project_after := _project_snapshot(); var existing: Array[String] = stage.definition_ids_for_entity(entity_id)
     var required: Array = archetype.get("required_definition_ids", []).duplicate(); required.sort()
     for definition_id_value in required:
         var definition_id := str(definition_id_value)
