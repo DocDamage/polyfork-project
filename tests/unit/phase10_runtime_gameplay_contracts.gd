@@ -12,22 +12,27 @@ static func run_checks() -> Array[String]:
     var errors: Array[String] = []
     var project = WorldProject.new()
     project.initialize_new("Phase 10 Runtime", &"small", "blank_sandbox")
-    var cell_id := StableId.generate()
-    project.cell_ids = [cell_id]
+    var cell_id: String = StableId.generate()
+    var cell_ids: Array[String] = [cell_id]
+    project.cell_ids = cell_ids
 
     var entity = WorldEntity.new()
     entity.initialize_new("Runtime Actor", cell_id)
-    var entity_id := entity.entity_id
+    var entity_id: String = entity.entity_id
     var health_definition: Dictionary = _definition("health")
-    var health_instance := _instance(entity_id, health_definition, {"max_health": 100.0, "current_health": 100.0})
-    entity.component_instance_ids = [health_instance["instance_id"]]
-    project.entity_records = [entity.to_dictionary()]
+    var health_instance: Dictionary = _instance(entity_id, health_definition, {"max_health": 100.0, "current_health": 100.0})
+    var component_ids: Array[String] = [str(health_instance["instance_id"])]
+    entity.component_instance_ids = component_ids
+    var entity_records: Array[Dictionary] = [entity.to_dictionary()]
+    project.entity_records = entity_records
 
-    var authored_snapshot := {
+    var authored_snapshot: Dictionary = {
         "definitions": Components.definitions(),
         "instances": [health_instance.duplicate(true)],
         "sockets": [],
         "attachments": [],
+        "dialogues": [],
+        "quests": [],
     }
     var authored_before: Dictionary = authored_snapshot.duplicate(true)
     var runtime = RuntimeGameplay.new()
@@ -36,7 +41,8 @@ static func run_checks() -> Array[String]:
         return ["Phase 10 runtime gameplay state must initialize from valid authored state: %s" % str(load_result.get("errors", []))]
     if not runtime.has_component(entity_id, "health"):
         errors.append("Runtime gameplay state must resolve components by reusable component key.")
-    if runtime.component_keys_for_entity(entity_id) != ["health"]:
+    var component_keys: Array[String] = runtime.component_keys_for_entity(entity_id)
+    if component_keys != ["health"]:
         errors.append("Runtime gameplay component lookup must be deterministic.")
 
     var damage_result: Dictionary = runtime.set_component_value(entity_id, "health", "current_health", 65.0)
@@ -64,12 +70,16 @@ static func run_checks() -> Array[String]:
     var missing_owner: Dictionary = health_instance.duplicate(true)
     missing_owner["instance_id"] = StableId.generate()
     missing_owner["owner_entity_id"] = StableId.generate()
-    var bad_result: Dictionary = RuntimeGameplay.new().initialize(project.to_dictionary(), {
+    var bad_snapshot: Dictionary = {
         "definitions": Components.definitions(),
         "instances": [missing_owner],
         "sockets": [],
         "attachments": [],
-    })
+        "dialogues": [],
+        "quests": [],
+    }
+    var bad_runtime = RuntimeGameplay.new()
+    var bad_result: Dictionary = bad_runtime.initialize(project.to_dictionary(), bad_snapshot)
     if bad_result.get("ok", false):
         errors.append("Runtime gameplay state must fail closed when stable entity references do not resolve.")
 
