@@ -1,98 +1,103 @@
-# POLYFORK PROJECT — PHASE 13 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 14 HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
 Use the GitHub connector for repository work.
 
-## Authoritative branch
-The real project lives on `master`.
+## AUTHORITATIVE BRANCH
+The real project lives on:
 
-Authoritative pre-Phase-13 `master`:
+`master`
 
-`b2a97a6cea52c6620f2b826a390a1d2d531ad81e`
+Current authoritative `master`:
 
-This is the verified merge commit for PR #17 — Phase 12 — AI Creation. Phases 0 through 12 are complete and merged.
+`cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
+
+This is the verified signed merge commit for **PR #18 — Phase 13 — Export Pipeline**. PR #18 is confirmed merged.
 
 The repository default branch `main` remains obsolete starter code. **Never develop from `main`.**
 
-## Phase 13 branch and base
-Phase 13 — Export Pipeline was developed continuously on:
+## COMPLETED PROJECT STATE
+Phases **0 through 13 are complete and merged** into authoritative `master`.
 
-`dev/phase13-export-pipeline-milestone`
+Phase 13 delivered the Windows-first export pipeline, including:
+- deterministic export/build manifests and package layout;
+- exact runtime dependency closure;
+- editor-only stripping with runtime-required authored-data preservation;
+- Phase 4 Asset Library dependency resolution and missing-dependency failures;
+- deterministic license/attribution reporting;
+- standalone bootstrap reusing the existing Phase 7 `PlaySession` rather than a parallel runtime;
+- repeat-export replacement/idempotency;
+- Small/Medium/Large Windows package verification;
+- clean-package standalone launch verification;
+- keyboard/mouse and gamepad semantic-input verification;
+- canonical Build → Export UX;
+- strict Phase 13 contracts, inherited Phase 6–12 regressions, Godot Smoke, rendered UI evidence, and exported runtime evidence.
+
+PR #18 finished with all triggered CI green. Several isolated legacy matrix jobs initially failed before tests ran because GitHub-hosted runners could not complete Godot 4.7.1 downloads; reruns succeeded and the actual contract suites passed without code changes.
+
+## SECURITY REMINDER
+The tracked `.polyforkAPI` file was removed during Phase 12, but historical credential material remains in Git history and must still be treated as exposed and rotated/revoked separately.
+
+## PHASE 14 BRANCH
+Phase 14 — Scale and Polish is now unblocked.
+
+Milestone branch:
+
+`dev/phase14-scale-polish-milestone`
 
 The branch was created from exactly:
 
-`b2a97a6cea52c6620f2b826a390a1d2d531ad81e`
+`cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
 
-Before Phase 13 writes, GitHub compare verification reported:
-- merge base exactly `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`;
+Before any Phase 14 writes, GitHub compare verification reported:
+- merge base exactly `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`;
 - 0 commits ahead;
 - 0 commits behind;
 - no obsolete `main` ancestry used.
 
-Verified code-complete head before documentation closeout:
+The first writes on the branch are documentation-only post-merge corrections and Phase 14 planning. No Phase 14 implementation code has been added by this handoff update.
 
-`e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`
+## NEXT MILESTONE
+**Phase 14 — Scale and Polish**
 
-## Phase 13 status
-**Phase 13 implementation is complete.**
+Phase 14 is a hardening/polish milestone, not a new feature-architecture phase. Existing systems from Phases 0–13 remain authoritative and should be optimized, completed, and visually/accessibly hardened rather than replaced.
 
-All internal checkpoints P13-T01 through P13-T10 are complete. The only authorized next repository action is opening the single Phase 13 completion PR to authoritative `master` and leaving it unmerged until explicit user authorization.
+Required milestone outcomes include:
+- reproducible performance telemetry and budgets;
+- Low/Balanced/High quality-performance presets;
+- Small/Medium/Large plus stress-scale profiling;
+- terrain/streaming/entity/procedural/Environment/runtime performance hardening;
+- large-project editor responsiveness and save/open/Build↔Play/export stress verification;
+- accessibility scaling, contrast/focus, reduced-motion, and non-color-only status communication;
+- persistent accessibility preferences;
+- full controller navigation/focus/glyph/remapping coverage across existing workspaces and flows;
+- touch-ready/adaptive layouts without a separate mobile architecture;
+- canonical UI parity sweep against the approved dark playful Nintendo/Apple-inspired design language;
+- removal of generic slate/enterprise visual drift;
+- strict performance/accessibility/controller/adaptive-layout/UI regression gates;
+- inherited Phase 6–13 regression coverage;
+- strict Godot log gates and rendered evidence;
+- documentation closeout.
 
-## Delivered Phase 13 capability
-Phase 13 delivered a Windows-first export pipeline without creating a second runtime architecture.
+Detailed internal checkpoints are defined in:
 
-Delivered behavior includes:
-- schema-v1 export/build manifest and strict safe-path/target/classification validation;
-- exact deterministic runtime source dependency closure;
-- deterministic staging/assembly and repeat-stage replacement;
-- explicit stripping of editor shell/workspaces, authoring-only AI data, checkpoints/recovery copies, and other non-runtime project data;
-- preservation of authored world, terrain, gameplay, Visual Scripting, procedural, Environment, template/runtime, and resolved asset data required by standalone builds;
-- standalone bootstrap through thin adapters into the existing Phase 7 `PlaySession`;
-- Phase 7 runtime-module validation kept separate from Phase 4 Asset Library UUID resolution;
-- deterministic Asset Library dependency discovery/resolution with hard failure for missing or unavailable required assets;
-- read-only external asset sources with only required files staged into managed export space;
-- source lineage plus machine-readable and human-readable license/attribution reporting;
-- explicit unknown/missing-license findings without invented license grants or compatibility claims;
-- generated Windows Godot export preset and actionable export failures;
-- deterministic output/package/report structure;
-- repeat-export idempotency/stale-file replacement;
-- clean-package copy and launch verification outside the editor project;
-- Small/Medium/Large standalone Windows verification;
-- keyboard/mouse and gamepad semantic input verification in exported builds;
-- compact canonical Build-mode Export UI with deterministic output/status controls;
-- Export blocking for no-project, Play, transient placement, and invalid states;
-- strict Phase 13 foundation/runtime/workspace tests;
-- inherited Phase 6–12 regression coverage;
-- Godot Smoke;
-- rendered canonical Build → Export evidence;
-- exported standalone runtime/package evidence.
+`docs/implementation/PHASE14_SCALE_POLISH_PLAN.md`
 
-## Verified completion gates
-All five required workflows passed on the exact code-complete head `e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`:
+and:
 
-- **Godot Smoke** — run `31617622730`
-- **Phase 13 Windows Export** — run `31617622756`
-- **Phase 13 Visual Evidence** — run `31617622776`
-- **Phase 13 Inherited Regressions** — run `31617622791`
-- **Phase 13 Contracts** — run `31617622792`
+`docs/implementation/TASK_BACKLOG.md`
 
-The Windows gate verifies Build/stage/export for Small/Medium/Large projects, repeat export with stale-file replacement, copy to a separate clean-package location, standalone executable launch, Phase 7 third-person runtime boot, and keyboard/mouse plus gamepad semantic input bindings.
+## MILESTONE / PR RULE
+Work Phase 14 continuously on `dev/phase14-scale-polish-milestone`. Intermediate commits and CI runs are expected.
 
-The inherited regression gate verifies Phase 6 through Phase 12 contract coverage plus the Phase 7 playable-controller smoke. The rendered evidence gate captures the actual canonical Build → Export UI state.
+Do **not** stop for task-by-task pull requests.
 
-## Security closeout reminder
-The tracked `.polyforkAPI` file was removed during Phase 12 and is ignored going forward. Its historical credential material remains present in Git history and should still be considered exposed and rotated/revoked separately.
+At Phase 14 completion:
+1. finish the full milestone;
+2. run all Phase 14 and inherited regression gates;
+3. close implementation-plan/backlog/handoff documentation;
+4. open **one** Phase 14 completion PR targeting authoritative `master`;
+5. do not merge it without explicit user authorization.
 
-## Completion PR gate
-Open exactly one Phase 13 completion PR from:
-
-`dev/phase13-export-pipeline-milestone`
-
-to authoritative:
-
-`master`
-
-The PR must remain **unmerged** until explicit user authorization is given.
-
-Do not enable auto-merge. Do not begin Phase 14 until the Phase 13 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+Do not begin Phase 15 until that completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
