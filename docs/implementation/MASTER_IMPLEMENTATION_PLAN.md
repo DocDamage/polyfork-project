@@ -40,23 +40,32 @@
 - Deterministic compiler, bounded interpreter, reusable macros/functions, native GraphEdit Logic workspace, debugger/breakpoints/trace, and Phase 7 PlaySession execution against disposable runtime state.
 - Merged by PR #13 at authoritative `master` commit `6ea437f3d5ea1077773ef797e8f5895e84b5a7f1`.
 
-## Phase 9 — Foliage / Procedural / Splines — IMPLEMENTATION COMPLETE; MERGE-GATED
+## Phase 9 — Foliage / Procedural / Splines — COMPLETE
 - Schema-v1 project-managed procedural registry persisted crash-safely under `procedural/procedural.json`, with stable foliage-set, scatter-layer, stroke, spline, and spline-point identities mirrored into project registries.
 - Nondestructive procedural authoring: saved source records, settings, paint strokes, and erase masks are authoritative; generated foliage and spline runtime geometry is disposable derived state.
-- Real `MultiMeshInstance3D` foliage batches, generated per scatter layer × active terrain cell, with deterministic seeds, density, minimum spacing, height, slope, biome, scale, yaw, surface-normal alignment, and per-cell instance caps.
-- Built-in zero-asset foliage primitives plus real Phase 4 Asset Library scene resolution and Phase 6 inherited-prefab visual-source resolution through stable IDs; missing references fail closed.
-- Command-backed foliage/scatter edits and paint/erase strokes using the existing universal Undo/Redo history, project dirty state, crash-safe persistence, and runtime rollback/refresh behavior.
-- Terrain coupling through stable cell ownership, Phase 5 streaming, terrain height sampling, and `cell_refreshed` regeneration after terrain edits.
-- Stable-ID road/path/fence splines with command-backed control-point create/move/delete/configure, open/closed path data, width, sampling, terrain conformance, and persistence.
-- Road/path runtime ribbons generated as real `ArrayMesh` triangle geometry; fences generated as repeated source meshes in a `MultiMeshInstance3D`; derived spline geometry follows active terrain-cell streaming.
-- Native Procedural contextual workspace integrated behind the existing Foliage and Roads dock entries with a terrain-conforming world cursor, paint/erase controls, density/radius controls, two-point road/path/fence creation, point extension, viewport interaction, keyboard/mouse, gamepad D-pad/A/X, contextual-tool switching, status, and Back/Cancel behavior.
-- Real external Asset Library source + inherited prefab verification, large-world streaming verification, deterministic regeneration, terrain-refresh coupling, strict raw-log gates, baseline smoke, and rendered foliage/road/fence evidence.
-- Representative large-world regression workload: 25 terrain focus transitions, peak 2,142 foliage instances, streamed road/fence regeneration in 2,792 ms against a broad 12,000 ms CI budget.
+- Real `MultiMeshInstance3D` foliage batches with deterministic density/spacing/biome/height/slope/scale/yaw/normal rules, Phase 4 Asset Library and Phase 6 inherited-prefab source resolution, terrain coupling, streaming, and automatic regeneration after terrain edits.
+- Stable-ID road/path/fence splines with command-backed point authoring, generated `ArrayMesh` road/path ribbons, MultiMesh fence segments, streamed geometry, keyboard/mouse and gamepad authoring, strict regression gates, and rendered evidence.
+- Merged by PR #14 at authoritative `master` commit `953d8b500beb1b65485104c85ab9bd5c4ff8224b`.
 
-Phase 9 is complete on `dev/phase9-foliage-procedural-splines-milestone` and must merge through one completion PR to authoritative `master` before Phase 10 begins.
+## Phase 10 — Gameplay Framework Breadth — IMPLEMENTATION COMPLETE / MERGE-GATED
+Phase 10 was developed as one continuous milestone on `dev/phase10-gameplay-framework-milestone`, created from exactly authoritative `master` commit `953d8b500beb1b65485104c85ab9bd5c4ff8224b`.
 
-## Phase 10 — Gameplay framework breadth — NOT STARTED / MERGE-GATED
-- Inventory, interactions, doors, pickups, health/damage, basic NPC navigation/AI, dialogue/quest scaffolding, vehicles, save-state components.
+The milestone extends the existing Phase 6 gameplay-component contracts and Phase 7 disposable Play runtime rather than creating parallel gameplay systems. Authored Build data remains authoritative; mutable gameplay state is session/runtime state unless explicitly saved through the Phase 10 save-state layer.
+
+Completed milestone breadth:
+- stable-ID runtime gameplay-state service initialized from the existing Phase 6 gameplay registry, with validation, disposable Play lifecycle, runtime events, and safe missing-reference handling;
+- reusable inventory/item/container operations with capacity, quantity, transfer, pickup, and interaction routing;
+- reusable doors plus health/damage/healing/death state and event surfaces without genre-specific combat assumptions;
+- basic NPC navigation/AI goals, destinations, waits/idle behavior, target interactions, and deterministic fallback behavior;
+- dialogue scaffolding with stable dialogue/conversation/line/participant references, conditions, choices, and runtime progression;
+- quest scaffolding with stable quest/objective IDs, progress, completion/failure state, and event-driven updates;
+- reusable vehicle runtime state with stable vehicle/seat references, occupancy, enter/exit, throttle/steer/brake semantics, and semantic keyboard/gamepad input;
+- explicit save-state components and project-managed runtime snapshots that restore opted-in Play fields without silently mutating authored Build data;
+- Visual Scripting-facing gameplay actions/events integrated with the existing Phase 7 semantic input/runtime lifecycle;
+- native Gameplay workspace integration with keyboard/mouse and gamepad authoring paths;
+- strict Phase 10 contract gates, representative 256-entity/768-component scale regression coverage, Godot smoke coverage, and rendered Phase 10 visual evidence exercising real Gameplay authoring and disposable Play transitions.
+
+Phase 10 is now completion-PR gated. The milestone completion PR targets authoritative `master`; do not merge it without explicit user authorization. Phase 11 remains blocked until that PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Phase 11 — Environment
 - Day/night, weather profile framework, fog/wind, water integration hooks, biome-environment coupling.

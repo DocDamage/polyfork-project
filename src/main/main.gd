@@ -215,7 +215,9 @@ func _activate_project(project) -> bool:
 
     if workspace_screen.has_method("get_play_session"):
         var play_session = workspace_screen.get_play_session()
+        play_session.configure_project_directory(project_directory)
         play_session.configure_visual_graph_provider(Callable(_visual_scripting_workspace.get_service(), "get_graphs"))
+        play_session.configure_gameplay_state_provider(Callable(_gameplay_workspace.get_service(), "get_runtime_snapshot"))
         if terrain_controller != null:
             play_session.configure_streaming(Callable(terrain_controller, "update_streaming_focus"))
     return true

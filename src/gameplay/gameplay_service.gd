@@ -25,7 +25,7 @@ func bind_project(project, project_directory: String, editor_session, dirty_call
     var result: Dictionary = _repository.open_or_create(project)
     if not result.get("ok", false): _clear(); return result
     _state = result.get("state")
-    return {"ok": true, "errors": [], "definition_count": _state.definitions.size(), "archetype_count": _state.archetypes.size()}
+    return {"ok": true, "errors": [], "definition_count": _state.definitions.size(), "archetype_count": _state.archetypes.size(), "dialogue_count": _state.dialogues.size(), "quest_count": _state.quests.size()}
 
 
 func get_state(): return _state
@@ -35,8 +35,55 @@ func get_archetypes() -> Array[Dictionary]: return [] if _state == null else _co
 func get_prefabs() -> Array[Dictionary]: return [] if _state == null else _copy_array(_state.prefabs)
 func get_sockets() -> Array[Dictionary]: return [] if _state == null else _copy_array(_state.sockets)
 func get_attachments() -> Array[Dictionary]: return [] if _state == null else _copy_array(_state.attachments)
+func get_dialogues() -> Array[Dictionary]: return [] if _state == null else _copy_array(_state.dialogues)
+func get_quests() -> Array[Dictionary]: return [] if _state == null else _copy_array(_state.quests)
 func components_for_entity(entity_id: String) -> Array[Dictionary]: return [] if _state == null else _state.instances_for_entity(entity_id)
 func sockets_for_entity(entity_id: String) -> Array[Dictionary]: return [] if _state == null else _state.sockets_for_owner("entity", entity_id)
+
+
+func get_runtime_snapshot() -> Dictionary:
+    if _state == null:
+        return {"definitions": [], "instances": [], "sockets": [], "attachments": [], "dialogues": [], "quests": []}
+    return {
+        "definitions": _copy_array(_state.definitions),
+        "instances": _copy_array(_state.instances),
+        "sockets": _copy_array(_state.sockets),
+        "attachments": _copy_array(_state.attachments),
+        "dialogues": _copy_array(_state.dialogues),
+        "quests": _copy_array(_state.quests),
+    }
+
+
+func put_dialogue(record: Dictionary) -> Dictionary:
+    if not _is_bound(): return _failure("Gameplay service is not bound.")
+    var reference_errors := _narrative_entity_reference_errors(record, "dialogue")
+    if not reference_errors.is_empty(): return {"ok": false, "errors": reference_errors}
+    var stage = _clone_state(); var put_result: Dictionary = stage.put_dialogue(record)
+    if not put_result.get("ok", false): return put_result
+    return _execute(stage, _project_snapshot(), ["dialogues"], "Update dialogue")
+
+
+func remove_dialogue(dialogue_id: String) -> Dictionary:
+    if not _is_bound(): return _failure("Gameplay service is not bound.")
+    var stage = _clone_state(); var remove_result: Dictionary = stage.remove_dialogue(dialogue_id)
+    if not remove_result.get("ok", false): return remove_result
+    return _execute(stage, _project_snapshot(), ["dialogues"], "Remove dialogue")
+
+
+func put_quest(record: Dictionary) -> Dictionary:
+    if not _is_bound(): return _failure("Gameplay service is not bound.")
+    var reference_errors := _narrative_entity_reference_errors(record, "quest")
+    if not reference_errors.is_empty(): return {"ok": false, "errors": reference_errors}
+    var stage = _clone_state(); var put_result: Dictionary = stage.put_quest(record)
+    if not put_result.get("ok", false): return put_result
+    return _execute(stage, _project_snapshot(), ["quests"], "Update quest")
+
+
+func remove_quest(quest_id: String) -> Dictionary:
+    if not _is_bound(): return _failure("Gameplay service is not bound.")
+    var stage = _clone_state(); var remove_result: Dictionary = stage.remove_quest(quest_id)
+    if not remove_result.get("ok", false): return remove_result
+    return _execute(stage, _project_snapshot(), ["quests"], "Remove quest")
 
 
 func add_component(entity_id: String, definition_id: String, values: Dictionary = {}) -> Dictionary:
@@ -55,10 +102,10 @@ func add_component(entity_id: String, definition_id: String, values: Dictionary 
         if not conflict.get("ok", false): return conflict
         if conflict.get("conflict", false): return _failure("Component conflicts with an existing component and was not applied.")
         var patch := values if str(planned_id) == definition_id else {}
-        var add_result := _stage_add_instance(stage, project_after, entity_id, str(planned_id), patch)
+        var add_result: Dictionary = _stage_add_instance(stage, project_after, entity_id, str(planned_id), patch)
         if not add_result.get("ok", false): return add_result
         created.append(str(add_result.get("instance_id", ""))); current.append(str(planned_id))
-    var execute := _execute(stage, project_after, ["instances"], "Add component")
+    var execute: Dictionary = _execute(stage, project_after, ["instances"], "Add component")
     if execute.get("ok", false): execute["instance_ids"] = created
     return execute
 
@@ -129,7 +176,7 @@ func apply_archetype(entity_id: String, archetype_id: String) -> Dictionary:
             var add_result := _stage_add_instance(stage, project_after, entity_id, planned_id, patch)
             if not add_result.get("ok", false): return add_result
             existing.append(planned_id)
-    var result := _execute(stage, project_after, ["instances"], "Apply archetype")
+    var result: Dictionary = _execute(stage, project_after, ["instances"], "Apply archetype")
     if result.get("ok", false): result["archetype_id"] = archetype_id
     return result
 
@@ -168,14 +215,31 @@ func _execute(stage, project_after: Dictionary, sections: Array[String], label: 
 
 func _clone_state():
     var clone = GameplayState.new()
-    for section in ["definitions", "instances", "archetypes", "prefabs", "sockets", "attachments", "prefab_instances"]: clone.set(section, _copy_array(_state.get(section)))
+    for section in ["definitions", "instances", "archetypes", "prefabs", "sockets", "attachments", "prefab_instances", "dialogues", "quests"]: clone.set(section, _copy_array(_state.get(section)))
     return clone
 
 
 func _state_snapshot(value) -> Dictionary:
     var result: Dictionary = {}
-    for section in ["definitions", "instances", "archetypes", "prefabs", "sockets", "attachments", "prefab_instances"]: result[section] = _copy_array(value.get(section))
+    for section in ["definitions", "instances", "archetypes", "prefabs", "sockets", "attachments", "prefab_instances", "dialogues", "quests"]: result[section] = _copy_array(value.get(section))
     return result
+
+
+func _narrative_entity_reference_errors(record: Dictionary, kind: String) -> Array[String]:
+    var errors: Array[String] = []
+    for entity_id in record.get("participant_entity_ids", []):
+        if not _entity_exists(str(entity_id)): errors.append("%s participant entity reference does not resolve." % kind.capitalize())
+    if kind == "dialogue":
+        for line_value in record.get("lines", []):
+            if not line_value is Dictionary: continue
+            var speaker = line_value.get("speaker_entity_id")
+            if speaker != null and not str(speaker).is_empty() and not _entity_exists(str(speaker)): errors.append("Dialogue speaker entity reference does not resolve.")
+    if kind == "quest":
+        for objective_value in record.get("objectives", []):
+            if not objective_value is Dictionary: continue
+            var target = objective_value.get("target_entity_id")
+            if target != null and not str(target).is_empty() and not _entity_exists(str(target)): errors.append("Quest objective target entity reference does not resolve.")
+    return errors
 
 
 func _project_snapshot() -> Dictionary: return {"entities": _copy_array(_project.entity_records), "registries": _project.registries.duplicate(true)}

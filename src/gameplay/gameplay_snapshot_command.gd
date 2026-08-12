@@ -27,7 +27,7 @@ func _apply(project_snapshot: Dictionary, state_snapshot: Dictionary, rollback_p
     _assign_project(project_snapshot); _assign_state(state_snapshot)
     var project_errors: Array[String] = _project.validate()
     # World entity availability is recoverable and may change because of Delete/Undo or
-    # streaming. Internal gameplay identity/dependency/socket/prefab relationships remain strict.
+    # streaming. Internal gameplay identity/dependency/socket/prefab/narrative relationships remain strict.
     var gameplay_errors: Array[String] = _state.validate(null)
     if not project_errors.is_empty() or not gameplay_errors.is_empty():
         _assign_project(rollback_project); _assign_state(rollback_state)
@@ -54,6 +54,8 @@ func _assign_state(snapshot: Dictionary) -> void:
     _state.sockets = _dictionary_array(snapshot.get("sockets", []))
     _state.attachments = _dictionary_array(snapshot.get("attachments", []))
     _state.prefab_instances = _dictionary_array(snapshot.get("prefab_instances", []))
+    _state.dialogues = _dictionary_array(snapshot.get("dialogues", []))
+    _state.quests = _dictionary_array(snapshot.get("quests", []))
 
 
 static func _dictionary_array(value: Array) -> Array[Dictionary]:
