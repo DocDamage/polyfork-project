@@ -12,6 +12,7 @@ const GameplayRepository = preload("res://src/gameplay/gameplay_repository.gd")
 static func run_checks() -> Array[String]:
     var errors: Array[String] = []
     var project = WorldProject.new(); project.initialize_new("Phase 6 Components", &"small", "blank_sandbox")
+    var test_cells: Array[String] = [StableId.generate()]; project.cell_ids = test_cells
     var dirty_count: Array[int] = [0]
     var session = EditorSession.new()
     var bind: Dictionary = session.bind_project(project, func() -> Dictionary: dirty_count[0] += 1; return {"ok": true, "errors": []})
@@ -59,8 +60,6 @@ static func run_checks() -> Array[String]:
     var undo_archetype: Dictionary = session.undo_edit()
     if not undo_archetype.get("ok", false) or service.components_for_entity(entity_id).size() != before_archetype_count: errors.append("Undo archetype must remove only its authored changes and preserve pre-existing components.")
 
-    # Raw Phase 3 duplication must never alias owner-bound gameplay instance IDs. Fully
-    # configured cloning is provided by prefab instantiation with fresh component identities.
     session.select_entity(entity_id); var duplicate: Dictionary = session.duplicate_selected()
     var duplicate_ids: Array = duplicate.get("entity_ids", []); var duplicate_id := "" if duplicate_ids.is_empty() else str(duplicate_ids[0])
     if not duplicate.get("ok", false) or duplicate_id.is_empty(): errors.append("Gameplay lifecycle fixture must duplicate the authored entity.")
