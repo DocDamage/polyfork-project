@@ -78,12 +78,12 @@ func instantiate_prefab(prefab_id: String, position: Vector3) -> Dictionary:
     if not resolved.get("ok", false): return resolved
     var project_after := _project_snapshot(); var node_entity_ids: Dictionary = {}
     for node in resolved.get("nodes", []): node_entity_ids[str(node.get("node_id", ""))] = StableId.generate()
-    var root_node_id := ""; var root_entity_id := ""; var cell_id := _resolve_cell(position)
+    var root_entity_id := ""; var cell_id := _resolve_cell(position)
     if cell_id.is_empty(): return _failure("Prefab placement position is outside the authored world partition.")
     for node in resolved.get("nodes", []):
         var node_id := str(node.get("node_id", "")); var entity_id := str(node_entity_ids[node_id])
         var parent_node = node.get("parent_node_id"); var parent_entity := "" if parent_node == null else str(node_entity_ids.get(str(parent_node), ""))
-        if parent_entity.is_empty(): root_node_id = node_id; root_entity_id = entity_id
+        if parent_entity.is_empty(): root_entity_id = entity_id
         var world_entity = WorldEntity.new(); world_entity.initialize_new(str(node.get("display_name", "Prefab Entity")), cell_id)
         world_entity.entity_id = entity_id; world_entity.asset_id = "" if node.get("asset_id") == null else str(node.get("asset_id")); world_entity.prefab_id = prefab_id; world_entity.parent_entity_id = parent_entity
         var transform: Dictionary = node.get("transform", {}).duplicate(true)
@@ -101,13 +101,27 @@ func instantiate_prefab(prefab_id: String, position: Vector3) -> Dictionary:
             world_entity.component_instance_ids.append(component_id)
         project_after["entities"].append(world_entity.to_dictionary())
     if root_entity_id.is_empty(): return _failure("Resolved prefab has no root node.")
+
+    # Prefab-node sockets are definition data. Every world instance receives fresh entity-owned
+    # socket identities so attachments never alias another prefab instance or depend on node paths.
+    var entity_socket_ids: Array[String] = []
+    for prefab_socket in resolved.get("sockets", []):
+        var owner_node_id := str(prefab_socket.get("owner_id", ""))
+        var owner_entity_id := str(node_entity_ids.get(owner_node_id, ""))
+        if owner_entity_id.is_empty(): return _failure("Resolved prefab socket owner node is unavailable during instantiation.")
+        var entity_socket: Dictionary = prefab_socket.duplicate(true)
+        entity_socket["socket_id"] = StableId.generate(); entity_socket["owner_kind"] = "entity"; entity_socket["owner_id"] = owner_entity_id
+        var put_socket: Dictionary = stage.put_socket(entity_socket)
+        if not put_socket.get("ok", false): return put_socket
+        entity_socket_ids.append(str(entity_socket["socket_id"]))
+
     var instance_id := StableId.generate(); var instance := {"document_type": Contracts.PREFAB_INSTANCE, "schema_version": Contracts.SCHEMA_VERSION, "instance_id": instance_id, "prefab_id": prefab_id, "root_entity_id": root_entity_id, "node_entity_ids": node_entity_ids.duplicate(true), "overrides": {}}
     var put_instance: Dictionary = stage.put_prefab_instance(instance)
     if not put_instance.get("ok", false): return put_instance
     _ensure_registry_id(project_after, "prefab_ids", prefab_id)
-    var result := _execute(stage, project_after, ["instances", "prefab_instances"], "Instantiate prefab")
+    var result := _execute(stage, project_after, ["instances", "sockets", "prefab_instances"], "Instantiate prefab")
     if result.get("ok", false):
-        _editor_session.select_entity(root_entity_id); result["prefab_instance_id"] = instance_id; result["root_entity_id"] = root_entity_id; result["node_entity_ids"] = node_entity_ids
+        _editor_session.select_entity(root_entity_id); result["prefab_instance_id"] = instance_id; result["root_entity_id"] = root_entity_id; result["node_entity_ids"] = node_entity_ids; result["socket_ids"] = entity_socket_ids
     return result
 
 
@@ -168,14 +182,13 @@ func _resolve_cell(position: Vector3) -> String:
 
 func _clone_state():
     var clone = GameplayState.new()
-    for section in ["definitions", "instances", "archetypes", "prefabs", "sockets", "attachments", "prefab_instances"]: clone.set(section, _copy_array(_state.get(section)))
+    clone.definitions = _copy_array(_state.definitions); clone.instances = _copy_array(_state.instances); clone.archetypes = _copy_array(_state.archetypes)
+    clone.prefabs = _copy_array(_state.prefabs); clone.sockets = _copy_array(_state.sockets); clone.attachments = _copy_array(_state.attachments); clone.prefab_instances = _copy_array(_state.prefab_instances)
     return clone
 
 
 func _state_snapshot(value) -> Dictionary:
-    var result: Dictionary = {}
-    for section in ["definitions", "instances", "archetypes", "prefabs", "sockets", "attachments", "prefab_instances"]: result[section] = _copy_array(value.get(section))
-    return result
+    return {"definitions": _copy_array(value.definitions), "instances": _copy_array(value.instances), "archetypes": _copy_array(value.archetypes), "prefabs": _copy_array(value.prefabs), "sockets": _copy_array(value.sockets), "attachments": _copy_array(value.attachments), "prefab_instances": _copy_array(value.prefab_instances)}
 
 
 func _project_snapshot() -> Dictionary: return {"entities": _copy_array(_project.entity_records), "registries": _project.registries.duplicate(true)}
