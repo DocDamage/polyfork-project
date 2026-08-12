@@ -19,22 +19,10 @@ var _primary_id := ""
 var _streaming_callback := Callable()
 var _previous_camera: Camera3D
 var _spawn_entity_id := ""
-var _spawn_marker: Node3D
-var _spawn_mesh: MeshInstance3D
-var _spawn_mesh_visible := true
-var _spawn_body: StaticBody3D
-var _spawn_collision_shape: CollisionShape3D
-var _spawn_collision_disabled := false
-var _spawn_collision_layer := 0
-var _spawn_collision_mask := 0
 
 
-func _init() -> void:
-    name = "PlaySession"
-
-
-func configure_streaming(callback: Callable) -> void:
-    _streaming_callback = callback
+func _init() -> void: name = "PlaySession"
+func configure_streaming(callback: Callable) -> void: _streaming_callback = callback
 
 
 func enter_play(editor_session) -> Dictionary:
@@ -48,54 +36,41 @@ func enter_play(editor_session) -> Dictionary:
     var input_result: Dictionary = GameplayInput.install_profile(runtime_config.get("input_mapping", {}))
     if not input_result.get("ok", false): return input_result
     var state_result: Dictionary = _runtime_state.load_authored_project(project_data)
-    if not state_result.get("ok", false):
-        GameplayInput.uninstall_owned()
-        return state_result
+    if not state_result.get("ok", false): GameplayInput.uninstall_owned(); return state_result
 
     _editor_session = editor_session
-    _selected_ids = editor_session.get_selected_ids()
-    _primary_id = editor_session.get_primary_entity_id()
+    _selected_ids = editor_session.get_selected_ids(); _primary_id = editor_session.get_primary_entity_id()
     _previous_camera = get_viewport().get_camera_3d()
     editor_session.clear_selection()
-    _disable_spawn_marker(str(runtime_config.get("spawn_entity_id", "")))
+    _spawn_entity_id = str(runtime_config.get("spawn_entity_id", ""))
+    var exclusion_result: Dictionary = editor_session.get_bridge().set_excluded_entity_ids([] if _spawn_entity_id.is_empty() else [_spawn_entity_id])
+    if not exclusion_result.get("ok", false): _rollback_startup(); return exclusion_result
 
     var camera_config: Dictionary = runtime_config.get("camera_configuration", {}).duplicate(true)
     _apply_spawn_position(camera_config, runtime_config)
     var controller := str(camera_config.get("controller", "none"))
     var spawn_result: Dictionary = _spawn_player(controller, camera_config)
-    if not spawn_result.get("ok", false):
-        _rollback_startup()
-        return spawn_result
+    if not spawn_result.get("ok", false): _rollback_startup(); return spawn_result
 
-    _active = true
-    _update_streaming_focus()
-    state_changed.emit(true)
-    return {"ok": true, "errors": [], "controller": controller, "entity_count": state_result.get("entity_count", 0), "spawn_entity_id": runtime_config.get("spawn_entity_id")}
+    _active = true; _update_streaming_focus(); state_changed.emit(true)
+    return {"ok": true, "errors": [], "controller": controller, "entity_count": state_result.get("entity_count", 0), "spawn_entity_id": _spawn_entity_id}
 
 
 func exit_play() -> Dictionary:
     if not _active and _editor_session == null:
-        GameplayInput.uninstall_owned()
-        Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
         return {"ok": true, "errors": [], "changed": false}
-    _free_player()
-    _restore_spawn_marker()
-    _runtime_state.clear()
-    GameplayInput.uninstall_owned()
-    Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+    _free_player(); _runtime_state.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     if is_instance_valid(_previous_camera): _previous_camera.current = true
     _previous_camera = null
     var editor_session = _editor_session
-    _editor_session = null
-    _active = false
+    if editor_session != null: editor_session.get_bridge().clear_excluded_entity_ids()
+    _editor_session = null; _active = false; _spawn_entity_id = ""
     if editor_session != null:
         var refresh_result: Dictionary = editor_session.refresh_runtime(false)
-        if not refresh_result.get("ok", false):
-            state_changed.emit(false)
-            return refresh_result
+        if not refresh_result.get("ok", false): state_changed.emit(false); return refresh_result
         if editor_session.has_method("restore_selection"): editor_session.restore_selection(_selected_ids, _primary_id)
-    _selected_ids.clear(); _primary_id = ""
-    state_changed.emit(false)
+    _selected_ids.clear(); _primary_id = ""; state_changed.emit(false)
     return {"ok": true, "errors": [], "changed": true}
 
 
@@ -109,19 +84,16 @@ func _physics_process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-    if not _active: return
-    if event.is_action_pressed(GameplayInput.EXIT):
-        exit_requested.emit()
-        get_viewport().set_input_as_handled()
+    if _active and event.is_action_pressed(GameplayInput.EXIT): exit_requested.emit(); get_viewport().set_input_as_handled()
 
 
 func _spawn_player(controller: String, config: Dictionary) -> Dictionary:
     match controller:
         "none": return {"ok": true, "errors": [], "controller": controller}
         "third_person":
-            var third_person = ThirdPersonController.new(); third_person.configure(config); add_child(third_person); _player = third_person
+            var player = ThirdPersonController.new(); player.configure(config); add_child(player); _player = player
         "first_person":
-            var first_person = FirstPersonController.new(); first_person.configure(config); add_child(first_person); _player = first_person
+            var player = FirstPersonController.new(); player.configure(config); add_child(player); _player = player
         _: return _failure("Unsupported Play controller: %s" % controller)
     return {"ok": true, "errors": [], "controller": controller}
 
@@ -135,63 +107,20 @@ func _apply_spawn_position(config: Dictionary, runtime_config: Dictionary) -> vo
     if position_value is Array and position_value.size() == 3: config["spawn_position"] = position_value.duplicate()
 
 
-func _disable_spawn_marker(spawn_id: String) -> void:
-    _spawn_entity_id = spawn_id
-    _suppress_spawn_marker()
-
-
-func _suppress_spawn_marker() -> void:
-    if _spawn_entity_id.is_empty() or _editor_session == null: return
-    var bridge = _editor_session.get_bridge()
-    if bridge == null: return
-    var current: Node3D = bridge.get_entity_node(_spawn_entity_id)
-    if not is_instance_valid(current): return
-    if current != _spawn_marker:
-        _spawn_marker = current
-        _spawn_mesh = _spawn_marker.get_proxy_mesh() if _spawn_marker.has_method("get_proxy_mesh") else null
-        _spawn_mesh_visible = _spawn_mesh.visible if is_instance_valid(_spawn_mesh) else true
-        _spawn_body = _spawn_marker.get_pick_body() if _spawn_marker.has_method("get_pick_body") else null
-        _spawn_collision_layer = _spawn_body.collision_layer if is_instance_valid(_spawn_body) else 0
-        _spawn_collision_mask = _spawn_body.collision_mask if is_instance_valid(_spawn_body) else 0
-        _spawn_collision_shape = _spawn_body.get_node_or_null("CollisionShape3D") as CollisionShape3D if is_instance_valid(_spawn_body) else null
-        _spawn_collision_disabled = _spawn_collision_shape.disabled if is_instance_valid(_spawn_collision_shape) else false
-    _spawn_marker.visible = false
-    if is_instance_valid(_spawn_mesh): _spawn_mesh.visible = false
-    if is_instance_valid(_spawn_body):
-        _spawn_body.collision_layer = 0
-        _spawn_body.collision_mask = 0
-    if is_instance_valid(_spawn_collision_shape) and not _spawn_collision_shape.disabled:
-        _spawn_collision_shape.set_deferred("disabled", true)
-
-
-func _restore_spawn_marker() -> void:
-    if is_instance_valid(_spawn_marker): _spawn_marker.visible = true
-    if is_instance_valid(_spawn_mesh): _spawn_mesh.visible = _spawn_mesh_visible
-    if is_instance_valid(_spawn_body):
-        _spawn_body.collision_layer = _spawn_collision_layer
-        _spawn_body.collision_mask = _spawn_collision_mask
-    if is_instance_valid(_spawn_collision_shape): _spawn_collision_shape.set_deferred("disabled", _spawn_collision_disabled)
-    _spawn_entity_id = ""; _spawn_marker = null; _spawn_mesh = null; _spawn_body = null; _spawn_collision_shape = null
-    _spawn_mesh_visible = true; _spawn_collision_disabled = false
-    _spawn_collision_layer = 0; _spawn_collision_mask = 0
-
-
 func _update_streaming_focus() -> void:
-    if not is_instance_valid(_player):
-        _suppress_spawn_marker()
-        return
-    if _streaming_callback.is_valid():
-        var result: Variant = _streaming_callback.call(_player.global_position)
-        if result is Dictionary and not result.get("ok", false): push_warning("Play streaming focus update failed: %s" % str(result.get("errors", [])))
-    _suppress_spawn_marker()
+    if not _streaming_callback.is_valid() or not is_instance_valid(_player): return
+    var result: Variant = _streaming_callback.call(_player.global_position)
+    if result is Dictionary and not result.get("ok", false): push_warning("Play streaming focus update failed: %s" % str(result.get("errors", [])))
 
 
 func _rollback_startup() -> void:
-    _free_player(); _restore_spawn_marker(); _runtime_state.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+    _free_player(); _runtime_state.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     if is_instance_valid(_previous_camera): _previous_camera.current = true
     _previous_camera = null
-    if _editor_session != null and _editor_session.has_method("restore_selection"): _editor_session.restore_selection(_selected_ids, _primary_id)
-    _editor_session = null; _selected_ids.clear(); _primary_id = ""
+    if _editor_session != null:
+        _editor_session.get_bridge().clear_excluded_entity_ids()
+        if _editor_session.has_method("restore_selection"): _editor_session.restore_selection(_selected_ids, _primary_id)
+    _editor_session = null; _spawn_entity_id = ""; _selected_ids.clear(); _primary_id = ""
 
 
 func _free_player() -> void:

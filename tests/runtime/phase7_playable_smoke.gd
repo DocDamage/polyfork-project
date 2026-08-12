@@ -5,18 +5,14 @@ const GameplayInput = preload("res://src/input/gameplay_input_map.gd")
 const StableId = preload("res://src/world/stable_id.gd")
 
 
-func _init() -> void:
-    call_deferred("_run")
+func _init() -> void: call_deferred("_run")
 
 
 func _run() -> void:
     var errors: Array[String] = []
     await _exercise_template("third_person_adventure", errors)
     await _exercise_template("fps", errors)
-    if errors.is_empty():
-        print("PASS: Phase 7 playable controller smoke completed.")
-        quit(0)
-        return
+    if errors.is_empty(): print("PASS: Phase 7 playable controller smoke completed."); quit(0); return
     for error in errors: push_error(error)
     quit(1)
 
@@ -26,31 +22,21 @@ func _exercise_template(template_id: String, errors: Array[String]) -> void:
     ProjectSettings.set_setting("playworld/storage/projects_root", "user://tests/phase7_playable_%s_%s" % [template_id, StableId.generate()])
     var packed := load(MAIN_SCENE) as PackedScene
     if packed == null: errors.append("%s playable smoke could not load Main scene." % template_id); return
-    var main = packed.instantiate(); root.add_child(main)
-    await process_frame
-    main.call("_on_new_world_create_requested", {"title": "Playable %s" % template_id, "world_profile": "small", "template_id": template_id})
-    await process_frame
+    var main = packed.instantiate(); root.add_child(main); await process_frame
+    main.call("_on_new_world_create_requested", {"title": "Playable %s" % template_id, "world_profile": "small", "template_id": template_id}); await process_frame
     var workspace = main.get_node("WorkspaceScreen"); var project = main.get("_active_project")
     if project == null or not bool(project.runtime_config.get("materialized", false)):
         errors.append("%s must materialize its real template baseline before Play." % template_id); await _dispose(main); return
     var spawn_id := str(project.runtime_config.get("spawn_entity_id", ""))
     if spawn_id.is_empty(): errors.append("%s must persist a stable player spawn entity." % template_id); await _dispose(main); return
     var authored_before: Dictionary = project.to_dictionary()
-    var mode_switch = workspace.find_child("ModeSwitch", true, false)
-    mode_switch.call("set_mode", &"play")
+    var mode_switch = workspace.find_child("ModeSwitch", true, false); mode_switch.call("set_mode", &"play")
     for _index in range(50): await physics_frame
     var play = workspace.call("get_play_session"); var player = play.call("get_player")
     if workspace.call("get_mode") != &"play" or not play.call("is_active") or player == null:
         errors.append("%s Build -> Play must create an active real player controller." % template_id); await _dispose(main); return
-    var spawn_node = workspace.call("get_runtime_entity_node", spawn_id)
-    if spawn_node == null:
-        errors.append("%s Play session must retain the authored player-start entity for Build restoration." % template_id)
-    else:
-        if spawn_node.visible: errors.append("%s authored player-start root must be hidden during Play." % template_id)
-        if spawn_node.has_method("get_proxy_mesh") and spawn_node.get_proxy_mesh().visible: errors.append("%s authored player-start proxy must be visually suppressed during Play." % template_id)
-        if spawn_node.has_method("get_pick_body") and (spawn_node.get_pick_body().collision_layer != 0 or spawn_node.get_pick_body().collision_mask != 0): errors.append("%s authored player-start collision must be suppressed during Play." % template_id)
-    if not player.call("is_on_floor"):
-        errors.append("%s player must settle against real terrain collision/gravity." % template_id)
+    if workspace.call("get_runtime_entity_node", spawn_id) != null: errors.append("%s authored player-start proxy must be excluded from Play runtime physics/visuals." % template_id)
+    if not player.call("is_on_floor"): errors.append("%s player must settle against real terrain collision/gravity." % template_id)
     var start_position: Vector3 = player.global_position
     Input.action_press(GameplayInput.MOVE_FORWARD, 1.0)
     for _index in range(16): await physics_frame
@@ -66,17 +52,14 @@ func _exercise_template(template_id: String, errors: Array[String]) -> void:
     Input.action_release(GameplayInput.LOOK_RIGHT)
     if is_equal_approx(float(player.rotation.y), yaw_stick_before): errors.append("%s right-stick semantic look must rotate the real controller." % template_id)
     if player.call("get_camera") == null or not player.call("get_camera").current: errors.append("%s Play controller must own the active camera." % template_id)
-    mode_switch.call("set_mode", &"build")
-    await process_frame
+    mode_switch.call("set_mode", &"build"); await process_frame
     if workspace.call("get_mode") != &"build" or play.call("is_active") or play.call("get_player") != null: errors.append("%s Play -> Build must dispose controller state cleanly." % template_id)
     var restored_spawn = workspace.call("get_runtime_entity_node", spawn_id)
     if restored_spawn == null or not restored_spawn.visible: errors.append("%s returning to Build must restore the authored player-start marker." % template_id)
     if project.to_dictionary() != authored_before: errors.append("%s disposable Play activity must leave authored Build data unchanged." % template_id)
     if InputMap.has_action(GameplayInput.MOVE_FORWARD): errors.append("%s gameplay actions must be inactive after returning to Build." % template_id)
     if Input.mouse_mode != Input.MOUSE_MODE_VISIBLE: errors.append("%s must release mouse capture after Play." % template_id)
-    for _repeat in range(3):
-        mode_switch.call("set_mode", &"play"); await process_frame
-        mode_switch.call("set_mode", &"build"); await process_frame
+    for _repeat in range(3): mode_switch.call("set_mode", &"play"); await process_frame; mode_switch.call("set_mode", &"build"); await process_frame
     if play.get_child_count() != 0: errors.append("%s repeated Play sessions must not accumulate runtime nodes." % template_id)
     await _dispose(main)
 
