@@ -34,7 +34,8 @@ func _run() -> void:
     var service = layer.call("get_service"); var panel = layer.call("get_panel")
     if service == null or panel == null or not layer.call("is_open"): _fail("Phase 12 capture could not open the real AI workspace."); return
     panel.emit_signal("provider_saved", {"provider_id": "visual-local", "display_name": "Local AI", "protocol": "openai_compatible_chat_v1", "scope": "local", "endpoint": "http://127.0.0.1:11434/v1/chat/completions", "model": "local-model", "credential_env": "", "timeout_seconds": 45.0, "enabled": true})
-    var prompt := panel.find_child("*", "TextEdit", true, false) as TextEdit
+    var prompt_nodes: Array[Node] = panel.find_children("*", "TextEdit", true, false)
+    var prompt := prompt_nodes[0] as TextEdit if not prompt_nodes.is_empty() else null
     if prompt != null: prompt.text = "Create a playable landmark and make the world feel like dusk."
     var proposal: Dictionary = AiContracts.new_proposal(StableId.generate(), "Create a dusk landmark with safe existing systems", [
         _action("entity.place_proxy", {"display_name": "AI Landmark", "position": [2.0, 0.5, 2.0], "scale": [1.8, 2.8, 1.8], "result_ref": "landmark"}),
