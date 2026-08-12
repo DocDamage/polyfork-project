@@ -97,7 +97,8 @@ static func _project_fixture():
     var cell_id: String = StableId.generate(); var entity_id: String = StableId.generate()
     var owned_cells: Array[String] = [cell_id]
     project.cell_ids = owned_cells
-    project.entity_records = [{"document_type": WorldEntity.DOCUMENT_TYPE, "schema_version": WorldEntity.SCHEMA_VERSION, "entity_id": entity_id, "display_name": "Player Start", "cell_id": cell_id, "asset_id": null, "prefab_id": null, "parent_entity_id": null, "component_instance_ids": [], "transform": {"position": [0.0, 2.0, 0.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}]
+    var records: Array[Dictionary] = [{"document_type": WorldEntity.DOCUMENT_TYPE, "schema_version": WorldEntity.SCHEMA_VERSION, "entity_id": entity_id, "display_name": "Player Start", "cell_id": cell_id, "asset_id": null, "prefab_id": null, "parent_entity_id": null, "component_instance_ids": [], "transform": {"position": [0.0, 2.0, 0.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}]
+    project.entity_records = records
     project.runtime_config = {"schema_version": 1, "template_id": "third_person_adventure", "resolved_modules": ["core.world", "core.semantic_input", "play.third_person"], "planned_modules": [], "starter_entities": [], "starter_entity_ids": {"player_start": entity_id}, "materialized": true, "spawn_entity_id": entity_id, "input_mapping": {"profile": "semantic_default"}, "default_player_archetype": null, "camera_configuration": {"controller": "third_person", "spawn_position": [0.0, 2.0, 0.0]}, "example_graph_references": [], "ui_hud_packages": [], "tutorial_steps": []}
     project.dependencies = project.runtime_config["resolved_modules"].duplicate()
     return project
