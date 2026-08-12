@@ -42,6 +42,13 @@ func _exercise_template(template_id: String, errors: Array[String]) -> void:
     var play = workspace.call("get_play_session"); var player = play.call("get_player")
     if workspace.call("get_mode") != &"play" or not play.call("is_active") or player == null:
         errors.append("%s Build -> Play must create an active real player controller." % template_id); await _dispose(main); return
+    var spawn_node = workspace.call("get_runtime_entity_node", spawn_id)
+    if spawn_node == null:
+        errors.append("%s Play session must retain the authored player-start entity for Build restoration." % template_id)
+    else:
+        if spawn_node.visible: errors.append("%s authored player-start root must be hidden during Play." % template_id)
+        if spawn_node.has_method("get_proxy_mesh") and spawn_node.get_proxy_mesh().visible: errors.append("%s authored player-start proxy must be visually suppressed during Play." % template_id)
+        if spawn_node.has_method("get_pick_body") and (spawn_node.get_pick_body().collision_layer != 0 or spawn_node.get_pick_body().collision_mask != 0): errors.append("%s authored player-start collision must be suppressed during Play." % template_id)
     if not player.call("is_on_floor"):
         errors.append("%s player must settle against real terrain collision/gravity." % template_id)
     var start_position: Vector3 = player.global_position
@@ -62,6 +69,8 @@ func _exercise_template(template_id: String, errors: Array[String]) -> void:
     mode_switch.call("set_mode", &"build")
     await process_frame
     if workspace.call("get_mode") != &"build" or play.call("is_active") or play.call("get_player") != null: errors.append("%s Play -> Build must dispose controller state cleanly." % template_id)
+    var restored_spawn = workspace.call("get_runtime_entity_node", spawn_id)
+    if restored_spawn == null or not restored_spawn.visible: errors.append("%s returning to Build must restore the authored player-start marker." % template_id)
     if project.to_dictionary() != authored_before: errors.append("%s disposable Play activity must leave authored Build data unchanged." % template_id)
     if InputMap.has_action(GameplayInput.MOVE_FORWARD): errors.append("%s gameplay actions must be inactive after returning to Build." % template_id)
     if Input.mouse_mode != Input.MOUSE_MODE_VISIBLE: errors.append("%s must release mouse capture after Play." % template_id)

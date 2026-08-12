@@ -19,7 +19,11 @@ var _primary_id := ""
 var _streaming_callback := Callable()
 var _previous_camera: Camera3D
 var _spawn_marker: Node3D
+var _spawn_mesh: MeshInstance3D
+var _spawn_mesh_visible := true
 var _spawn_body: StaticBody3D
+var _spawn_collision_shape: CollisionShape3D
+var _spawn_collision_disabled := false
 var _spawn_collision_layer := 0
 var _spawn_collision_mask := 0
 
@@ -137,6 +141,11 @@ func _disable_spawn_marker(spawn_id: String) -> void:
     _spawn_marker = bridge.get_entity_node(spawn_id)
     if not is_instance_valid(_spawn_marker): _spawn_marker = null; return
     _spawn_marker.visible = false
+    if _spawn_marker.has_method("get_proxy_mesh"):
+        _spawn_mesh = _spawn_marker.get_proxy_mesh()
+        if is_instance_valid(_spawn_mesh):
+            _spawn_mesh_visible = _spawn_mesh.visible
+            _spawn_mesh.visible = false
     if _spawn_marker.has_method("get_pick_body"):
         _spawn_body = _spawn_marker.get_pick_body()
         if is_instance_valid(_spawn_body):
@@ -144,14 +153,21 @@ func _disable_spawn_marker(spawn_id: String) -> void:
             _spawn_collision_mask = _spawn_body.collision_mask
             _spawn_body.collision_layer = 0
             _spawn_body.collision_mask = 0
+            _spawn_collision_shape = _spawn_body.get_node_or_null("CollisionShape3D") as CollisionShape3D
+            if is_instance_valid(_spawn_collision_shape):
+                _spawn_collision_disabled = _spawn_collision_shape.disabled
+                _spawn_collision_shape.disabled = true
 
 
 func _restore_spawn_marker() -> void:
     if is_instance_valid(_spawn_marker): _spawn_marker.visible = true
+    if is_instance_valid(_spawn_mesh): _spawn_mesh.visible = _spawn_mesh_visible
     if is_instance_valid(_spawn_body):
         _spawn_body.collision_layer = _spawn_collision_layer
         _spawn_body.collision_mask = _spawn_collision_mask
-    _spawn_marker = null; _spawn_body = null
+    if is_instance_valid(_spawn_collision_shape): _spawn_collision_shape.disabled = _spawn_collision_disabled
+    _spawn_marker = null; _spawn_mesh = null; _spawn_body = null; _spawn_collision_shape = null
+    _spawn_mesh_visible = true; _spawn_collision_disabled = false
     _spawn_collision_layer = 0; _spawn_collision_mask = 0
 
 
