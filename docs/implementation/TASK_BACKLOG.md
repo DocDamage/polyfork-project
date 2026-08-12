@@ -2,8 +2,8 @@
 
 Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are milestone gates, not task gates, unless a handoff explicitly says otherwise.
 
-## Completed phases 0–12
-All Phase 0 through Phase 12 checkpoints are complete and merged on authoritative `master`. Historical task detail remains represented by merged repository history and phase handoffs/PRs.
+## Completed phases 0–13
+All Phase 0 through Phase 13 checkpoints are complete and merged on authoritative `master`.
 
 - [x] Phase 0 — Repository and contracts
 - [x] Phase 1 — App shell and canonical UI foundation
@@ -17,35 +17,49 @@ All Phase 0 through Phase 12 checkpoints are complete and merged on authoritativ
 - [x] Phase 9 — Foliage / Procedural / Splines — PR #14
 - [x] Phase 10 — Gameplay Framework Breadth — PR #15
 - [x] Phase 11 — Environment — PR #16
-- [x] Phase 12 — AI Creation — PR #17 at `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`
+- [x] Phase 12 — AI Creation — PR #17
+- [x] Phase 13 — Export Pipeline — PR #18 at `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
 
-## Phase 13 — Export Pipeline — COMPLETE — COMPLETION PR PENDING
-Phase 13 implementation is complete on `dev/phase13-export-pipeline-milestone`, created from exactly authoritative `master` `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`. The pre-write comparison was verified at 0 ahead / 0 behind with that exact merge base and no obsolete `main` ancestry.
+## Phase 14 — Scale and Polish — COMPLETE / PR #19 OPEN
+Milestone branch:
 
-Verified code-complete head before documentation closeout: `e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`.
+`dev/phase14-scale-polish-milestone`
 
-- [x] P13-T01 Define schema-v1 export/build manifest, deterministic package layout, runtime/editor classification contracts, validation limits, safe package paths, and export result/report contracts
-- [x] P13-T02 Implement deterministic authored dependency discovery across world entities, runtime-module validation, gameplay/prefab sources, Visual Scripting, procedural sources, Environment hooks, and project-managed runtime data without treating editor state as a dependency source
-- [x] P13-T03 Integrate Phase 4 Asset Library dependency resolution, deterministic project-managed staging copies, source lineage, missing/unavailable dependency hard failures, and safe read-only external-source behavior
-- [x] P13-T04 Implement deterministic license/attribution aggregation and export reporting, preserving known metadata and explicitly reporting unknown/missing licenses without inventing grants or compatibility claims
-- [x] P13-T05 Implement deterministic project assembly/staging using exact runtime dependency closure, stripping editor shell/workspaces/authoring-only data while preserving all runtime-required authored data and assets
-- [x] P13-T06 Implement standalone runtime bootstrap through thin adapters that reuse the existing Phase 7 `PlaySession`, semantic input, terrain/streaming, gameplay, Visual Scripting, procedural, and Environment runtime paths with no parallel runtime architecture
-- [x] P13-T07 Implement Windows standalone export orchestration/preset generation, safe output paths, deterministic package/report structure, actionable Godot export failures, and repeat-export replacement/idempotency behavior
-- [x] P13-T08 Implement canonical Build → Export workspace integration with keyboard/mouse and gamepad reachability, deterministic status/output controls, and blocking during no-project, Play, transient placement, or invalid states
-- [x] P13-T09 Add strict Phase 13 foundation/runtime/workspace tests for manifests, path safety, classification, runtime closure, dependencies/licenses, stripping/preservation, idempotent staging, semantic input, representative project sizes, and inherited behavior
-- [x] P13-T10 Complete real Windows Build → Export → standalone launch smoke, clean-package copy/launch verification, Small/Medium/Large exports, repeat-export stale-file replacement, keyboard/mouse and gamepad runtime checks, strict Godot logs, inherited Phase 6–12 regressions, Godot Smoke, rendered/exported evidence, and documentation closeout
+Base:
 
-### Verified Phase 13 gates on code-complete head
-- [x] Godot Smoke — run `31617622730`
-- [x] Phase 13 Windows Export — run `31617622756`
-- [x] Phase 13 Visual Evidence — run `31617622776`
-- [x] Phase 13 Inherited Regressions — run `31617622791`
-- [x] Phase 13 Contracts — run `31617622792`
+`cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
 
-## Next authorized repository action
-Open exactly one Phase 13 completion PR from `dev/phase13-export-pipeline-milestone` to authoritative `master`. Do not merge it without explicit user authorization.
+Verified implementation head before documentation-only closeout:
+
+`b15439461cfae5d41d5951b5af808d20f2bb5f1b`
+
+- [x] P14-T01 Establish performance telemetry, reproducible benchmark fixtures, explicit budgets, and Low/Balanced/High quality-performance preset contracts
+- [x] P14-T02 Harden terrain/streaming and procedural/foliage runtime hot paths while preserving authored semantics; integrate policy-aware Play/Environment cadence
+- [x] P14-T03 Harden large-project responsiveness with no-op/incremental runtime work, timed operation status, performance-aware workspace refresh, and scale/save/Build↔Play/export regression coverage
+- [x] P14-T04 Implement shared accessibility foundations for UI scaling/readability, visible focus, reduced-motion preference, minimum interaction targets, keyboard reachability, and persistent user-only settings
+- [x] P14-T05 Complete controller/input-context polish with deterministic focus navigation, consistent keyboard/gamepad hints/glyph language, and inherited gamepad authoring/runtime verification
+- [x] P14-T06 Add touch-ready/adaptive Home, Settings, and workspace behavior while preserving keyboard/mouse and gamepad parity and avoiding a separate mobile architecture
+- [x] P14-T07 Complete canonical visual-parity sweep for new/changed surfaces, retain the dark playful Nintendo/Apple-inspired design language, and capture/inspect full and compact rendered evidence
+- [x] P14-T08 Integrate performance preset controls into Settings, editor Play/procedural behavior, Export, packaged runtime policy, and standalone PlaySession with deterministic legacy fallback
+- [x] P14-T09 Add Phase 14 contracts, Small/Medium/Large/Stress scale gate, inherited Phase 6–13 gate, Godot Smoke, rendered evidence, and profiled Windows clean-package export/launch gate
+- [x] P14-T10 Open the single Phase 14 completion PR targeting authoritative `master` — PR #19 OPEN; do not merge without explicit user authorization
+
+Verification on `b15439461cfae5d41d5951b5af808d20f2bb5f1b`:
+- Phase 14 Contracts — run `31626516078` — PASS
+- Phase 14 Scale Stress — run `31626516104` — PASS
+- Phase 14 Inherited Regressions — run `31626516105` — PASS
+- Godot Smoke — run `31626516120` — PASS
+- Phase 14 Visual Evidence — run `31626516053` — PASS
+- Phase 14 Windows Export — run `31626516187` — PASS
+
+Windows profile matrix:
+- Small → Low — clean-package launch PASS
+- Medium → Balanced — clean-package launch PASS
+- Large → High — clean-package launch PASS
+
+No accepted Phase 14 performance exceptions remain open.
+
+Detailed checkpoint closeout is in `docs/implementation/PHASE14_SCALE_POLISH_PLAN.md`.
 
 ## Later phases
-Before beginning a later phase, decompose it into implementation-sized internal checkpoints. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
-
-**Phase 14 is blocked** until the Phase 13 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
+Phase 15 is blocked. Do not begin it until PR #19 is explicitly merged into authoritative `master` with user authorization and the resulting `master` SHA is verified.

@@ -1,14 +1,17 @@
 # Phase 13 — Export Pipeline Implementation Plan
 
 ## Completion state
-**COMPLETE — COMPLETION PR PENDING**
+**COMPLETE — MERGED BY PR #18**
 
-- Authoritative base: `master` at `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`.
+- Authoritative Phase 12 base: `master` at `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`.
 - Milestone branch: `dev/phase13-export-pipeline-milestone`.
 - Pre-write compare gate: exact merge base, 0 ahead, 0 behind.
 - `main` is obsolete and prohibited as a development base.
 - Verified code-complete head before documentation closeout: `e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`.
-- One milestone PR only; do not merge without explicit authorization.
+- Final Phase 13 branch head: `2fd3c5e9516e6cd135d4b899ab8a2a3fb8ad3eac`.
+- PR #18 merged on August 12, 2026.
+- Verified signed Phase 13 merge commit / resulting authoritative `master`: `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`.
+- Phase 14 is unblocked.
 
 ## Architectural invariant — SATISFIED
 Export is packaging and runtime bootstrapping, not a second engine. Exported games reuse the Phase 7 `PlaySession` and existing world, terrain/streaming, gameplay, templates/modules, Visual Scripting, procedural, Environment, and semantic-input implementations.
@@ -120,15 +123,20 @@ The milestone gate completed:
 11. rendered canonical Build → Export evidence was captured;
 12. documentation closeout was completed.
 
-### Verified code-complete workflow evidence
-All five workflows passed on `e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`:
-- Godot Smoke — `31617622730`
-- Phase 13 Windows Export — `31617622756`
-- Phase 13 Visual Evidence — `31617622776`
-- Phase 13 Inherited Regressions — `31617622791`
-- Phase 13 Contracts — `31617622792`
+### Verified branch workflow evidence
+All five required Phase 13 workflows passed on the completed branch, including the final documentation head:
+- Godot Smoke;
+- Phase 13 Windows Export;
+- Phase 13 Visual Evidence;
+- Phase 13 Inherited Regressions;
+- Phase 13 Contracts.
 
-## Completion PR gate
-The only authorized next step is one Phase 13 completion PR from `dev/phase13-export-pipeline-milestone` to authoritative `master`.
+### PR-triggered verification
+PR #18 also finished with all triggered legacy and current checks green. Several isolated matrix jobs initially failed before tests ran because GitHub-hosted runners could not complete Godot 4.7.1 downloads. The failed jobs were rerun, their downloads succeeded, and their actual contract suites passed with no repository code changes.
 
-Do **not** merge that PR without explicit user authorization. Do **not** begin Phase 14 until the PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+## Final gate — SATISFIED
+PR #18 was explicitly merged. The resulting signed authoritative `master` was verified as:
+
+`cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
+
+Phase 13 is closed. Phase 14 may proceed from that exact authoritative commit.

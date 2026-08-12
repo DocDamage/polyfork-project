@@ -5,14 +5,20 @@ const Contracts = preload("res://src/export/export_contracts.gd")
 const StagingPlan = preload("res://src/export/export_staging_plan.gd")
 const SourceClosure = preload("res://src/export/export_source_closure.gd")
 const WorldProject = preload("res://src/world/world_project.gd")
+const PerformanceProfiles = preload("res://src/scale/performance_profiles.gd")
 
 const RUNTIME_ROOTS: Array[String] = ["src/export/runtime/StandaloneRuntime.tscn"]
 
-func assemble(project_directory: String, stage_root: String, project_data: Dictionary, dependencies: Array, build_id: String, package_name: String, license_report: Dictionary = {}) -> Dictionary:
+func assemble(project_directory: String, stage_root: String, project_data: Dictionary, dependencies: Array, build_id: String, package_name: String, license_report: Dictionary = {}, performance_profile: Dictionary = {}) -> Dictionary:
     var errors: Array[String] = []
     if project_directory.strip_edges().is_empty(): return _failure("Export staging requires a project directory.")
     if stage_root.strip_edges().is_empty(): return _failure("Export staging requires a destination directory.")
     if not Contracts.valid_package_segment(package_name): return _failure("Export package name is unsafe or invalid.")
+    var effective_profile: Dictionary = {}
+    if not performance_profile.is_empty():
+        var profile_errors: Array[String] = PerformanceProfiles.validate_profile(performance_profile)
+        if not profile_errors.is_empty(): return {"ok": false, "errors": profile_errors}
+        effective_profile = PerformanceProfiles.get_profile(performance_profile.get("preset_id", PerformanceProfiles.DEFAULT))
     if not _reset_directory(stage_root): return _failure("Unable to reset deterministic export staging directory.")
     var closure: Dictionary = SourceClosure.resolve(RUNTIME_ROOTS)
     if not closure.get("ok", false): return closure
@@ -40,6 +46,11 @@ func assemble(project_directory: String, stage_root: String, project_data: Dicti
             var copied_data: Dictionary = _copy_file(authored_path, target_path); if not copied_data.get("ok", false): return copied_data
         manifest_files.append(_runtime_file(package_path))
 
+    if not effective_profile.is_empty():
+        var profile_write: Dictionary = _write_json(stage_root.path_join("runtime_data/performance_profile.json"), effective_profile)
+        if not profile_write.get("ok", false): return profile_write
+        manifest_files.append(_runtime_file("runtime_data/performance_profile.json"))
+
     var ordered_dependencies: Array = dependencies.duplicate(true); ordered_dependencies.sort_custom(func(a, b): return str(a.get("asset_id", "")) < str(b.get("asset_id", "")))
     for dependency_value in ordered_dependencies:
         if not dependency_value is Dictionary: return _failure("Resolved export dependencies must be dictionaries.")
@@ -59,7 +70,8 @@ func assemble(project_directory: String, stage_root: String, project_data: Dicti
     var attribution_text: String = str(license_report.get("text", "Polyfork Export Attributions\n============================\n"))
     var attribution_write: Dictionary = _write_text(stage_root.path_join("ATTRIBUTIONS.txt"), attribution_text); if not attribution_write.get("ok", false): return attribution_write
     manifest_files.append(_runtime_file("ATTRIBUTIONS.txt"))
-    var report := {"document_type": "export_report", "schema_version": Contracts.SCHEMA_VERSION, "build_id": build_id, "project_id": str(sanitized_project.get("project_id", "")), "target": Contracts.TARGET_WINDOWS, "package_name": package_name, "dependency_count": ordered_dependencies.size(), "license_findings": license_report.get("findings", []).duplicate(true), "attributions": license_report.get("attributions", []).duplicate(true)}
+    var report: Dictionary = {"document_type": "export_report", "schema_version": Contracts.SCHEMA_VERSION, "build_id": build_id, "project_id": str(sanitized_project.get("project_id", "")), "target": Contracts.TARGET_WINDOWS, "package_name": package_name, "dependency_count": ordered_dependencies.size(), "license_findings": license_report.get("findings", []).duplicate(true), "attributions": license_report.get("attributions", []).duplicate(true)}
+    if not effective_profile.is_empty(): report["performance_profile"] = effective_profile.duplicate(true)
     var report_write: Dictionary = _write_json(stage_root.path_join("export_report.json"), report); if not report_write.get("ok", false): return report_write
     manifest_files.append(_runtime_file("export_report.json"))
 
@@ -67,7 +79,7 @@ func assemble(project_directory: String, stage_root: String, project_data: Dicti
     var manifest_errors: Array[String] = Contracts.validate_manifest(manifest)
     if not manifest_errors.is_empty(): return {"ok": false, "errors": manifest_errors}
     var manifest_write: Dictionary = _write_json(stage_root.path_join("export_manifest.json"), manifest); if not manifest_write.get("ok", false): return manifest_write
-    return {"ok": true, "errors": [], "stage_root": stage_root, "manifest": manifest, "runtime_source_paths": closure.get("paths", []), "file_count": manifest_files.size() + 1}
+    return {"ok": true, "errors": [], "stage_root": stage_root, "manifest": manifest, "runtime_source_paths": closure.get("paths", []), "file_count": manifest_files.size() + 1, "performance_profile": effective_profile.duplicate(true)}
 
 static func _runtime_file(path: String) -> Dictionary: return {"package_path": path, "classification": Contracts.RUNTIME_REQUIRED}
 

@@ -8,6 +8,7 @@ const VisualNodeLibrary = preload("res://src/visual_scripting/builtin_visual_nod
 const EnvironmentContracts = preload("res://src/environment/environment_contracts.gd")
 const TerrainState = preload("res://src/terrain/terrain_world_state.gd")
 const ProceduralState = preload("res://src/procedural/procedural_state.gd")
+const PerformanceProfiles = preload("res://src/scale/performance_profiles.gd")
 
 const GAMEPLAY_DOCS := {
     "definitions": ["definitions.json", "definitions"], "instances": ["instances.json", "instances"],
@@ -65,7 +66,17 @@ static func load_bundle(root: String = "res://runtime_data") -> Dictionary:
     var procedural_errors: Array[String] = procedural.load_document(procedural_read.get("data", {}))
     if not procedural_errors.is_empty(): return {"ok": false, "errors": procedural_errors}
 
-    return {"ok": true, "errors": [], "project": project, "project_data": project_data, "gameplay_state": gameplay, "gameplay_snapshot": _runtime_snapshot(gameplay), "visual_graphs": graphs, "environment_document": environment_document, "terrain_state": terrain, "procedural_state": procedural}
+    var performance_profile: Dictionary = PerformanceProfiles.get_profile(PerformanceProfiles.DEFAULT)
+    var profile_path: String = root.path_join("performance_profile.json")
+    if FileAccess.file_exists(profile_path):
+        var profile_read: Dictionary = _read_json(profile_path)
+        if not profile_read.get("ok", false): return profile_read
+        var profile_data: Dictionary = profile_read.get("data", {})
+        var profile_errors: Array[String] = PerformanceProfiles.validate_profile(profile_data)
+        if not profile_errors.is_empty(): return {"ok": false, "errors": profile_errors}
+        performance_profile = PerformanceProfiles.get_profile(profile_data.get("preset_id", PerformanceProfiles.DEFAULT))
+
+    return {"ok": true, "errors": [], "project": project, "project_data": project_data, "gameplay_state": gameplay, "gameplay_snapshot": _runtime_snapshot(gameplay), "visual_graphs": graphs, "environment_document": environment_document, "terrain_state": terrain, "procedural_state": procedural, "performance_profile": performance_profile}
 
 static func _runtime_snapshot(gameplay) -> Dictionary:
     return {"definitions": gameplay.definitions.duplicate(true), "instances": gameplay.instances.duplicate(true), "sockets": gameplay.sockets.duplicate(true), "attachments": gameplay.attachments.duplicate(true), "dialogues": gameplay.dialogues.duplicate(true), "quests": gameplay.quests.duplicate(true)}

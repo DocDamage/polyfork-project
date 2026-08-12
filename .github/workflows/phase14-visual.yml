@@ -1,0 +1,57 @@
+name: Phase 14 Visual Evidence
+
+on:
+  push:
+    branches:
+      - dev/phase14-scale-polish-milestone
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phase14-visual-capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 8 --retry-all-errors --retry-delay 3 --connect-timeout 20 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+          ./Godot_v4.7.1-stable_linux.x86_64 --version
+      - name: Capture rendered Phase 14 scale and polish evidence
+        shell: bash
+        run: |
+          set -uo pipefail; set +e
+          timeout --signal=TERM --kill-after=10s 240s xvfb-run -a ./Godot_v4.7.1-stable_linux.x86_64 \
+            --path . --rendering-method gl_compatibility --audio-driver Dummy --disable-vsync \
+            --script res://tests/runtime/capture_phase14.gd 2>&1 | tee godot-phase14-visual.log
+          godot_status=${PIPESTATUS[0]}; set -e
+          if [ "$godot_status" -ne 0 ]; then exit "$godot_status"; fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' godot-phase14-visual.log; then exit 1; fi
+          grep -F 'PASS: Phase 14 rendered scale/polish evidence captured.' godot-phase14-visual.log
+          file artifacts/phase14/*.png
+      - name: Upload Phase 14 visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase14-visual-evidence
+          path: artifacts/phase14/*.png
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload Phase 14 visual log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase14-visual-log
+          path: godot-phase14-visual.log
+          if-no-files-found: warn
+          retention-days: 14

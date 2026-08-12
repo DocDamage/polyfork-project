@@ -10,14 +10,25 @@ var _panel: PanelContainer
 var _output_path: LineEdit
 var _export_now: Button
 var _status: Label
+var _profile_status: Label
 var _busy := false
+var _refresh_elapsed := 0.0
+var _scale_service: Node
 
 func _ready() -> void:
     process_mode = Node.PROCESS_MODE_ALWAYS
+    _scale_service = get_node_or_null("/root/ScalePolish")
+    if _scale_service != null and _scale_service.has_signal("preferences_changed"):
+        _scale_service.connect("preferences_changed", Callable(self, "_on_scale_preferences_changed"))
     call_deferred("_bind_current_workspace")
 
-func _process(_delta: float) -> void:
-    if _workspace != null and is_instance_valid(_workspace): refresh_state()
+func _process(delta: float) -> void:
+    if _workspace == null or not is_instance_valid(_workspace): return
+    _refresh_elapsed += delta
+    var refresh_hz: float = maxf(1.0, float(_current_profile().get("ui_refresh_hz", 30)))
+    if _refresh_elapsed >= 1.0 / refresh_hz:
+        _refresh_elapsed = 0.0
+        refresh_state()
 
 func _unhandled_input(event: InputEvent) -> void:
     if _panel != null and _panel.visible and event.is_action_pressed("ui_cancel"):
@@ -40,9 +51,12 @@ func refresh_state() -> void:
     var configuration: Dictionary = _workspace.get_configuration() if _workspace.has_method("get_configuration") else {}
     var build_mode: bool = not _workspace.has_method("get_mode") or _workspace.get_mode() == &"build"
     var transient: bool = _workspace.has_method("is_placement_active") and _workspace.is_placement_active()
-    var ready := not configuration.is_empty() and not str(configuration.get("project_id", "")).is_empty() and build_mode and not transient and not _busy
+    var ready: bool = not configuration.is_empty() and not str(configuration.get("project_id", "")).is_empty() and build_mode and not transient and not _busy
     _export_button.disabled = not ready
     if _export_now != null: _export_now.disabled = not ready
+    if _profile_status != null:
+        var profile: Dictionary = _current_profile()
+        _profile_status.text = "Performance • %s  •  %d FPS target" % [str(profile.get("display_name", "Balanced")), int(profile.get("target_fps", 60))]
     if _panel != null and _panel.visible and not build_mode: close_panel()
 
 func open_panel() -> void:
@@ -70,31 +84,55 @@ func _toggle_panel() -> void:
     else: open_panel()
 
 func _create_panel() -> void:
-    _panel = PanelContainer.new(); _panel.name = "ExportPanel"; _panel.set_anchors_preset(Control.PRESET_TOP_RIGHT); _panel.position = Vector2(-390, 76); _panel.size = Vector2(370, 214); _panel.z_index = 40; _panel.hide(); _workspace.add_child(_panel)
+    _panel = PanelContainer.new(); _panel.name = "ExportPanel"; _panel.set_anchors_preset(Control.PRESET_TOP_RIGHT); _panel.position = Vector2(-390, 76); _panel.size = Vector2(370, 238); _panel.z_index = 40; _panel.hide(); _workspace.add_child(_panel)
     var margin := MarginContainer.new(); margin.add_theme_constant_override("margin_left", 16); margin.add_theme_constant_override("margin_top", 14); margin.add_theme_constant_override("margin_right", 16); margin.add_theme_constant_override("margin_bottom", 14); _panel.add_child(margin)
     var stack := VBoxContainer.new(); stack.add_theme_constant_override("separation", 8); margin.add_child(stack)
     var title := Label.new(); title.text = "Export Game"; title.theme_type_variation = &"HeadingLabel"; stack.add_child(title)
     var target := Label.new(); target.text = "Windows Desktop  •  x86_64"; target.theme_type_variation = &"SecondaryLabel"; stack.add_child(target)
+    _profile_status = Label.new(); _profile_status.name = "ExportPerformanceProfile"; _profile_status.theme_type_variation = &"AccentCaption"; stack.add_child(_profile_status)
     _output_path = LineEdit.new(); _output_path.name = "ExportOutputPath"; _output_path.text = "user://exports"; _output_path.placeholder_text = "Export folder"; _output_path.focus_mode = Control.FOCUS_ALL; stack.add_child(_output_path)
     var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 8); stack.add_child(row)
     _export_now = Button.new(); _export_now.name = "ExportNowButton"; _export_now.text = "Build Export"; _export_now.focus_mode = Control.FOCUS_ALL; _export_now.pressed.connect(_run_export); row.add_child(_export_now)
     var close := Button.new(); close.name = "ExportCloseButton"; close.text = "Close"; close.focus_mode = Control.FOCUS_ALL; close.pressed.connect(close_panel); row.add_child(close)
     _status = Label.new(); _status.name = "ExportStatus"; _status.text = "Ready to build a standalone package."; _status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; stack.add_child(_status)
     _output_path.focus_neighbor_bottom = _output_path.get_path_to(_export_now); _export_now.focus_neighbor_top = _export_now.get_path_to(_output_path); _export_now.focus_neighbor_right = _export_now.get_path_to(close); close.focus_neighbor_left = close.get_path_to(_export_now)
+    refresh_state()
 
 func _run_export() -> void:
     if _busy or _workspace == null: return
     var configuration: Dictionary = _workspace.get_configuration()
     var project = WorldProject.new(); var load_errors: Array[String] = project.load_dictionary(configuration)
     if not load_errors.is_empty(): _set_status("Export blocked: %s" % load_errors[0], true); return
-    var storage_root := str(ProjectSettings.get_setting("playworld/storage/projects_root", "user://projects")); var project_directory := storage_root.trim_suffix("/").path_join(project.project_id)
+    var storage_root: String = str(ProjectSettings.get_setting("playworld/storage/projects_root", "user://projects")); var project_directory: String = storage_root.trim_suffix("/").path_join(project.project_id)
     var library = _workspace.get_asset_library() if _workspace.has_method("get_asset_library") else null
-    _busy = true; refresh_state(); _set_status("Building Windows export…", false)
-    var result: Dictionary = ExportPipeline.new().export_windows(project, project_directory, library, _output_path.text.strip_edges(), project.title)
+    var profile: Dictionary = _current_profile()
+    var operation_id: int = _begin_operation("Windows export", "export")
+    _busy = true; refresh_state(); _set_status("Building Windows export • %s preset…" % str(profile.get("display_name", "Balanced")), false)
+    var result: Dictionary = ExportPipeline.new().export_windows(project, project_directory, library, _output_path.text.strip_edges(), project.title, profile)
     _busy = false; refresh_state()
-    if result.get("ok", false):
-        _set_status("Export complete • %s" % str(result.get("output_root", "")), false)
-    else: _set_status("Export failed • %s" % str(result.get("errors", ["Unknown export error"])[0]), true)
+    var elapsed_suffix: String = _finish_operation(operation_id, result.get("ok", false))
+    if result.get("ok", false): _set_status("Export complete%s • %s" % [elapsed_suffix, str(result.get("output_root", ""))], false)
+    else: _set_status("Export failed%s • %s" % [elapsed_suffix, str(result.get("errors", ["Unknown export error"])[0])], true)
+
+func _current_profile() -> Dictionary:
+    if _scale_service != null and _scale_service.has_method("get_effective_profile"):
+        var value: Variant = _scale_service.call("get_effective_profile")
+        if value is Dictionary: return value
+    return {"preset_id": "balanced", "display_name": "Balanced", "target_fps": 60, "ui_refresh_hz": 30}
+
+func _begin_operation(label: String, subsystem: String) -> int:
+    if _scale_service != null and _scale_service.has_method("begin_operation"): return int(_scale_service.call("begin_operation", label, subsystem))
+    return 0
+
+func _finish_operation(operation_id: int, ok: bool) -> String:
+    if operation_id <= 0 or _scale_service == null or not _scale_service.has_method("finish_operation"): return ""
+    var value: Variant = _scale_service.call("finish_operation", operation_id, ok, "")
+    if value is Dictionary:
+        var operation: Dictionary = value.get("operation", {})
+        return " • %.0f ms" % float(operation.get("elapsed_ms", 0.0))
+    return ""
+
+func _on_scale_preferences_changed(_settings: Dictionary) -> void: refresh_state()
 
 func _set_status(message: String, is_error: bool) -> void:
     if _status != null: _status.text = message

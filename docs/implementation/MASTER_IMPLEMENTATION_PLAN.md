@@ -2,11 +2,13 @@
 
 ## Authoritative state
 - The real project lives on `master`; repository default branch `main` is obsolete starter code and must not be used for development.
-- PR #17 — Phase 12 — AI Creation is merged.
-- Authoritative pre-Phase-13 `master`: `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`.
-- Phases 0 through 12 are complete and merged.
-- Phase 13 implementation is complete on `dev/phase13-export-pipeline-milestone`; its completion PR is the only authorized next repository action.
-- Verified Phase 13 code-complete head before documentation closeout: `e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`.
+- PR #18 — Phase 13 — Export Pipeline is merged.
+- Authoritative `master`: `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`.
+- This is the verified signed merge commit for PR #18.
+- Phases 0 through 13 are complete and merged.
+- Phase 14 — Scale and Polish is implementation/verification complete and completion PR #19 is OPEN against authoritative `master`; it is not merged.
+- Verified Phase 14 implementation head before documentation-only closeout: `b15439461cfae5d41d5951b5af808d20f2bb5f1b`.
+- Phase 15 remains blocked until PR #19 is explicitly merged with user authorization and the resulting authoritative `master` SHA is verified.
 
 ## Phase 0 — Repository and contracts — COMPLETE
 Project skeleton, coding rules, docs, CI, task IDs, test harness, canonical UI reference, stable IDs, command interface, persistence versioning, and module boundaries.
@@ -45,57 +47,61 @@ Reusable runtime gameplay state, inventory/containers, doors, health, NPC AI, di
 Schema-v1 environment persistence, time/weather, real Godot environment rendering, wind, biome overrides, water hooks, disposable Play runtime, Visual Scripting Environment nodes, Environment workspace, regression/visual verification. Merged by PR #16 at `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
 
 ## Phase 12 — AI Creation — COMPLETE
-Phase 12 was developed continuously on `dev/phase12-ai-creation-milestone` and merged by PR #17. The resulting authoritative `master` is `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`.
-
-Delivered milestone breadth includes local/cloud OpenAI-compatible providers, privacy/cloud consent, bounded read-only project and Asset Library queries, Suggest, zero-mutation Preview, Preview-before-Execute, local persistent-ID generation, strict proposal validation, missing-asset rejection, atomic cross-system Execute, one universal Undo/Redo entry, rollback, crash-safe AI history, cross-system authoring actions, native keyboard/mouse/gamepad AI workspace, strict tests/regressions/Godot Smoke/rendered evidence, and removal of the tracked `.polyforkAPI` file.
+Merged by PR #17. Delivered local/cloud OpenAI-compatible providers, explicit privacy/cloud consent, bounded read-only project/Asset Library queries, Suggest, zero-mutation Preview, Preview-before-Execute, local persistent IDs, proposal validation, missing-asset rejection, atomic cross-system Execute, rollback, one universal Undo/Redo entry, crash-safe AI history, cross-system authoring actions, native keyboard/mouse/gamepad AI workspace, and strict evidence/regressions.
 
 Historical `.polyforkAPI` credential material remains exposed in Git history and must be rotated/revoked separately.
 
-## Phase 13 — Export Pipeline — COMPLETE — COMPLETION PR PENDING
-Phase 13 was developed as one continuous milestone on `dev/phase13-export-pipeline-milestone`, created from exactly `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`. The pre-write compare gate was verified as that exact merge base, 0 commits ahead, 0 commits behind, with no obsolete `main` ancestry.
+## Phase 13 — Export Pipeline — COMPLETE — MERGED
+Merged by PR #18. Resulting verified signed authoritative `master`:
 
-Architecture invariant retained: exported games reuse the existing Phase 7 `PlaySession` and existing authored/runtime systems. Phase 13 did not introduce a parallel runtime engine.
+`cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
 
-Delivered Phase 13 outcomes:
-- schema-v1 export/build manifest, safe package-path validation, and deterministic runtime/editor classification;
-- exact runtime source dependency closure and deterministic project staging;
-- editor shell/workspace/authoring data stripping while preserving runtime-required world, terrain, gameplay, Visual Scripting, procedural, Environment, template/module, and asset data;
-- standalone runtime bootstrap through thin adapters into the existing Phase 7 `PlaySession`;
-- deterministic authored Asset Library dependency discovery and Phase 4 resolution, with hard failure for missing/unavailable dependencies;
-- Phase 7 runtime module validation kept separate from Asset Library UUID dependency resolution;
-- deterministic license/attribution collection with explicit unknown-license findings and no invented license compatibility claims;
-- Windows standalone export orchestration, generated preset, safe output handling, deterministic package/report layout, and repeat-export stale-file replacement;
-- clean-package launch verification outside the editor project;
-- Small/Medium/Large Windows export verification;
-- semantic keyboard/mouse and gamepad verification in exported builds;
-- compact Build-mode Export UI integrated into the canonical workspace, blocked during invalid/transient/Play states;
-- strict Phase 13 foundation/runtime/workspace contracts, inherited Phase 6–12 regressions, Godot Smoke, rendered Export UI evidence, and exported runtime evidence.
+Delivered deterministic export/build manifests, runtime dependency closure, editor stripping/runtime-data preservation, Asset Library dependency resolution, licensing/attribution reports, Windows standalone export, repeat-export replacement, clean-package launch, Small/Medium/Large verification, exported keyboard/mouse/gamepad checks, canonical Build → Export UX, and strict inherited/runtime/rendered evidence while reusing the Phase 7 `PlaySession`.
 
-Verified code-complete head `e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2` passed all five Phase 13 branch workflows:
-- Godot Smoke — run `31617622730`;
-- Phase 13 Windows Export — run `31617622756`;
-- Phase 13 Visual Evidence — run `31617622776`;
-- Phase 13 Inherited Regressions — run `31617622791`;
-- Phase 13 Contracts — run `31617622792`.
+## Phase 14 — Scale and Polish — COMPLETE / PR #19 OPEN — NOT MERGED
+Phase 14 was developed continuously on `dev/phase14-scale-polish-milestone` from exactly authoritative Phase 13 `master`.
 
-Detailed completed checkpoints are recorded in `docs/implementation/PHASE13_EXPORT_PIPELINE_PLAN.md` and `docs/implementation/TASK_BACKLOG.md`.
+Architecture invariant retained: Phase 14 optimizes and polishes existing systems; it does not introduce a replacement editor/runtime architecture and does not permit quality policy to mutate authored project semantics.
 
-### Phase 13 completion gate
-Open exactly one completion PR from `dev/phase13-export-pipeline-milestone` to authoritative `master`. Do not merge it without explicit user authorization.
+Delivered Phase 14 outcomes:
+- explicit Low/Balanced/High quality/performance policy with deterministic budgets;
+- deterministic Small/Medium/Large/Stress benchmark fixtures and CI scale reports;
+- terrain unchanged-target streaming fast path;
+- incremental/no-op procedural streaming hardening;
+- MultiMesh foliage visibility/shadow quality policy without authored scatter mutation;
+- performance-aware Play streaming and Environment cadence with accumulated simulation delta;
+- persistent user-only performance, UI-scale, reduced-motion, and density preferences;
+- real Settings UI replacing the former Home placeholder;
+- application-wide focusability/minimum-target accessibility policy and canonical visible focus styling;
+- keyboard/gamepad input-context detection and consistent glyph/hint language;
+- Home/Settings focus navigation and compact/adaptive layout behavior;
+- compact workspace behavior and touch-ready interaction targets;
+- canonical dark playful Nintendo/Apple-inspired visual parity preserved across new Phase 14 surfaces;
+- effective preset inspection in Settings and Export;
+- validated performance-profile propagation through editor Play, procedural rendering policy, Windows export, standalone loading, and the existing Phase 7 `PlaySession`;
+- backward-compatible Balanced fallback for legacy packages without a packaged profile;
+- dedicated Phase 14 contracts, scale stress, inherited Phase 6–13 regressions, Godot Smoke, rendered evidence, and real Windows profiled export/clean-package launch verification.
 
-## Phase 14 — Scale and polish — BLOCKED
-- Performance presets.
-- Large-world stress passes.
-- Accessibility, touch-ready layouts, controller completeness.
-- UI visual parity sweep.
+Verified green on implementation head `b15439461cfae5d41d5951b5af808d20f2bb5f1b`:
+- Phase 14 Contracts — `31626516078`;
+- Phase 14 Scale Stress — `31626516104`;
+- Phase 14 Inherited Regressions — `31626516105`;
+- Godot Smoke — `31626516120`;
+- Phase 14 Visual Evidence — `31626516053`;
+- Phase 14 Windows Export — `31626516187`.
 
-Phase 14 must not begin until the Phase 13 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+The Windows gate launched Small/Low, Medium/Balanced, and Large/High clean packages, verified keyboard/mouse plus gamepad semantic input, reused the third-person Phase 7 controller, and passed repeat-export stale-file replacement.
 
-## Phase 15 — Multiplayer foundations and collaboration roadmap
+All P14-T01 through P14-T10 checkpoints are complete. Completion PR #19 is open from `dev/phase14-scale-polish-milestone` to authoritative `master` and must not be merged without explicit user authorization.
+
+## Phase 15 — Multiplayer foundations and collaboration roadmap — BLOCKED
+Potential later scope:
 - Network identity compatibility.
 - Co-op prototype support.
 - Competitive template hooks.
 - Collaboration design; implementation may be deferred.
+
+Do not begin Phase 15 until PR #19 is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Release rule
 Work a phase continuously on its milestone branch. Intermediate commits and CI runs are expected; task-by-task PRs are not. At a milestone boundary, finish verification and documentation, then open one completion PR. Do not merge a completion PR without explicit user authorization, and do not start the next phase until the current completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
