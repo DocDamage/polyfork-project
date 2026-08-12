@@ -56,11 +56,15 @@ static func run_checks() -> Array[String]:
     session.undo_edit()
     if gameplay.get_state().get_socket(parent_socket_id).is_empty(): errors.append("Undo socket removal must restore the same socket stable ID.")
 
-    var filtered_cells: Array[String] = []
-    session.get_bridge().set_loaded_cells(filtered_cells)
-    session.get_bridge().rebuild(project.entity_records)
-    var unresolved: Dictionary = RuntimeAttachmentResolver.new().apply(session.get_bridge(), gameplay.get_state())
-    if not unresolved.get("ok", false): errors.append("Attachment resolver must fail safely when related streamed entities are unavailable.")
+    var streamed_attachment: Dictionary = sockets.attach(parent_id, parent_socket_id, child_id, child_socket_id)
+    if streamed_attachment.get("ok", false):
+        var filtered_cells: Array[String] = []
+        var filtered: Dictionary = session.get_bridge().set_active_cell_ids(filtered_cells)
+        if not filtered.get("ok", false): errors.append("Runtime cell filtering must accept an empty active set for unloaded attachment verification.")
+        var unresolved: Dictionary = RuntimeAttachmentResolver.new().apply(session.get_bridge(), gameplay.get_state())
+        if not unresolved.get("ok", false) or unresolved.get("unresolved", []).size() != 1: errors.append("Attachment resolver must report stable unresolved attachment state when related streamed entities are unavailable.")
+        session.get_bridge().clear_cell_filter()
+    else: errors.append("Streaming attachment fixture must recreate an attachment after socket editing.")
 
     session.free(); return errors
 
