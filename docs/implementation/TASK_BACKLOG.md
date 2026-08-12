@@ -91,18 +91,16 @@ Phase 7 is complete and merged on authoritative `master` by PR #12.
 - [x] P07-T08 Complete keyboard/mouse, gamepad, strict-log, inherited regression, and rendered visual verification for Build/Play and both playable controller foundations
 
 ## Phase 8 — Visual Scripting
-Phase 8 is active on `dev/phase8-visual-scripting-milestone`, created from the exact Phase 7 merge commit on authoritative `master`.
+Phase 8 implementation and verification are complete on `dev/phase8-visual-scripting-milestone`. The single completion PR targeting authoritative `master` is the remaining milestone gate.
 
-- [ ] P08-T01 Implement schema-v1 graph contracts, stable graph/node/connection identity, built-in node definitions, and crash-safe project graph repository
-- [ ] P08-T02 Implement command-backed graph/node/connection/variable authoring integrated with the existing universal Undo/Redo history
-- [ ] P08-T03 Implement deterministic graph compiler, port/type validation, dependency validation, and executable-plan generation
-- [ ] P08-T04 Implement runtime interpreter and initial executable event/flow/value/math/logic/entity/debug node set with bounded execution
-- [ ] P08-T05 Implement reusable macro/function graphs, parameter mapping, nested execution, missing-reference handling, and recursion/cycle guards
-- [ ] P08-T06 Implement compact GraphEdit-based visual scripting workspace with search/add/connect/delete/configure, keyboard/mouse, and gamepad authoring paths
-- [ ] P08-T07 Implement debugger/validation UX with trace, breakpoints, paused/error state, runtime diagnostics, and template graph-reference integration
-- [ ] P08-T08 Complete save/reopen, undo/redo, failure/corruption, runtime Play integration, scale/performance, strict-log, gamepad, inherited regression, and rendered visual verification
-
-Phase 8 uses intermediate commits and CI runs, then exactly one completion PR to authoritative `master`. Do not open per-task PRs.
+- [x] P08-T01 Implement schema-v1 graph contracts, stable graph/node/connection identity, built-in node definitions, and crash-safe project graph repository
+- [x] P08-T02 Implement command-backed graph/node/connection/variable authoring integrated with the existing universal Undo/Redo history
+- [x] P08-T03 Implement deterministic graph compiler, port/type validation, dependency validation, and executable-plan generation
+- [x] P08-T04 Implement runtime interpreter and initial executable event/flow/value/math/logic/entity/debug node set with bounded execution
+- [x] P08-T05 Implement reusable macro/function graphs, parameter mapping, nested execution, missing-reference handling, and recursion/cycle guards
+- [x] P08-T06 Implement compact GraphEdit-based visual scripting workspace with search/add/connect/delete/configure, keyboard/mouse, and gamepad authoring paths
+- [x] P08-T07 Implement debugger/validation UX with trace, breakpoints, paused/error state, runtime diagnostics, and template graph-reference validation
+- [x] P08-T08 Complete save/reopen, undo/redo, failure/corruption, live Play integration, scale/performance, strict-log, gamepad, inherited regression, and rendered visual verification
 
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.

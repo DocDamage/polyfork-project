@@ -1,52 +1,182 @@
-# POLYFORK PROJECT — PHASE 8 ACTIVE HANDOFF
+# POLYFORK PROJECT — PHASE 8 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
 Use the GitHub connector for repository work.
 
 ## Authoritative branch
-The real project lives on `master`.
 
-Authoritative `master` after the Phase 7 merge:
+The real project lives on:
+
+`master`
+
+Authoritative `master` before the Phase 8 merge:
 
 `06df50b6ffb752731d21f1ced88eb2cf1191f542`
 
-This is the verified GitHub merge commit for PR #12 — Phase 7 — Instant Play + Templates.
+This is the verified merge commit for PR #12 — Phase 7 — Instant Play + Templates.
 
-The repository default branch `main` remains obsolete starter code. **Never develop from `main`.**
+The repository default branch `main` remains obsolete starter code.
 
-## Active milestone
-Phase 8 — Visual Scripting — is active on:
+**Never develop from `main`.**
+
+## Current milestone status
+
+Phases 0 through 7 are merged on authoritative `master`.
+
+Phase 8 — Visual Scripting — is implementation-complete and verified on:
 
 `dev/phase8-visual-scripting-milestone`
 
-The branch was created from the exact authoritative Phase 7 merge commit above.
+All internal checkpoints P08-T01 through P08-T08 are complete.
 
-Work continuously through P08-T01–P08-T08. Intermediate commits and CI runs are expected. Do not stop for per-task PRs. Open exactly one Phase 8 completion PR to `master` after the milestone is fully implemented and verified. Do not merge that PR without explicit user authorization.
+Verified implementation/visual candidate before this documentation-only closeout:
 
-## Phase 8 required outcomes
-- schema-v1 graph persistence with stable graph, node, connection, variable, and macro identity
-- project-managed graph storage using crash-safe JSON promotion and fail-closed corrupt/future-schema handling
-- command-backed graph authoring integrated with existing Undo/Redo and dirty-state behavior
-- deterministic compiler with typed port validation, endpoint validation, macro dependency validation, and executable plans
-- bounded runtime interpreter usable during real Phase 7 Play sessions
-- reusable macro/function graphs with parameters and recursion/cycle guards
-- initial useful event/flow/value/math/logic/variable/entity/debug node library
-- compact GraphEdit-based authoring UI that preserves the canonical dark playful Nintendo-forward / Apple-clean workspace
-- keyboard/mouse and gamepad graph authoring paths with reliable Back/Cancel behavior
-- validation/debugger surface with trace, breakpoints, paused/error state, and actionable diagnostics
-- template `example_graph_references` integration without inventing unsupported later-phase systems
-- save/reopen, Undo/Redo, missing/corrupt/future data, runtime failure rollback, repeated execution, scale/performance, strict-log, inherited regression, and rendered visual evidence
+`9136c572a8526409e6f6550d79b4afb73adeae30`
 
-## Internal checkpoints
-- P08-T01 contracts, node catalog, state, repository
-- P08-T02 command-backed authoring service
-- P08-T03 compiler and validation
-- P08-T04 runtime interpreter and Play integration
-- P08-T05 macros/functions
-- P08-T06 graph editor workspace and input
-- P08-T07 debugger/diagnostics/template references
-- P08-T08 integration/scale/failure/gamepad/visual closeout
+The remaining Phase 8 milestone action is to open one completion PR targeting `master`. Do not merge that PR without explicit user authorization.
 
-## Merge rule
-Phase 9 is not authorized until the single Phase 8 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+## Branch integrity before documentation closeout
+
+- authoritative `master`: `06df50b6ffb752731d21f1ced88eb2cf1191f542`
+- merge base: `06df50b6ffb752731d21f1ced88eb2cf1191f542`
+- Phase 8 branch: ahead only
+- ahead of `master`: 15 commits
+- behind `master`: 0 commits
+
+No obsolete `main` ancestry was used.
+
+## Verified runs on the candidate
+
+### Phase 8 Contracts
+Run `31568775999` — SUCCESS
+
+Passing suites:
+- foundation
+- authoring
+- compiler
+- runtime
+- macros
+- workspace
+- debugger
+- play
+- scale
+
+### Godot Smoke
+Run `31568775977` — SUCCESS
+
+Passing inherited jobs:
+- runtime smoke
+- Phase 1 visual capture
+- Phase 4 Asset Library visual capture
+- Phase 5 Terrain visual capture
+
+### Phase 8 Visual Evidence
+Run `31568776022` — SUCCESS
+
+Artifact:
+- ID `9130478900`
+- digest `sha256:038fec8b994001aab9c09093c2424ff46b91100e7d9077d850280e4487f5e075`
+
+All dedicated Phase 8 verification runs use Godot `4.7.1.stable.official.a13da4feb` and reject `SCRIPT ERROR:` / engine `ERROR:` output.
+
+Representative scale result: 120 graphs compiled and executed in 17 ms against a broad 12,000 ms CI regression budget. This is a regression proxy, not an FPS claim.
+
+## Phase 8 delivered
+
+### Graph contracts and persistence
+- schema-v1 project graph registry
+- crash-safe `visual_scripting/graphs.json`
+- stable graph/node/connection/variable identity
+- mirrored `WorldProject.registries.visual_graph_ids`
+- corrupt/future-schema/duplicate/invalid references fail closed
+
+### Command-backed graph authoring
+- graph create/delete/configure
+- node create/delete/move/configure
+- connection/disconnection
+- graph variables
+- persistence rollback on failed writes
+- shared universal Undo/Redo and project dirty-state path
+
+### Compiler and bounded runtime
+- deterministic executable plans
+- exec/data port validation
+- data type compatibility
+- input cardinality validation
+- event entry validation
+- data dependency-cycle rejection
+- hard runtime step budget
+- variables, flow, math, logic, entity position, and debug trace
+
+### Macros/functions
+- Macro Entry / Macro Return
+- typed macro interfaces
+- dynamic Call Macro ports
+- nested execution and output propagation
+- missing-target rejection
+- compile-time dependency-cycle rejection
+- independent runtime recursion guard
+
+### Logic workspace
+- bottom dock exposes `Logic`
+- native Godot `GraphEdit` / `GraphNode`
+- searchable node palette
+- event/macro creation
+- native connect/disconnect/delete/move
+- JSON property editing
+- gamepad X/Y authoring shortcuts
+- reliable Back/Cancel and contextual-tool switching
+- shared existing app theme and workspace rather than a parallel editor fork
+
+### Debugger
+- Validate
+- Run
+- Breakpoint
+- Resume
+- stable node selection
+- paused/completed/error state
+- live debug trace/status
+- resume continues existing interpreter state rather than restarting
+
+### Real Play integration
+- active project's graph service is the Phase 7 PlaySession graph provider
+- project registry compiles at Play entry
+- enabled event graphs execute in deterministic graph-ID order
+- stable entity operations target only disposable Play runtime state
+- graph failure rejects Play startup and follows the existing rollback path
+- authored Build project data remains unchanged
+- real Main-scene integration test verifies graph execution count and clean return to Build
+
+### Template graph references
+- template graph references must be stable project graph UUIDs
+- missing and malformed references fail closed
+- no scene paths or hidden template-specific editor forks
+
+## Rendered evidence inspected
+
+`01-visual-scripting-graph.png` shows a real connected Start/Literal/Add/Print event graph in the native Logic workspace.
+
+`02-debugger-paused.png` shows the same graph paused at a real `debug.print` breakpoint with Breakpoint active, Resume enabled, stable-node status, and the debugger toolbar visible.
+
+The captures were manually inspected in addition to the automated rendered PASS gate.
+
+## Documentation closeout
+
+Updated for actual Phase 8 implementation:
+- `docs/implementation/TASK_BACKLOG.md`
+- `docs/implementation/MASTER_IMPLEMENTATION_PLAN.md`
+- `docs/systems/VISUAL_SCRIPTING.md`
+- `docs/qa/PHASE8_QA.md`
+- this handoff
+
+## Next action
+
+1. verify this documentation-only closeout head remains green on Phase 8, baseline, and rendered gates;
+2. open exactly one Phase 8 completion PR from `dev/phase8-visual-scripting-milestone` to authoritative `master`;
+3. review the PR and all inherited checks;
+4. merge only after explicit user authorization.
+
+After the Phase 8 completion PR is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 9 milestone branch.
+
+**Do not begin Phase 9 before the Phase 8 completion PR is explicitly merged.**

@@ -34,18 +34,22 @@
 - Disposable Build → Play → Build lifecycle, semantic gameplay input, third-person/FPS foundations, deterministic template system, seven starter templates, module editability, persistence/performance/visual verification.
 - Merged by PR #12 at authoritative `master` commit `06df50b6ffb752731d21f1ced88eb2cf1191f542`.
 
-## Phase 8 — Visual scripting — IN PROGRESS
-- Stable schema-v1 graph/node/connection/variable contracts and project-managed crash-safe graph persistence.
-- Command-backed authoring through the existing universal Undo/Redo history.
-- Deterministic compiler and bounded interpreter with typed ports and explicit execution plans.
-- Initial event, flow, value, math, logic, entity, variable, macro, and debug node library.
-- Reusable macro/function graphs with parameter mapping and recursion guards.
-- Compact GraphEdit-based authoring surface integrated into the existing workspace and visual language.
-- Validation, trace, breakpoints, runtime diagnostics, gamepad support, persistence/failure/performance/visual verification.
+## Phase 8 — Visual scripting — IMPLEMENTATION COMPLETE; MERGE-GATED
+- Stable schema-v1 graph/node/connection/variable contracts and project-managed crash-safe graph persistence under `visual_scripting/graphs.json`.
+- Command-backed graph authoring through the existing universal Undo/Redo history and project dirty-state path.
+- Deterministic compiler with node/port/type/cardinality validation, macro reference validation, dependency-cycle rejection, and executable plans.
+- Bounded interpreter for event, flow, value, math, logic, variable, entity-position, macro, and debug nodes.
+- Reusable macro/function graphs with typed interfaces, nested calls, output propagation, compile-time cycle detection, and runtime recursion guards.
+- Native Godot `GraphEdit`/`GraphNode` Logic workspace integrated into the existing dark playful Nintendo-forward / Apple-clean shell.
+- Searchable node palette, graph creation, native connect/disconnect/delete/move, JSON property editing, keyboard/mouse, gamepad X/Y shortcuts, Back/Cancel behavior, and shared history.
+- Debug toolbar with Validate, Run, Breakpoint, Resume, stable-node selection, paused/error state, and live trace/status.
+- Phase 7 PlaySession integration: project-owned event graphs compile and execute at Play entry against disposable runtime state; graph failure rejects Play startup without mutating authored Build data.
+- Stable project graph-reference validation for Phase 7 template `example_graph_references`.
+- Representative 120-graph compile+execute regression workload, strict raw-log gates, baseline/inherited smoke, and rendered Logic/debugger evidence.
 
-Phase 8 is developed continuously on `dev/phase8-visual-scripting-milestone` and closes with one completion PR to authoritative `master`.
+Phase 8 is complete on `dev/phase8-visual-scripting-milestone` and must merge through one completion PR to authoritative `master` before Phase 9 begins.
 
-## Phase 9 — Foliage/procedural/splines
+## Phase 9 — Foliage/procedural/splines — NOT STARTED / MERGE-GATED
 - MultiMesh foliage sets.
 - Scatter/paint/erase.
 - Nondestructive procedural sets.
