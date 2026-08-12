@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 11 ACTIVE HANDOFF
+# POLYFORK PROJECT — PHASE 11 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -6,11 +6,9 @@ Use the GitHub connector for repository work.
 
 ## Authoritative branch
 
-The real project lives on:
+The real project lives on `master`.
 
-`master`
-
-Current authoritative `master`:
+Authoritative Phase 11 base:
 
 `ac2753f81c9c6be53abe89b102e1f9911a595944`
 
@@ -20,78 +18,64 @@ The repository default branch `main` remains obsolete starter code.
 
 **Never develop from `main`.**
 
-## Completed state
+## Phase 11 milestone state
 
-PR #15 is merged.
-
-Phases 0 through 10 are complete on authoritative `master`.
-
-## Phase 11 milestone branch
-
-Phase 11 — Environment — is active on:
+Phase 11 — Environment — implementation and verification are complete on:
 
 `dev/phase11-environment-milestone`
 
-The branch was created from exactly:
+The branch was created from exactly authoritative `master` `ac2753f81c9c6be53abe89b102e1f9911a595944`, verified initially at zero commits ahead and zero behind.
 
-`ac2753f81c9c6be53abe89b102e1f9911a595944`
+The last implementation/test head before documentation-only closeout commits was:
 
-The branch/base comparison was verified identical before Phase 11 writes: zero commits ahead and zero commits behind.
+`0c96891bdce327f8e19951da418948156b673775`
 
-No obsolete `main` ancestry is being used.
+All P11 checkpoints are complete:
 
-Phase 11 must be developed as one continuous milestone without task-by-task pull requests.
+- [x] P11-T01 — schema-v1 environment state, stable weather-profile IDs, validation, registry synchronization, crash-safe persistence
+- [x] P11-T02 — command-backed environment/profile authoring through universal Undo/Redo and project dirty-state semantics
+- [x] P11-T03 — deterministic time-of-day evaluation and real Godot sun/ambient/sky/fog rendering
+- [x] P11-T04 — weather profile selection/transitions, runtime events, deterministic evaluation, safe fallback
+- [x] P11-T05 — reusable wind state/hooks consumed by existing Phase 9 procedural runtime
+- [x] P11-T06 — Phase 5 biome/environment overrides with deterministic precedence and streamed-world focus behavior
+- [x] P11-T07 — stable water integration descriptors/hooks without a hardcoded provider
+- [x] P11-T08 — fully disposable Phase 7 Play integration plus Phase 8 Visual Scripting environment actions/state
+- [x] P11-T09 — native Environment workspace behind the canonical Water dock entry with keyboard/mouse and gamepad authoring
+- [x] P11-T10 — persistence/Undo/day-night/weather/biome/wind/water/streaming/Build-Play isolation/failure/scale/visual/inherited regression/Godot Smoke closeout
 
-## Phase 11 objective
+## Delivered architecture
 
-Deliver a coherent, reusable, data-driven environment system that integrates day/night, weather, fog, wind, water hooks, and biome/environment coupling through the existing Polyfork architecture.
+Phase 11 uses one reusable authored environment document under `environment/environment.json` and one deterministic evaluator/runtime model. Build data remains authoritative. Play creates a separate EnvironmentRuntime only for environment-enabled sessions and frees it completely on exit/rollback, preserving the Phase 7 disposable-node invariant.
 
-Authored Build data remains authoritative. Runtime evaluation during Play is disposable and must not silently mutate Build state. Persisted identities use stable IDs where identity is required, and missing/corrupt references fail safely.
+Environment rendering uses Godot `WorldEnvironment`/`Environment`, `Sky`/`ProceduralSkyMaterial`, directional light, ambient light, and fog in the real editor/play viewport. The active renderer owns viewport transparency so authored sky/day-night/weather is visible, while Build and Play renderers remain mutually exclusive.
 
-## Phase 11 checkpoints
+Environment profile resolution is deterministic: explicit Play override → Environment biome override → Phase 5 biome `environment_profile_id` → authored default, with safe fallback for unresolved references.
 
-- [ ] P11-T01 — schema-v1 environment state, stable weather-profile IDs, validation, registry synchronization, crash-safe persistence
-- [ ] P11-T02 — command-backed environment/profile authoring through universal Undo/Redo and project dirty-state semantics
-- [ ] P11-T03 — deterministic time-of-day evaluation and Godot rendering bridge for sun, ambient/sky, and fog-capable Environment resources
-- [ ] P11-T04 — weather profile selection/transitions, runtime events, deterministic evaluation, safe missing-profile fallback
-- [ ] P11-T05 — reusable wind state/hooks for foliage, particles, water, gameplay, and future consumers
-- [ ] P11-T06 — Phase 5 biome/environment overrides with deterministic precedence and streaming-aware active-cell behavior
-- [ ] P11-T07 — stable water integration descriptors/hooks for future providers without hardcoded water implementation
-- [ ] P11-T08 — Phase 7 disposable Play integration plus Phase 8 Visual Scripting environment actions/events
-- [ ] P11-T09 — native Environment workspace UX with keyboard/mouse and gamepad authoring paths
-- [ ] P11-T10 — persistence/Undo/day-night/weather/biome/foliage/wind/streaming/Build-Play isolation/failure/scale/gamepad/visual/strict-log/inherited regression/Godot Smoke closeout and one completion PR
+Wind is passed into the existing Phase 9 derived procedural runtime without mutating authored foliage/splines. Water is represented as stable provider-neutral integration hooks for future systems. Environment events use the existing gameplay event route. Visual Scripting exposes environment state, time, weather, and runtime-override actions rather than a separate graph-owned environment state.
 
-## Architecture inspection findings before implementation
+## Verification completed
 
-- Phase 5 already owns terrain cells, biome assignment, dirty-cell persistence, deterministic streaming, and terrain refresh behavior; Phase 11 must consume those systems instead of recreating terrain or biome state.
-- Phase 7 already owns the isolated Build → Play → Build lifecycle; Play environment progression belongs in disposable session/runtime state.
-- Phase 9 already owns derived foliage/procedural runtime and streaming; wind/environment coupling must feed that runtime through reusable hooks without making generated foliage authoritative.
-- Phase 10 already owns reusable gameplay runtime events/state; environment signals may be consumed there but should not duplicate gameplay state.
-- `src/environment` is reserved and currently empty, making it the correct module boundary for the Phase 11 contracts/repository/service/runtime/render bridge.
-- Existing Phase-specific suite runners and integration-contract tests should be extended with a Phase 11 runner and environment contract suites rather than replaced.
+The verified implementation head passed:
 
-## Verification required before completion PR
+- all six Phase 11 contract suites: foundation, coupling, play_visual, persistence_undo, workspace, scale_streaming;
+- crash-safe save/reopen, corrupt-state failure, stable-ID registry synchronization, and universal Undo/Redo;
+- deterministic day/night and weather evaluation;
+- Phase 5 biome/streaming and Phase 9 foliage/wind integration;
+- provider-neutral water hook behavior;
+- real Build → Play → Build isolation, including zero leaked Play environment nodes;
+- Phase 8 Visual Scripting environment actions/state;
+- real workspace keyboard/mouse/gamepad paths;
+- representative 256-weather-profile / 768-biome-override scale checks plus repeated evaluator and multi-cell streaming checks;
+- complete inherited Phase 6–10 contract regression gate, including Phase 7 playable controller smoke;
+- current Godot Smoke with strict log gates;
+- dedicated rendered Phase 11 evidence: Environment authoring, disposable 22:00 night/weather Play, and authoritative Build restoration.
 
-- persistence/save/reopen and corruption/future-schema handling;
-- universal Undo/Redo for authored environment editing;
-- deterministic day/night behavior;
-- weather profile switching and transitions;
-- biome/environment coupling and streamed-world behavior;
-- terrain/foliage/wind integration regression coverage;
-- stable water-hook behavior and missing-provider safety;
-- Build → Play → Build isolation;
-- Visual Scripting environment actions/events;
-- keyboard/mouse and gamepad authoring;
-- representative scale/performance checks;
-- strict Godot log gates;
-- inherited Phase 6–10 regression gates;
-- rendered Phase 11 visual evidence;
-- Godot Smoke.
+Rendered evidence was also manually inspected after capture; the corrected viewport shows the actual environment sky and visibly darker night Play state rather than the UI backdrop.
 
 ## Completion gate
 
-After all P11 checkpoints and verification are complete, open exactly one Phase 11 completion PR from `dev/phase11-environment-milestone` to authoritative `master`.
+The only authorized next action is to open the single Phase 11 completion PR from `dev/phase11-environment-milestone` to authoritative `master`, verify its checks, and wait for explicit user merge authorization.
 
-Do not merge that PR without explicit user authorization.
+**Do not merge the Phase 11 completion PR without explicit user authorization.**
 
-Do not begin Phase 12 until the Phase 11 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+**Do not begin Phase 12 until that PR is explicitly merged and the resulting authoritative `master` SHA is verified.**
