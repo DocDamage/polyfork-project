@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 10 ACTIVE HANDOFF
+# POLYFORK PROJECT — PHASE 10 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -26,11 +26,9 @@ PR #14 is merged.
 
 Phases 0 through 9 are complete on authoritative `master`.
 
-Phase 9 delivered project-managed nondestructive foliage/scatter, terrain-coupled deterministic regeneration, real MultiMesh foliage, paint/erase strokes, roads/paths/fences, generated spline geometry, streaming, Asset Library/prefab source resolution, keyboard/mouse + gamepad authoring, persistence/failure testing, and rendered verification.
-
 ## Phase 10 milestone branch
 
-Phase 10 — Gameplay Framework Breadth — is active on:
+Phase 10 — Gameplay Framework Breadth — implementation is complete on:
 
 `dev/phase10-gameplay-framework-milestone`
 
@@ -40,22 +38,51 @@ The branch was created from exactly:
 
 No obsolete `main` ancestry was used.
 
-## Phase 10 development rule
+Phase 10 was developed as one continuous milestone without task-by-task pull requests.
 
-Work Phase 10 as one continuous milestone.
+## Phase 10 completed breadth
 
-Use internal commits and CI freely, but do not stop after each P10 task for a pull request.
+- stable-ID disposable runtime gameplay state and event routing;
+- inventory, item/container quantity/capacity rules, transfer, pickups, and interaction routing;
+- reusable doors and health/damage/healing/death state;
+- basic NPC navigation/AI goals, destinations, waits, target interaction, and safe fallback behavior;
+- stable-ID dialogue conversations, lines, participants, conditions, choices, and progression;
+- stable-ID quests/objectives with progress, completion/failure, and event-driven updates;
+- reusable vehicles, seats, occupancy, enter/exit, throttle/steer/brake semantics, keyboard and gamepad input;
+- explicit project-managed save-state snapshots that restore opted-in runtime state without silently mutating authored Build data;
+- Visual Scripting-facing gameplay actions/events integrated with the existing Phase 7 Play lifecycle and semantic input;
+- native Gameplay workspace integration using the existing component/archetype/editor systems;
+- keyboard/mouse and gamepad authoring paths;
+- representative scale regression coverage for 256 entities and 768 gameplay components;
+- rendered Phase 10 evidence exercising real Gameplay authoring, a real gamepad authoring shortcut, and Build → Play → Build disposal;
+- strict Phase 10 contract and visual log gates.
 
-At milestone completion:
+## Phase 10 checkpoints
 
-1. run full Phase 10 and inherited verification;
-2. update implementation/QA/handoff documentation;
-3. open one Phase 10 completion PR targeting authoritative `master`;
-4. do not merge it without explicit user authorization.
+- [x] P10-T01 — runtime gameplay-state contracts/service, stable IDs, Play lifecycle, event bus, validation
+- [x] P10-T02 — inventory/item/container state, transfers, pickups, interaction routing
+- [x] P10-T03 — doors plus health/damage/healing/death runtime systems
+- [x] P10-T04 — basic NPC navigation/AI goals, destinations, waits, target interaction
+- [x] P10-T05 — dialogue scaffolding with stable conversations/lines/participants/choices
+- [x] P10-T06 — quest scaffolding with stable quests/objectives and event-driven progress
+- [x] P10-T07 — vehicles, seats, occupancy, enter/exit, throttle/steer/brake semantics
+- [x] P10-T08 — explicit save-state snapshots and crash-safe restore without Build mutation
+- [x] P10-T09 — Visual Scripting and semantic input integration plus repeated Play/rollback coverage
+- [x] P10-T10 — Gameplay workspace UX, gamepad/keyboard coverage, scale/performance/failure QA, rendered evidence, docs closeout, single completion PR
 
-## Architecture rules
+## Verified branch gates before completion PR
 
-Phase 10 must extend, not replace:
+The Phase 10 milestone branch has passed:
+
+- Godot Smoke;
+- Phase 10 Contracts — nine suites: foundation, inventory, health, NPC, dialogue, quest, vehicle, save-state, scale regression;
+- Phase 10 Visual Evidence — rendered Gameplay workspace and disposable Play runtime capture with strict log checking.
+
+The completion PR targeting `master` is the authoritative inherited regression gate for Phase 6, Phase 7, Phase 8, Phase 9, Phase 10, rendered visual evidence, and Godot Smoke.
+
+## Architecture rules preserved
+
+Phase 10 extends, rather than replaces:
 
 - Phase 2 stable project/entity identity and crash-safe persistence;
 - universal command history and Undo/Redo;
@@ -67,25 +94,12 @@ Phase 10 must extend, not replace:
 - Phase 8 Visual Scripting;
 - Phase 9 procedural/foliage/spline runtime.
 
-Build remains authoritative. Mutable Play state is disposable unless explicitly captured by the Phase 10 save-state system. Play/runtime state must never silently write back into authored Build data.
+Build remains authoritative. Mutable Play state is disposable unless explicitly captured by the Phase 10 save-state system. Persisted references use stable IDs. Missing/corrupt references fail safely. Keyboard/mouse and gamepad remain first-class.
 
-Persisted references must use stable IDs. Missing/corrupt references fail safely. Keyboard/mouse and gamepad remain first-class. Preserve the existing dark playful Nintendo-forward / Apple-clean UI direction.
+## Merge gate
 
-## Phase 10 checkpoints
+Open exactly one Phase 10 completion PR from `dev/phase10-gameplay-framework-milestone` to authoritative `master`.
 
-- P10-T01 — runtime gameplay-state contracts/service, stable IDs, Play lifecycle, event bus, validation
-- P10-T02 — inventory/item/container state, transfers, pickups, interaction routing
-- P10-T03 — doors plus health/damage/healing/death runtime systems
-- P10-T04 — basic NPC navigation/AI goals, destinations, waits, target interaction
-- P10-T05 — dialogue scaffolding with stable conversations/lines/participants/choices
-- P10-T06 — quest scaffolding with stable quests/objectives and event-driven progress
-- P10-T07 — vehicles, seats, occupancy, enter/exit, throttle/steer/brake semantics
-- P10-T08 — explicit save-state snapshots and crash-safe restore without Build mutation
-- P10-T09 — Visual Scripting and semantic input integration plus repeated Play/rollback coverage
-- P10-T10 — Gameplay workspace UX, gamepad/keyboard coverage, scale/performance/failure QA, rendered evidence, docs closeout, single completion PR
+Do not merge that PR without explicit user authorization.
 
-## Immediate execution state
-
-The Phase 9 stale merge-state documentation has been corrected and the Phase 10 milestone has been decomposed. Implementation is authorized to continue immediately on the Phase 10 branch without task-by-task PR interruptions.
-
-Do not begin Phase 11 until the Phase 10 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
+Do not begin Phase 11 until the Phase 10 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
