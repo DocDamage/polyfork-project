@@ -67,7 +67,7 @@ Completed milestone breadth:
 
 Phase 10 was merged by PR #15 at authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
 
-## Phase 11 — Environment — IMPLEMENTATION COMPLETE / MERGE GATED
+## Phase 11 — Environment — COMPLETE
 Phase 11 was developed as one continuous milestone on `dev/phase11-environment-milestone`, created from exactly authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
 
 Completed milestone breadth:
@@ -82,16 +82,29 @@ Completed milestone breadth:
 - fully disposable Phase 7 Play environment runtimes with authored Build restoration, no leaked Play nodes, and existing gameplay-event routing;
 - Phase 8 Visual Scripting Environment nodes for reading state, setting time/weather, and clearing runtime weather overrides;
 - native Environment authoring behind the canonical Water dock entry, preserving the existing shell while providing time/weather/fog/wind/biome/water controls with keyboard/mouse and gamepad paths;
-- six dedicated Phase 11 contract suites covering persistence/reopen/corruption, universal Undo/Redo, deterministic evaluation, weather/biome/wind/water coupling, Visual Scripting/Play isolation, real workspace input paths, and representative large-world scale/streaming;
-- explicit inherited Phase 6–10 contract regression gate, current Godot Smoke, strict Godot log gates, and three rendered Phase 11 evidence captures for authored editing, disposable night/weather Play, and authoritative Build restoration.
+- six dedicated Phase 11 contract suites, inherited Phase 6–10 regression coverage, Godot Smoke, strict logs, and rendered evidence.
 
-Phase 11 implementation is complete on the milestone branch but remains completion-PR gated. Do not merge its completion PR without explicit user authorization. Phase 12 remains blocked until the Phase 11 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
+Phase 11 was merged by PR #16 at authoritative `master` commit `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
 
-## Phase 12 — AI creation
-- Provider interface.
-- Catalog/project query tools.
-- Suggest/Preview/Execute.
-- Transactional execution and history.
+## Phase 12 — AI Creation — IN PROGRESS
+Phase 12 is developed as one continuous milestone on `dev/phase12-ai-creation-milestone`, created from exactly authoritative `master` commit `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
+
+The milestone must add AI-assisted authoring without granting providers direct write access to project files. Providers only receive bounded query/context surfaces and return validated structured proposals. Authored Build data remains authoritative; Preview is read-only; Execute is routed through the existing command/transaction system so a complete AI operation is one Undo entry.
+
+Planned milestone breadth:
+- provider-agnostic request/response contracts and provider profiles supporting local and cloud endpoints without persisting credentials in project data;
+- explicit local-only/cloud-consent privacy policy, cloud disclosure, bounded context, and environment/user-scoped credential lookup;
+- real provider adapter support through an OpenAI-compatible structured-chat protocol usable with local or cloud endpoints, while keeping provider interfaces extensible;
+- read-only query tools over the actual Phase 4 Asset Library and current project state, including entities, gameplay, terrain/biomes, Visual Scripting, procedural systems, and environment state;
+- stable schema-v1 AI proposals/actions with strict validation, limits, stable-ID references, and rejection of unavailable/missing assets or unsupported actions;
+- Suggest mode for read-only recommendations and structured plans;
+- Preview mode for deterministic impact summaries/diffs without mutation;
+- Execute mode that composes existing world/gameplay/visual/procedural/environment commands into one atomic universal transaction with rollback and one-step Undo/Redo;
+- project-managed AI execution history recording provider/mode/proposal/transaction lineage and the exact source asset IDs used, without storing credentials;
+- native AI workspace behind the existing AI dock entry with provider/mode/prompt/context/result controls, clear cloud/local disclosure, keyboard/mouse and gamepad authoring paths;
+- deterministic contract, failure, privacy, missing-asset, transaction, scale/performance, inherited regression, Godot Smoke, and rendered visual-evidence gates.
+
+Phase 12 remains completion-PR gated. Open one completion PR targeting authoritative `master` only after the full milestone is implemented and verified. Do not merge it without explicit user authorization. Phase 13 remains blocked until the Phase 12 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Phase 13 — Export pipeline
 - Strip editor-only systems.
