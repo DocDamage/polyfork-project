@@ -33,14 +33,14 @@ func _process(delta: float) -> void:
     _scan_elapsed += delta
     if _scan_elapsed < 0.1: return
     _scan_elapsed = 0.0
-    var active_session := _find_active_play_session(get_tree().root)
+    var active_session: Node = _find_active_play_session(get_tree().root)
     if active_session != _play_session:
         _detach_runtime("play_session_changed")
         _play_session = active_session
     if _play_session == null:
         _emit_status_if_changed()
         return
-    var role := str(_desired_config.get("role", Contract.ROLE_OFFLINE))
+    var role: String = str(_desired_config.get("role", Contract.ROLE_OFFLINE))
     if role == Contract.ROLE_OFFLINE:
         if _adapter != null: _teardown_network("offline_mode")
         _emit_status_if_changed()
@@ -56,13 +56,13 @@ func configure_session(config: Dictionary) -> Dictionary:
     var normalized: Dictionary = Contract.normalize_config(config)
     var errors: Array[String] = Contract.validate_config(normalized)
     if not errors.is_empty(): return _failure(errors)
-    var capability := current_multiplayer_capability()
+    var capability: Dictionary = current_multiplayer_capability()
     if str(normalized.get("role", Contract.ROLE_OFFLINE)) != Contract.ROLE_OFFLINE:
         if _play_session != null and not bool(capability.get("enabled", false)):
             return _failure(["The active template does not declare multiplayer support."])
         if bool(capability.get("enabled", false)):
             normalized["max_players"] = mini(int(normalized.get("max_players", Contract.DEFAULT_MAX_PLAYERS)), int(capability.get("max_players", Contract.DEFAULT_MAX_PLAYERS)))
-    var changed := normalized != _desired_config
+    var changed: bool = normalized != _desired_config
     _desired_config = normalized
     _last_error.clear()
     if changed and _adapter != null: _teardown_network("configuration_changed")
@@ -70,12 +70,12 @@ func configure_session(config: Dictionary) -> Dictionary:
     return {"ok": true, "errors": [], "config": _desired_config.duplicate(true), "changed": changed}
 
 func set_offline() -> Dictionary:
-    var config := _desired_config.duplicate(true)
+    var config: Dictionary = _desired_config.duplicate(true)
     config["role"] = Contract.ROLE_OFFLINE
     return configure_session(config)
 
 func host(port: int = Contract.DEFAULT_PORT, player_label: String = "Host") -> Dictionary:
-    var config := _desired_config.duplicate(true)
+    var config: Dictionary = _desired_config.duplicate(true)
     config["role"] = Contract.ROLE_HOST
     config["address"] = "*"
     config["port"] = port
@@ -83,7 +83,7 @@ func host(port: int = Contract.DEFAULT_PORT, player_label: String = "Host") -> D
     return configure_session(config)
 
 func join(address: String, port: int = Contract.DEFAULT_PORT, player_label: String = "Player") -> Dictionary:
-    var config := _desired_config.duplicate(true)
+    var config: Dictionary = _desired_config.duplicate(true)
     config["role"] = Contract.ROLE_CLIENT
     config["address"] = address
     config["port"] = port
@@ -91,14 +91,14 @@ func join(address: String, port: int = Contract.DEFAULT_PORT, player_label: Stri
     return configure_session(config)
 
 func stop_session() -> Dictionary:
-    var result := set_offline()
+    var result: Dictionary = set_offline()
     if _adapter != null: _teardown_network("user_stop")
     return result
 
 func get_configuration() -> Dictionary: return _desired_config.duplicate(true)
 
 func get_status() -> Dictionary:
-    var status := {
+    var status: Dictionary = {
         "role": str(_desired_config.get("role", Contract.ROLE_OFFLINE)),
         "state": "build" if _play_session == null else "play_offline",
         "ready": false,
@@ -122,7 +122,7 @@ func get_status() -> Dictionary:
     return status
 
 func current_multiplayer_capability() -> Dictionary:
-    var project_data := _current_project_data()
+    var project_data: Dictionary = _current_project_data()
     if project_data.is_empty(): return TemplateContract.disabled()
     var runtime: Dictionary = project_data.get("runtime", {})
     return TemplateContract.normalize(runtime.get("multiplayer", null))
@@ -138,16 +138,21 @@ func get_remote_player(peer_id: int):
     if _player_replication == null: return null
     return _player_replication.get_remote_player(peer_id)
 
+func can_persist_runtime_state() -> bool:
+    var role: String = str(_desired_config.get("role", Contract.ROLE_OFFLINE))
+    return role != Contract.ROLE_CLIENT
+
 func _start_for_play_session() -> void:
-    var project_data := _current_project_data()
+    var project_data: Dictionary = _current_project_data()
     if project_data.is_empty():
         _record_error(["Active Play session does not expose runtime project data."])
         return
-    var capability := TemplateContract.normalize(project_data.get("runtime", {}).get("multiplayer", null))
+    var runtime_data: Dictionary = project_data.get("runtime", {})
+    var capability: Dictionary = TemplateContract.normalize(runtime_data.get("multiplayer", null))
     if not bool(capability.get("enabled", false)):
         _record_error(["This project template does not declare multiplayer support."])
         return
-    var config := _desired_config.duplicate(true)
+    var config: Dictionary = _desired_config.duplicate(true)
     config["project_id"] = str(project_data.get("project_id", ""))
     config["max_players"] = mini(int(config.get("max_players", Contract.DEFAULT_MAX_PLAYERS)), int(capability.get("max_players", Contract.DEFAULT_MAX_PLAYERS)))
     _adapter = Adapter.new()
@@ -168,24 +173,24 @@ func _start_for_play_session() -> void:
 
 func _bind_runtime_services() -> void:
     if _play_session == null or _adapter == null or not _adapter.is_session_ready(): return
-    var project_data := _current_project_data()
+    var project_data: Dictionary = _current_project_data()
     var runtime: Dictionary = project_data.get("runtime", {})
-    var capability := TemplateContract.normalize(runtime.get("multiplayer", null))
+    var capability: Dictionary = TemplateContract.normalize(runtime.get("multiplayer", null))
     var match_result: Dictionary = _match_state.configure(capability)
     if not match_result.get("ok", false):
         _record_error(_strings(match_result.get("errors", [])))
         return
     for identity in _adapter.get_identity_registry().snapshot():
-        var peer_id := int(identity.get("peer_id", 0))
+        var peer_id: int = int(identity.get("peer_id", 0))
         if peer_id > 0: _match_state.add_player(peer_id, str(identity.get("team_id", "")))
-    var local_peer_id := _adapter.get_local_peer_id()
-    var spawn_entity_id := str(runtime.get("spawn_entity_id", ""))
+    var local_peer_id: int = int(_adapter.get_local_peer_id())
+    var spawn_entity_id: String = str(runtime.get("spawn_entity_id", ""))
     if local_peer_id == 1 and not spawn_entity_id.is_empty(): _adapter.get_identity_registry().assign_authored_entity(local_peer_id, spawn_entity_id)
 
     var local_player = _play_session.get_player()
     if local_player != null and is_instance_valid(local_player):
         var camera_config: Dictionary = runtime.get("camera_configuration", {}).duplicate(true)
-        var controller_kind := str(camera_config.get("controller", "none"))
+        var controller_kind: String = str(camera_config.get("controller", "none"))
         _player_replication = PlayerReplication.new()
         _player_replication.name = "PlayerReplication"
         add_child(_player_replication)
@@ -224,7 +229,7 @@ func _on_session_stopped(reason: String) -> void:
     _emit_status_if_changed(true)
 
 func _on_peer_joined(identity: Dictionary) -> void:
-    var peer_id := int(identity.get("peer_id", 0))
+    var peer_id: int = int(identity.get("peer_id", 0))
     if peer_id > 0 and _match_state.get_player(peer_id).is_empty(): _match_state.add_player(peer_id, str(identity.get("team_id", "")))
     peer_count_changed.emit(_adapter.get_peer_count() if _adapter != null else 0)
     _emit_status_if_changed(true)
@@ -235,7 +240,7 @@ func _on_peer_left(peer_id: int) -> void:
     _emit_status_if_changed(true)
 
 func _on_remote_player_spawned(peer_id: int, player: CharacterBody3D) -> void:
-    var offset := _match_state.spawn_offset_for_peer(peer_id)
+    var offset: Vector3 = _match_state.spawn_offset_for_peer(peer_id)
     if player != null: player.global_position += offset
 
 func _on_adapter_error(errors: Array[String]) -> void:
@@ -281,7 +286,7 @@ func _current_project_data() -> Dictionary:
 func _find_active_play_session(node: Node) -> Node:
     for child in node.get_children():
         if child.has_method("is_active") and child.has_method("get_runtime_state") and child.has_method("get_player") and bool(child.is_active()): return child
-        var nested := _find_active_play_session(child)
+        var nested: Node = _find_active_play_session(child)
         if nested != null: return nested
     return null
 
@@ -292,8 +297,8 @@ func _record_error(errors: Array[String]) -> void:
     _emit_status_if_changed(true)
 
 func _emit_status_if_changed(force: bool = false) -> void:
-    var status := get_status()
-    var key := JSON.stringify(status)
+    var status: Dictionary = get_status()
+    var key: String = JSON.stringify(status)
     if not force and key == _last_status_key: return
     _last_status_key = key
     status_changed.emit(status)
