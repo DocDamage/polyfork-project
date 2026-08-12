@@ -229,7 +229,13 @@ func _clone_gameplay_state():
     for section in snapshot.keys(): clone.set(str(section), snapshot[section].duplicate(true))
     return clone
 
-func _visual_graphs() -> Array[Dictionary]: return [] if _visual_service == null else _visual_service.get_graphs()
+func _visual_graphs() -> Array[Dictionary]:
+    var result: Array[Dictionary] = []
+    if _visual_service == null: return result
+    for graph in _visual_service.get_graphs():
+        if graph is Dictionary: result.append(graph.duplicate(true))
+    return result
+
 func _procedural_document() -> Dictionary: return {} if _procedural_service == null or _procedural_service.get_state() == null else _procedural_service.get_state().to_document()
 func _environment_document() -> Dictionary: return {} if _environment_service == null or _environment_service.get_state() == null else _environment_service.get_state().to_document()
 
