@@ -6,6 +6,7 @@ var environment: Environment
 var sky: Sky
 var sky_material: ProceduralSkyMaterial
 var sun: DirectionalLight3D
+var _rendering_enabled := true
 
 func _init() -> void:
     name = "EnvironmentRenderBridge"
@@ -47,13 +48,18 @@ func apply_state(state: Dictionary) -> Dictionary:
     return {"ok": true, "errors": []}
 
 func set_rendering_enabled(value: bool) -> void:
+    _rendering_enabled = value
     if world_environment != null:
-        world_environment.visible = value
+        world_environment.environment = environment if value else null
     if sun != null:
         sun.visible = value
 
+func is_rendering_enabled() -> bool:
+    return _rendering_enabled
+
 func get_snapshot() -> Dictionary:
     return {
+        "rendering_enabled": _rendering_enabled,
         "fog_enabled": environment != null and environment.fog_enabled,
         "fog_density": 0.0 if environment == null else environment.fog_density,
         "ambient_energy": 0.0 if environment == null else environment.ambient_light_energy,
