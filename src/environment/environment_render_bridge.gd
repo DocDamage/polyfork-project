@@ -53,6 +53,7 @@ func set_rendering_enabled(value: bool) -> void:
         world_environment.environment = environment if value else null
     if sun != null:
         sun.visible = value
+    _sync_viewport_transparency()
 
 func is_rendering_enabled() -> bool:
     return _rendering_enabled
@@ -66,3 +67,10 @@ func get_snapshot() -> Dictionary:
         "sun_energy": 0.0 if sun == null else sun.light_energy,
         "sun_rotation_degrees": Vector3.ZERO if sun == null else sun.rotation_degrees,
     }
+
+func _sync_viewport_transparency() -> void:
+    if not is_inside_tree():
+        return
+    var viewport := get_viewport()
+    if viewport is SubViewport:
+        (viewport as SubViewport).transparent_bg = not _rendering_enabled
