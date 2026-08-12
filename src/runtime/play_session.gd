@@ -14,12 +14,14 @@ const RuntimeGameplayState = preload("res://src/gameplay/runtime_gameplay_state.
 const RuntimeInventoryService = preload("res://src/gameplay/runtime_inventory_service.gd")
 const RuntimeInteractionService = preload("res://src/gameplay/runtime_interaction_service.gd")
 const RuntimeHealthService = preload("res://src/gameplay/runtime_health_service.gd")
+const RuntimeNpcAiService = preload("res://src/gameplay/runtime_npc_ai_service.gd")
 
 var _runtime_state = RuntimeState.new()
 var _gameplay_runtime = RuntimeGameplayState.new()
 var _inventory_runtime = RuntimeInventoryService.new()
 var _interaction_runtime = RuntimeInteractionService.new()
 var _health_runtime = RuntimeHealthService.new()
+var _npc_runtime = RuntimeNpcAiService.new()
 var _visual_runtime = VisualGraphRuntime.new()
 var _visual_graph_provider := Callable()
 var _gameplay_state_provider := Callable()
@@ -62,7 +64,7 @@ func enter_play(editor_session) -> Dictionary:
     if not gameplay_result.get("ok", false):
         _runtime_state.clear(); GameplayInput.uninstall_owned()
         return gameplay_result
-    var services_result := _bind_gameplay_services()
+    var services_result: Dictionary = _bind_gameplay_services()
     if not services_result.get("ok", false):
         _clear_runtime_services(); _gameplay_runtime.clear(); _runtime_state.clear(); GameplayInput.uninstall_owned()
         return services_result
@@ -116,11 +118,15 @@ func get_gameplay_runtime(): return _gameplay_runtime
 func get_inventory_runtime(): return _inventory_runtime
 func get_interaction_runtime(): return _interaction_runtime
 func get_health_runtime(): return _health_runtime
+func get_npc_runtime(): return _npc_runtime
 func get_player(): return _player
 func get_last_visual_graph_result() -> Dictionary: return _last_visual_result.duplicate(true)
 
-func _physics_process(_delta: float) -> void:
-    if _active: _update_streaming_focus()
+func _physics_process(delta: float) -> void:
+    if not _active: return
+    _update_streaming_focus()
+    var npc_result: Dictionary = _npc_runtime.advance(delta)
+    if not npc_result.get("ok", false): push_warning("NPC runtime advance failed: %s" % str(npc_result.get("errors", [])))
 func _unhandled_input(event: InputEvent) -> void:
     if _active and event.is_action_pressed(GameplayInput.EXIT): exit_requested.emit(); get_viewport().set_input_as_handled()
 
@@ -152,9 +158,12 @@ func _bind_gameplay_services() -> Dictionary:
     if not interaction_result.get("ok", false): return interaction_result
     var health_result: Dictionary = _health_runtime.bind_runtime(_gameplay_runtime)
     if not health_result.get("ok", false): return health_result
+    var npc_result: Dictionary = _npc_runtime.bind_runtime(_gameplay_runtime, _runtime_state, _interaction_runtime)
+    if not npc_result.get("ok", false): return npc_result
     return {"ok": true, "errors": []}
 
 func _clear_runtime_services() -> void:
+    _npc_runtime.clear()
     _interaction_runtime.clear()
     _inventory_runtime.clear()
     _health_runtime.clear()
