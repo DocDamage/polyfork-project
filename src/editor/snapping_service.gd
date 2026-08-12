@@ -49,11 +49,10 @@ func snap_to_surface(hit_position: Vector3, hit_normal: Vector3, offset: float =
 func surface_rotation(hit_normal: Vector3) -> Vector3:
     var up := hit_normal.normalized()
     if up.is_zero_approx(): up = Vector3.UP
-    var reference := Vector3.FORWARD
-    if absf(up.dot(reference)) > 0.95: reference = Vector3.RIGHT
-    var right := reference.cross(up).normalized()
-    var forward := up.cross(right).normalized()
-    return Basis(right, up, forward).get_euler() * (180.0 / PI)
+    if up.is_equal_approx(Vector3.UP): return Vector3.ZERO
+    if up.is_equal_approx(Vector3.DOWN): return Vector3(180.0, 0.0, 0.0)
+    var alignment := Quaternion(Vector3.UP, up)
+    return alignment.get_euler() * (180.0 / PI)
 
 func snap_to_vertex(value: Vector3, candidates: Array) -> Dictionary: return _nearest_candidate(value, candidates, vertex_threshold, "vertex")
 func snap_to_object(value: Vector3, candidates: Array) -> Dictionary: return _nearest_candidate(value, candidates, object_threshold, "object")
