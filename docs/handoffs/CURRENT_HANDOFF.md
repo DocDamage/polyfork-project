@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 11 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 12 ACTIVE HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -8,74 +8,92 @@ Use the GitHub connector for repository work.
 
 The real project lives on `master`.
 
-Authoritative Phase 11 base:
+Current authoritative `master`:
 
-`ac2753f81c9c6be53abe89b102e1f9911a595944`
+`d7245cad68b512fc5cbf9b897bce506ecbb9837d`
 
-This is the verified signed merge commit for PR #15 — Phase 10 — Gameplay Framework Breadth.
+This is the verified merge commit for PR #16 — Phase 11 — Environment.
 
 The repository default branch `main` remains obsolete starter code.
 
 **Never develop from `main`.**
 
-## Phase 11 milestone state
+## Completed state
 
-Phase 11 — Environment — implementation and verification are complete on:
+PR #16 is merged.
 
-`dev/phase11-environment-milestone`
+Phases 0 through 11 are complete on authoritative `master`.
 
-The branch was created from exactly authoritative `master` `ac2753f81c9c6be53abe89b102e1f9911a595944`, verified initially at zero commits ahead and zero behind.
+## Phase 12 milestone branch
 
-The last implementation/test head before documentation-only closeout commits was:
+Phase 12 — AI Creation — is active on:
 
-`0c96891bdce327f8e19951da418948156b673775`
+`dev/phase12-ai-creation-milestone`
 
-All P11 checkpoints are complete:
+The branch was created from exactly:
 
-- [x] P11-T01 — schema-v1 environment state, stable weather-profile IDs, validation, registry synchronization, crash-safe persistence
-- [x] P11-T02 — command-backed environment/profile authoring through universal Undo/Redo and project dirty-state semantics
-- [x] P11-T03 — deterministic time-of-day evaluation and real Godot sun/ambient/sky/fog rendering
-- [x] P11-T04 — weather profile selection/transitions, runtime events, deterministic evaluation, safe fallback
-- [x] P11-T05 — reusable wind state/hooks consumed by existing Phase 9 procedural runtime
-- [x] P11-T06 — Phase 5 biome/environment overrides with deterministic precedence and streamed-world focus behavior
-- [x] P11-T07 — stable water integration descriptors/hooks without a hardcoded provider
-- [x] P11-T08 — fully disposable Phase 7 Play integration plus Phase 8 Visual Scripting environment actions/state
-- [x] P11-T09 — native Environment workspace behind the canonical Water dock entry with keyboard/mouse and gamepad authoring
-- [x] P11-T10 — persistence/Undo/day-night/weather/biome/wind/water/streaming/Build-Play isolation/failure/scale/visual/inherited regression/Godot Smoke closeout
+`d7245cad68b512fc5cbf9b897bce506ecbb9837d`
 
-## Delivered architecture
+The branch/base comparison was verified identical before Phase 12 writes: zero commits ahead and zero commits behind.
 
-Phase 11 uses one reusable authored environment document under `environment/environment.json` and one deterministic evaluator/runtime model. Build data remains authoritative. Play creates a separate EnvironmentRuntime only for environment-enabled sessions and frees it completely on exit/rollback, preserving the Phase 7 disposable-node invariant.
+No obsolete `main` ancestry is being used.
 
-Environment rendering uses Godot `WorldEnvironment`/`Environment`, `Sky`/`ProceduralSkyMaterial`, directional light, ambient light, and fog in the real editor/play viewport. The active renderer owns viewport transparency so authored sky/day-night/weather is visible, while Build and Play renderers remain mutually exclusive.
+Phase 12 must be developed as one continuous milestone without task-by-task pull requests.
 
-Environment profile resolution is deterministic: explicit Play override → Environment biome override → Phase 5 biome `environment_profile_id` → authored default, with safe fallback for unresolved references.
+## Phase 12 objective
 
-Wind is passed into the existing Phase 9 derived procedural runtime without mutating authored foliage/splines. Water is represented as stable provider-neutral integration hooks for future systems. Environment events use the existing gameplay event route. Visual Scripting exposes environment state, time, weather, and runtime-override actions rather than a separate graph-owned environment state.
+Deliver reusable AI-assisted authoring that can inspect the real project and real local asset catalog, return bounded structured suggestions/proposals, preview deterministic changes without mutation, and execute approved changes through the existing universal command/transaction architecture.
 
-## Verification completed
+AI providers never receive direct write access to project files. Authored Build data remains authoritative. Provider output is untrusted input and must be schema-validated before Preview or Execute. Existing subsystem services/commands remain the implementation path; Phase 12 must not create parallel world, gameplay, graph, procedural, or environment state.
 
-The verified implementation head passed:
+## Phase 12 checkpoints
 
-- all six Phase 11 contract suites: foundation, coupling, play_visual, persistence_undo, workspace, scale_streaming;
-- crash-safe save/reopen, corrupt-state failure, stable-ID registry synchronization, and universal Undo/Redo;
-- deterministic day/night and weather evaluation;
-- Phase 5 biome/streaming and Phase 9 foliage/wind integration;
-- provider-neutral water hook behavior;
-- real Build → Play → Build isolation, including zero leaked Play environment nodes;
-- Phase 8 Visual Scripting environment actions/state;
-- real workspace keyboard/mouse/gamepad paths;
-- representative 256-weather-profile / 768-biome-override scale checks plus repeated evaluator and multi-cell streaming checks;
-- complete inherited Phase 6–10 contract regression gate, including Phase 7 playable controller smoke;
-- current Godot Smoke with strict log gates;
-- dedicated rendered Phase 11 evidence: Environment authoring, disposable 22:00 night/weather Play, and authoritative Build restoration.
+- [ ] P12-T01 — schema-v1 request/proposal/action/history contracts, provider descriptors, privacy/limits, user-scoped provider configuration, no persisted credentials
+- [ ] P12-T02 — provider registry and real OpenAI-compatible local/cloud HTTP adapter with structured responses/tool calls, timeouts/cancel/errors, environment credentials, disclosure metadata
+- [ ] P12-T03 — bounded read-only project/catalog query tools over real entities/assets/gameplay/terrain/graphs/procedural/environment state with exact stable IDs and licensing metadata
+- [ ] P12-T04 — strict proposal/action validation, deterministic normalization, stable-reference checks, action limits, missing/unavailable asset rejection
+- [ ] P12-T05 — Suggest mode with bounded provider/tool orchestration and zero authored mutation
+- [ ] P12-T06 — Preview mode with deterministic impact summaries/diffs, source-asset lineage, findings, zero authored mutation
+- [ ] P12-T07 — Execute mode as one atomic universal transaction with rollback, one-step Undo/Redo, dirty state, and crash-safe AI history
+- [ ] P12-T08 — cross-system actions for existing-asset placement/transforms, gameplay composition, Visual Scripting graph creation, procedural authoring, and Environment authoring
+- [ ] P12-T09 — native AI workspace behind existing AI dock entry with provider/mode/prompt/context/results, local/cloud disclosure, Preview-before-Execute, keyboard/mouse/gamepad, cancellation/status
+- [ ] P12-T10 — privacy/query/missing-asset/provider-output/Suggest/Preview/Execute/atomic rollback/Undo/save-reopen/history/cross-system/gamepad/scale/strict-log/inherited regression/Godot Smoke/rendered evidence closeout
 
-Rendered evidence was also manually inspected after capture; the corrected viewport shows the actual environment sky and visibly darker night Play state rather than the UI backdrop.
+## Architecture inspection findings before implementation
+
+- `src/ai` is intentionally reserved and contains only `.gitkeep`, making it the correct Phase 12 module boundary.
+- Phase 2 already owns stable IDs, command transactions, rollback, universal Undo/Redo, crash-safe project persistence, and dirty-state signaling; AI Execute must use those instead of adding a second history system.
+- Phase 3 already owns world entity placement/transforms/runtime bridging; AI world actions must compile to existing world commands and stable entity/asset IDs.
+- Phase 4 already exposes a real read-only Asset Library query surface and stable asset records; AI asset-based proposals must resolve against this catalog and may not invent unavailable assets.
+- Phase 5, Phase 6/10, Phase 8, Phase 9, and Phase 11 already own terrain/biomes, gameplay, Visual Scripting, procedural content, and environment authored state with snapshot commands/repositories; AI cross-system execution should compose those commands into one transaction.
+- The existing bottom dock already contains an `AI` category and semantic color token, so Phase 12 can add an AI workspace layer without changing the canonical dock structure.
+- Security documentation requires API keys to remain environment/user scoped and cloud sharing to be explicit. Provider/project metadata may be persisted, but credentials must not be written into project repositories or AI history.
+- A token-shaped repository file named `.polyforkAPI` exists from earlier project state. Phase 12 must not read, expose, or reuse it as an AI credential; provider credential lookup is isolated to environment/user-scoped configuration.
+
+## Verification required before completion PR
+
+- user-scoped provider profile persistence without credential persistence;
+- local-only and cloud-consent enforcement;
+- provider timeout, cancellation, malformed JSON, unsupported output, missing credential, and remote-error paths;
+- real Asset Library/project queries and bounded/sanitized cloud context;
+- missing/unavailable asset rejection;
+- strict proposal/action/reference validation and action-count limits;
+- Suggest and Preview zero-mutation guarantees;
+- Execute one-transaction / one-Undo semantics and rollback on subcommand failure;
+- save/reopen AI execution history with exact source asset IDs and no credentials;
+- world/gameplay/graph/procedural/environment cross-system actions through existing systems;
+- Build → Play → Build isolation and no provider writes during Play;
+- keyboard/mouse and gamepad AI workspace authoring;
+- representative catalog/project/action scale/performance checks;
+- strict Godot log gates;
+- inherited Phase 6–11 regression gates;
+- rendered Phase 12 visual evidence;
+- Godot Smoke.
 
 ## Completion gate
 
-The only authorized next action is to open the single Phase 11 completion PR from `dev/phase11-environment-milestone` to authoritative `master`, verify its checks, and wait for explicit user merge authorization.
+After all P12 checkpoints and verification are complete, open exactly one Phase 12 completion PR from `dev/phase12-ai-creation-milestone` to authoritative `master`.
 
-**Do not merge the Phase 11 completion PR without explicit user authorization.**
+Do not merge that PR without explicit user authorization.
 
-**Do not begin Phase 12 until that PR is explicitly merged and the resulting authoritative `master` SHA is verified.**
+Do not begin Phase 13 until the Phase 12 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
