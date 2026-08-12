@@ -4,6 +4,8 @@ const Foundation = preload("res://tests/unit/phase9_procedural_contracts.gd")
 const Foliage = preload("res://tests/integration/phase9_foliage_scatter_contracts.gd")
 const Splines = preload("res://tests/integration/phase9_spline_contracts.gd")
 const Workspace = preload("res://tests/integration/phase9_procedural_workspace_contracts.gd")
+const Sources = preload("res://tests/integration/phase9_procedural_source_contracts.gd")
+const Scale = preload("res://tests/integration/phase9_procedural_scale_contracts.gd")
 
 
 func _init() -> void:
@@ -17,6 +19,8 @@ func _run() -> void:
         "foundation": errors.append_array(Foundation.run_checks())
         "foliage": errors.append_array(Foliage.run_checks(root))
         "splines": errors.append_array(Splines.run_checks(root))
+        "sources": errors.append_array(Sources.run_checks())
+        "scale": errors.append_array(Scale.run_checks(root))
         "workspace":
             var workspace = Workspace.new()
             root.add_child(workspace)
