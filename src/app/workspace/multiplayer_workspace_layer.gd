@@ -71,6 +71,7 @@ func bind_workspace(workspace) -> Dictionary:
 
 func refresh_state() -> void:
     if _workspace == null or _button == null: return
+    if _panel != null: _apply_panel_layout()
     var configuration: Dictionary = _workspace.get_configuration() if _workspace.has_method("get_configuration") else {}
     var runtime: Dictionary = configuration.get("runtime", {})
     var capability: Dictionary = TemplateContract.normalize(runtime.get("multiplayer", null))
@@ -78,24 +79,15 @@ func refresh_state() -> void:
     _button.disabled = not supported
     if _capability_label != null:
         if supported:
-            _capability_label.text = "%s • %d–%d players • %s" % [
-                str(capability.get("mode", "coop")).capitalize(),
-                int(capability.get("min_players", 1)),
-                int(capability.get("max_players", 1)),
-                str(capability.get("score_mode", "none")).replace("_", " ").capitalize(),
-            ]
-        else:
-            _capability_label.text = "This template is offline-only."
+            _capability_label.text = "%s • %d–%d players • %s" % [str(capability.get("mode", "coop")).capitalize(), int(capability.get("min_players", 1)), int(capability.get("max_players", 1)), str(capability.get("score_mode", "none")).replace("_", " ").capitalize()]
+        else: _capability_label.text = "This template is offline-only."
     var status: Dictionary = _network.get_status() if _network != null and _network.has_method("get_status") else {}
     var role: String = str(status.get("role", Contract.ROLE_OFFLINE))
     var ready: bool = bool(status.get("ready", false))
     var peer_count: int = int(status.get("peer_count", 0))
-    if role == Contract.ROLE_OFFLINE:
-        _button.text = "Multiplayer"
-    elif ready:
-        _button.text = "%s • %d" % ["Host" if role == Contract.ROLE_HOST else "Joined", peer_count]
-    else:
-        _button.text = "Host Armed" if role == Contract.ROLE_HOST else "Join Armed"
+    if role == Contract.ROLE_OFFLINE: _button.text = "Multiplayer"
+    elif ready: _button.text = "%s • %d" % ["Host" if role == Contract.ROLE_HOST else "Joined", peer_count]
+    else: _button.text = "Host Armed" if role == Contract.ROLE_HOST else "Join Armed"
     if _peer_status != null: _peer_status.text = "Peers • %d" % peer_count if ready else "No active network peers"
     if _status != null: _status.text = _status_text(status)
     var in_play: bool = bool(_workspace.has_method("get_mode") and _workspace.get_mode() == &"play")
@@ -106,6 +98,7 @@ func refresh_state() -> void:
 
 func open_panel() -> void:
     if _panel == null or _button == null or _button.disabled: return
+    _apply_panel_layout()
     _panel.show()
     refresh_state()
     if _player_label != null: _player_label.call_deferred("grab_focus")
@@ -138,21 +131,12 @@ func _toggle_panel() -> void:
 func _create_panel() -> void:
     _panel = PanelContainer.new()
     _panel.name = "MultiplayerPanel"
-    _panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-    _panel.position = Vector2(-430, 76)
-    _panel.size = Vector2(410, 382)
     _panel.z_index = 42
     _panel.hide()
     _workspace.add_child(_panel)
-    var margin := MarginContainer.new()
-    margin.add_theme_constant_override("margin_left", 18)
-    margin.add_theme_constant_override("margin_top", 16)
-    margin.add_theme_constant_override("margin_right", 18)
-    margin.add_theme_constant_override("margin_bottom", 16)
-    _panel.add_child(margin)
-    var stack := VBoxContainer.new()
-    stack.add_theme_constant_override("separation", 9)
-    margin.add_child(stack)
+    _apply_panel_layout()
+    var margin := MarginContainer.new(); margin.add_theme_constant_override("margin_left", 18); margin.add_theme_constant_override("margin_top", 16); margin.add_theme_constant_override("margin_right", 18); margin.add_theme_constant_override("margin_bottom", 16); _panel.add_child(margin)
+    var stack := VBoxContainer.new(); stack.add_theme_constant_override("separation", 9); margin.add_child(stack)
     var title := Label.new(); title.text = "Multiplayer Play"; title.theme_type_variation = &"HeadingLabel"; stack.add_child(title)
     _capability_label = Label.new(); _capability_label.name = "MultiplayerCapability"; _capability_label.theme_type_variation = &"AccentCaption"; stack.add_child(_capability_label)
     _player_label = LineEdit.new(); _player_label.name = "MultiplayerPlayerLabel"; _player_label.placeholder_text = "Player name"; _player_label.text = "Player"; _player_label.focus_mode = Control.FOCUS_ALL; stack.add_child(_player_label)
@@ -176,20 +160,26 @@ func _create_panel() -> void:
     _close_button.focus_neighbor_top = _close_button.get_path_to(_join_button)
     refresh_state()
 
+func _apply_panel_layout() -> void:
+    if _panel == null: return
+    _panel.anchor_left = 1.0; _panel.anchor_top = 0.0; _panel.anchor_right = 1.0; _panel.anchor_bottom = 0.0
+    if _is_compact():
+        _panel.offset_left = -380.0; _panel.offset_top = 68.0; _panel.offset_right = -20.0; _panel.offset_bottom = 440.0
+    else:
+        _panel.offset_left = -430.0; _panel.offset_top = 76.0; _panel.offset_right = -20.0; _panel.offset_bottom = 458.0
+
 func _host_and_play() -> void:
     if _network == null: _set_status("Multiplayer runtime service is unavailable.", true); return
     var result: Dictionary = _network.host(int(_port.value), _player_label.text.strip_edges())
     if not result.get("ok", false): _set_status(str(result.get("errors", ["Unable to arm host session."])[0]), true); return
-    _set_status("Host armed. Entering Play…", false)
-    _enter_play()
+    _set_status("Host armed. Entering Play…", false); _enter_play()
 
 func _join_and_play() -> void:
     if _network == null: _set_status("Multiplayer runtime service is unavailable.", true); return
     var address: String = _address.text.strip_edges()
     var result: Dictionary = _network.join(address, int(_port.value), _player_label.text.strip_edges())
     if not result.get("ok", false): _set_status(str(result.get("errors", ["Unable to arm client session."])[0]), true); return
-    _set_status("Join armed for %s:%d. Entering Play…" % [address, int(_port.value)], false)
-    _enter_play()
+    _set_status("Join armed for %s:%d. Entering Play…" % [address, int(_port.value)], false); _enter_play()
 
 func _go_offline() -> void:
     if _network == null: return
@@ -207,10 +197,7 @@ func _on_network_status_changed(_value: Dictionary) -> void: refresh_state()
 func _on_network_error(errors: Array[String]) -> void:
     if not errors.is_empty(): _set_status(errors[0], true)
 func _on_input_context_changed(_context: StringName) -> void: _update_input_hint()
-func _on_layout_mode_changed(_compact: bool) -> void:
-    if _panel == null: return
-    _panel.size = Vector2(360, 372) if _is_compact() else Vector2(410, 382)
-    _panel.position = Vector2(-380, 68) if _is_compact() else Vector2(-430, 76)
+func _on_layout_mode_changed(_compact: bool) -> void: _apply_panel_layout()
 
 func _update_input_hint() -> void:
     if _hint == null: return
@@ -218,8 +205,7 @@ func _update_input_hint() -> void:
     _hint.text = "D-pad / stick: move focus  •  A: select  •  B: close" if gamepad else "Tab / Shift+Tab: move focus  •  Enter: select  •  Esc: close"
 
 func _status_text(status: Dictionary) -> String:
-    var role: String = str(status.get("role", Contract.ROLE_OFFLINE))
-    var state: String = str(status.get("state", "build"))
+    var role: String = str(status.get("role", Contract.ROLE_OFFLINE)); var state: String = str(status.get("state", "build"))
     if not status.get("last_error", []).is_empty(): return str(status.get("last_error", ["Network error"])[0])
     if role == Contract.ROLE_OFFLINE: return "Offline Play uses the existing single-player runtime unchanged."
     if state == "build": return "%s armed. Start Play to create the network session." % ("Host" if role == Contract.ROLE_HOST else "Join")
@@ -233,7 +219,5 @@ func _set_status(message: String, is_error: bool) -> void:
     if global_status is Label: global_status.text = message
     if is_error: push_warning(message)
 
-func _is_compact() -> bool:
-    return _scale != null and _scale.has_method("is_compact_layout") and bool(_scale.is_compact_layout())
-
+func _is_compact() -> bool: return _scale != null and _scale.has_method("is_compact_layout") and bool(_scale.is_compact_layout())
 static func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}
