@@ -42,18 +42,18 @@ func create_graph(display_name: String, kind: String = "event", owner_entity_id:
         "display_name":display_name.strip_edges(),"kind":kind,"owner_entity_id":owner_entity_id,"enabled":true,
         "nodes":[],"connections":[],"variables":[],"interface":{"inputs":[],"outputs":[]},"editor":{"zoom":1.0,"scroll":[0.0,0.0]}
     }
-    var records := _state.snapshot(); records.append(graph); var result := _execute_records(records, "Create visual graph")
+    var records: Array[Dictionary] = _state.snapshot(); records.append(graph); var result := _execute_records(records, "Create visual graph")
     if result.get("ok", false): result["graph_id"] = graph_id
     return result
 
 func delete_graph(graph_id: String) -> Dictionary:
     if not _is_bound(): return _failure("Visual graph service is not bound.")
-    var records := _state.snapshot(); var index := _graph_index(records, graph_id)
+    var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
     records.remove_at(index); return _execute_records(records, "Delete visual graph")
 
 func configure_graph(graph_id: String, patch: Dictionary) -> Dictionary:
-    var records := _state.snapshot(); var index := _graph_index(records, graph_id)
+    var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[index].duplicate(true)
     for key in ["display_name","enabled","owner_entity_id"]:
@@ -62,7 +62,7 @@ func configure_graph(graph_id: String, patch: Dictionary) -> Dictionary:
 
 func add_node(graph_id: String, type_key: String, position: Vector2 = Vector2.ZERO, properties: Dictionary = {}) -> Dictionary:
     if not NodeLibrary.has_key(type_key): return _failure("Unsupported visual node type: %s" % type_key)
-    var records := _state.snapshot(); var index := _graph_index(records, graph_id)
+    var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[index].duplicate(true); var node_id := StableId.generate(); var definition := NodeLibrary.get_definition(type_key)
     var merged_properties: Dictionary = definition.get("properties", {}).duplicate(true)
@@ -73,7 +73,7 @@ func add_node(graph_id: String, type_key: String, position: Vector2 = Vector2.ZE
     return result
 
 func remove_node(graph_id: String, node_id: String) -> Dictionary:
-    var records := _state.snapshot(); var index := _graph_index(records, graph_id)
+    var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[index].duplicate(true); var nodes: Array = graph.get("nodes", []).duplicate(true); var found := false
     for node_index in range(nodes.size() - 1, -1, -1):
@@ -91,7 +91,7 @@ func configure_node(graph_id: String, node_id: String, properties: Dictionary) -
 
 func connect_nodes(graph_id: String, from_node_id: String, from_port: String, to_node_id: String, to_port: String, kind: String) -> Dictionary:
     if not Contracts.CONNECTION_KINDS.has(kind): return _failure("Visual graph connection kind is invalid.")
-    var records := _state.snapshot(); var index := _graph_index(records, graph_id)
+    var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[index].duplicate(true)
     if _node_index(graph.get("nodes", []), from_node_id) < 0 or _node_index(graph.get("nodes", []), to_node_id) < 0: return _failure("Visual graph connection endpoints must exist.")
@@ -100,8 +100,8 @@ func connect_nodes(graph_id: String, from_node_id: String, from_port: String, to
     if result.get("ok", false): result["connection_id"] = connection_id
     return result
 
-func disconnect(graph_id: String, connection_id: String) -> Dictionary:
-    var records := _state.snapshot(); var index := _graph_index(records, graph_id)
+func disconnect_nodes(graph_id: String, connection_id: String) -> Dictionary:
+    var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[index].duplicate(true); var connections: Array = graph.get("connections", []).duplicate(true); var found := false
     for connection_index in range(connections.size() - 1, -1, -1):
@@ -111,7 +111,7 @@ func disconnect(graph_id: String, connection_id: String) -> Dictionary:
 
 func add_variable(graph_id: String, name: String, type_name: String, default_value: Variant = null) -> Dictionary:
     if name.strip_edges().is_empty() or not Contracts.VALUE_TYPES.has(type_name): return _failure("Visual graph variable name/type is invalid.")
-    var records := _state.snapshot(); var index := _graph_index(records, graph_id)
+    var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[index].duplicate(true); var variable_id := StableId.generate()
     graph["variables"].append({"variable_id":variable_id,"name":name.strip_edges(),"type":type_name,"default":default_value}); records[index] = graph
@@ -119,7 +119,7 @@ func add_variable(graph_id: String, name: String, type_name: String, default_val
     return result
 
 func remove_variable(graph_id: String, variable_id: String) -> Dictionary:
-    var records := _state.snapshot(); var index := _graph_index(records, graph_id)
+    var records: Array[Dictionary] = _state.snapshot(); var index := _graph_index(records, graph_id)
     if index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[index].duplicate(true); var variables: Array = graph.get("variables", []).duplicate(true); var found := false
     for variable_index in range(variables.size() - 1, -1, -1):
@@ -130,7 +130,7 @@ func remove_variable(graph_id: String, variable_id: String) -> Dictionary:
     graph["variables"] = variables; records[index] = graph; return _execute_records(records, "Remove visual variable")
 
 func _patch_node(graph_id: String, node_id: String, patch: Dictionary, label: String) -> Dictionary:
-    var records := _state.snapshot(); var graph_index := _graph_index(records, graph_id)
+    var records: Array[Dictionary] = _state.snapshot(); var graph_index := _graph_index(records, graph_id)
     if graph_index < 0: return _failure("Visual graph does not exist.")
     var graph: Dictionary = records[graph_index].duplicate(true); var node_index := _node_index(graph.get("nodes", []), node_id)
     if node_index < 0: return _failure("Visual node does not exist.")
