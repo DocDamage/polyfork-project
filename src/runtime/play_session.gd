@@ -11,9 +11,15 @@ const ThirdPersonController = preload("res://src/runtime/third_person_controller
 const FirstPersonController = preload("res://src/runtime/first_person_controller.gd")
 const VisualGraphRuntime = preload("res://src/visual_scripting/visual_graph_runtime_session.gd")
 const RuntimeGameplayState = preload("res://src/gameplay/runtime_gameplay_state.gd")
+const RuntimeInventoryService = preload("res://src/gameplay/runtime_inventory_service.gd")
+const RuntimeInteractionService = preload("res://src/gameplay/runtime_interaction_service.gd")
+const RuntimeHealthService = preload("res://src/gameplay/runtime_health_service.gd")
 
 var _runtime_state = RuntimeState.new()
 var _gameplay_runtime = RuntimeGameplayState.new()
+var _inventory_runtime = RuntimeInventoryService.new()
+var _interaction_runtime = RuntimeInteractionService.new()
+var _health_runtime = RuntimeHealthService.new()
 var _visual_runtime = VisualGraphRuntime.new()
 var _visual_graph_provider := Callable()
 var _gameplay_state_provider := Callable()
@@ -56,6 +62,10 @@ func enter_play(editor_session) -> Dictionary:
     if not gameplay_result.get("ok", false):
         _runtime_state.clear(); GameplayInput.uninstall_owned()
         return gameplay_result
+    var services_result := _bind_gameplay_services()
+    if not services_result.get("ok", false):
+        _clear_runtime_services(); _gameplay_runtime.clear(); _runtime_state.clear(); GameplayInput.uninstall_owned()
+        return services_result
 
     _editor_session = editor_session; _selected_ids = editor_session.get_selected_ids(); _primary_id = editor_session.get_primary_entity_id(); _previous_camera = get_viewport().get_camera_3d(); editor_session.clear_selection()
     _spawn_entity_id = _optional_id(runtime_config.get("spawn_entity_id"))
@@ -87,8 +97,8 @@ func enter_play(editor_session) -> Dictionary:
 
 func exit_play() -> Dictionary:
     if not _active and _editor_session == null:
-        _runtime_state.clear(); _gameplay_runtime.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE; return {"ok": true, "errors": [], "changed": false}
-    _free_player(); _runtime_state.clear(); _gameplay_runtime.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        _runtime_state.clear(); _gameplay_runtime.clear(); _clear_runtime_services(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE; return {"ok": true, "errors": [], "changed": false}
+    _free_player(); _runtime_state.clear(); _gameplay_runtime.clear(); _clear_runtime_services(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     if is_instance_valid(_previous_camera): _previous_camera.current = true
     _previous_camera = null; var editor_session = _editor_session
     if editor_session != null: editor_session.get_bridge().clear_excluded_entity_ids()
@@ -103,6 +113,9 @@ func exit_play() -> Dictionary:
 func is_active() -> bool: return _active
 func get_runtime_state(): return _runtime_state
 func get_gameplay_runtime(): return _gameplay_runtime
+func get_inventory_runtime(): return _inventory_runtime
+func get_interaction_runtime(): return _interaction_runtime
+func get_health_runtime(): return _health_runtime
 func get_player(): return _player
 func get_last_visual_graph_result() -> Dictionary: return _last_visual_result.duplicate(true)
 
@@ -132,8 +145,22 @@ func _update_streaming_focus() -> void:
     var result: Variant = _streaming_callback.call(_player.global_position)
     if result is Dictionary and not result.get("ok", false): push_warning("Play streaming focus update failed: %s" % str(result.get("errors", [])))
 
+func _bind_gameplay_services() -> Dictionary:
+    var inventory_result: Dictionary = _inventory_runtime.bind_runtime(_gameplay_runtime)
+    if not inventory_result.get("ok", false): return inventory_result
+    var interaction_result: Dictionary = _interaction_runtime.bind_runtime(_gameplay_runtime, _inventory_runtime)
+    if not interaction_result.get("ok", false): return interaction_result
+    var health_result: Dictionary = _health_runtime.bind_runtime(_gameplay_runtime)
+    if not health_result.get("ok", false): return health_result
+    return {"ok": true, "errors": []}
+
+func _clear_runtime_services() -> void:
+    _interaction_runtime.clear()
+    _inventory_runtime.clear()
+    _health_runtime.clear()
+
 func _rollback_startup() -> void:
-    _free_player(); _runtime_state.clear(); _gameplay_runtime.clear(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+    _free_player(); _runtime_state.clear(); _gameplay_runtime.clear(); _clear_runtime_services(); GameplayInput.uninstall_owned(); Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     if is_instance_valid(_previous_camera): _previous_camera.current = true
     _previous_camera = null
     if _editor_session != null:
