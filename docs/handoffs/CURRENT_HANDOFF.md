@@ -28,34 +28,43 @@ Phase 7 — Instant Play + Templates — is implementation-complete and verified
 
 All internal Phase 7 checkpoints P07-T01 through P07-T08 are complete.
 
-Verified implementation head before this documentation-only closeout:
+Verified implementation head before documentation closeout:
 
 `cfa60cf0bab8637325dc76d8de74a46cabce45f0`
 
-The Phase 7 completion PR must target `master` and must not be merged without explicit user authorization.
+Verified documentation-closeout head before this PR-number-only handoff update:
+
+`cd4a002ef36c0eb8c4415a76482e6edbd6a818a3`
+
+Completion PR:
+
+- PR #12 — `https://github.com/DocDamage/polyfork-project/pull/12`
+- Title: `Phase 7 — Instant Play + Templates`
+- Base: `master`
+- Head: `dev/phase7-instant-play-templates-milestone`
+- Status: **DRAFT — DO NOT MERGE WITHOUT EXPLICIT USER AUTHORIZATION**
 
 ## Branch integrity
-Before documentation closeout:
+Before the PR-number-only handoff update:
 - authoritative `master`: `14d87bb12a3423dc54fc186f47f491a393537420`
 - merge base: `14d87bb12a3423dc54fc186f47f491a393537420`
 - Phase 7 branch: ahead only
-- ahead of `master`: 70 commits
 - behind `master`: 0 commits
 
 The milestone therefore starts from the exact merged Phase 6 source of truth and contains no `main` ancestry drift.
 
-## Green verification on the implementation head
-- Godot Smoke: `31564392784` — SUCCESS
+## Green verification on the documentation-closeout head
+- Godot Smoke: `31564651116` — SUCCESS
   - runtime smoke harness
   - Phase 1 visual regression capture
   - Phase 4 Asset Library visual regression capture
   - Phase 5 Terrain visual regression capture
-- Phase 7 Contracts: `31564392859` — SUCCESS
+- Phase 7 Contracts: `31564651165` — SUCCESS
   - `phase7-templates`
   - `phase7-play`
   - `phase7-playable-controllers`
-- Phase 7 Visual Evidence: `31564392817` — SUCCESS
-- Phase 7 visual evidence artifact: `9128908334`
+- Phase 7 Visual Evidence: `31564651054` — SUCCESS
+- Phase 7 visual evidence artifact: `9129005998`
 
 All Phase 7 workflows use Godot `4.7.1.stable.official.a13da4feb`. Strict CI rejects `SCRIPT ERROR:` and engine `ERROR:` output.
 
@@ -142,11 +151,10 @@ Updated for actual Phase 7 implementation:
 - this handoff
 
 ## Next action
-1. verify the documentation-only closeout commit remains green on inherited/Phase 7 gates;
-2. open one Phase 7 completion PR from `dev/phase7-instant-play-templates-milestone` to authoritative `master`;
-3. review the PR and checks;
-4. merge only after explicit user authorization.
+1. verify this PR-number-only handoff commit remains green on inherited and Phase 7 gates;
+2. review draft PR #12 and its checks;
+3. merge PR #12 only after explicit user authorization.
 
-After the Phase 7 completion PR is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 8 milestone branch.
+After PR #12 is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 8 milestone branch.
 
-**Do not begin Phase 8 before the Phase 7 completion PR is explicitly merged.**
+**Do not begin Phase 8 before PR #12 is explicitly merged.**
