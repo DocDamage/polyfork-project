@@ -22,6 +22,8 @@ const Phase5EntityStreamingContracts = preload("res://tests/integration/phase5_e
 const Phase5EntityCellOwnershipContracts = preload("res://tests/integration/phase5_entity_cell_ownership_contracts.gd")
 const Phase5ScalePerformanceContracts = preload("res://tests/integration/phase5_scale_performance_contracts.gd")
 const Phase6ComponentArchetypeContracts = preload("res://tests/integration/phase6_component_archetype_contracts.gd")
+const Phase6PrefabContracts = preload("res://tests/integration/phase6_prefab_contracts.gd")
+const Phase6SocketAttachmentContracts = preload("res://tests/integration/phase6_socket_attachment_contracts.gd")
 const ContinueReopenSmoke = preload("res://tests/runtime/continue_reopen_smoke.gd")
 const Phase3EditorSmoke = preload("res://tests/runtime/phase3_editor_smoke.gd")
 const Phase4AssetBrowserSmoke = preload("res://tests/runtime/phase4_asset_browser_smoke.gd")
@@ -76,6 +78,8 @@ func _run_integration_checks() -> void:
     for error in Phase5EntityCellOwnershipContracts.run_checks(): _failures.append(error)
     for error in Phase5ScalePerformanceContracts.run_checks(): _failures.append(error)
     for error in Phase6ComponentArchetypeContracts.run_checks(): _failures.append(error)
+    for error in Phase6PrefabContracts.run_checks(): _failures.append(error)
+    for error in Phase6SocketAttachmentContracts.run_checks(): _failures.append(error)
 
 
 func _run_runtime_smoke() -> void:
@@ -102,29 +106,25 @@ func _run_smoke_checks(smoke_instance: Node) -> void:
 
 
 func _run_continue_reopen_smoke() -> void:
-    var smoke := ContinueReopenSmoke.new()
-    root.add_child(smoke)
+    var smoke := ContinueReopenSmoke.new(); root.add_child(smoke)
     for error in smoke.run_checks(): _failures.append(error)
     smoke.queue_free()
 
 
 func _run_phase3_editor_smoke() -> void:
-    var smoke := Phase3EditorSmoke.new()
-    root.add_child(smoke)
+    var smoke := Phase3EditorSmoke.new(); root.add_child(smoke)
     for error in smoke.run_checks(): _failures.append(error)
     smoke.queue_free()
 
 
 func _run_phase4_asset_browser_smoke() -> void:
-    var smoke := Phase4AssetBrowserSmoke.new()
-    root.add_child(smoke)
+    var smoke := Phase4AssetBrowserSmoke.new(); root.add_child(smoke)
     for error in smoke.run_checks(): _failures.append(error)
     smoke.queue_free()
 
 
 func _run_phase5_terrain_workspace_smoke() -> void:
-    var smoke := Phase5TerrainWorkspaceSmoke.new()
-    root.add_child(smoke)
+    var smoke := Phase5TerrainWorkspaceSmoke.new(); root.add_child(smoke)
     for error in smoke.run_checks(): _failures.append(error)
     smoke.queue_free()
 
