@@ -1,6 +1,8 @@
 extends SceneTree
 
 const Foundation = preload("res://tests/unit/phase10_runtime_gameplay_contracts.gd")
+const Inventory = preload("res://tests/unit/phase10_inventory_interaction_contracts.gd")
+const Health = preload("res://tests/unit/phase10_health_damage_contracts.gd")
 
 func _init() -> void:
     call_deferred("_run")
@@ -8,10 +10,11 @@ func _init() -> void:
 func _run() -> void:
     var suite := OS.get_environment("PHASE10_SUITE")
     var errors: Array[String] = []
-    if suite == "foundation":
-        errors.append_array(Foundation.run_checks())
-    else:
-        errors.append("Unknown Phase 10 suite")
+    match suite:
+        "foundation": errors.append_array(Foundation.run_checks())
+        "inventory": errors.append_array(Inventory.run_checks())
+        "health": errors.append_array(Health.run_checks())
+        _: errors.append("Unknown Phase 10 suite: %s" % suite)
     if errors.is_empty():
         print("PASS: Phase 10 %s contract suite completed." % suite)
         quit(0)
