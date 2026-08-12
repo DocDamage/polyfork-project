@@ -52,19 +52,21 @@ static func run_checks(tree_root: Node) -> Array[String]:
     else:
         var runtime = play.get_environment_runtime()
         if not bool(enter.get("environment_active", false)): errors.append("PlaySession must activate the disposable Phase 11 environment runtime when a provider is configured.")
-        if runtime.get_time_of_day() != 21.5: errors.append("Visual Scripting Set Time must target the disposable Play environment runtime.")
-        if runtime.get_active_weather_profile_id() != storm_id: errors.append("Visual Scripting Set Weather must target the disposable Play environment runtime.")
-        if document != authored_before: errors.append("Play environment and Visual Scripting mutations must never mutate authored environment data.")
-        if editor.get_history_counts() != history_before: errors.append("Runtime-only environment changes must not enter authored Undo/Redo history.")
-        play.call("_physics_process", 1.0)
-        if runtime.get_time_of_day() == 21.5: errors.append("Play time progression must advance disposable time when authored progression is enabled.")
-        if document != authored_before: errors.append("Advancing Play time must preserve authored environment state exactly.")
-        var clear_result: Dictionary = runtime.clear_weather_override(0.0)
-        if not clear_result.get("ok", false) or runtime.get_active_weather_profile_id() != clear_id:
-            errors.append("Runtime weather overrides must clear safely back to the authored default.")
+        if runtime == null: errors.append("Environment-enabled Play must create a disposable environment runtime node.")
+        else:
+            if runtime.get_time_of_day() != 21.5: errors.append("Visual Scripting Set Time must target the disposable Play environment runtime.")
+            if runtime.get_active_weather_profile_id() != storm_id: errors.append("Visual Scripting Set Weather must target the disposable Play environment runtime.")
+            if document != authored_before: errors.append("Play environment and Visual Scripting mutations must never mutate authored environment data.")
+            if editor.get_history_counts() != history_before: errors.append("Runtime-only environment changes must not enter authored Undo/Redo history.")
+            play.call("_physics_process", 1.0)
+            if runtime.get_time_of_day() == 21.5: errors.append("Play time progression must advance disposable time when authored progression is enabled.")
+            if document != authored_before: errors.append("Advancing Play time must preserve authored environment state exactly.")
+            var clear_result: Dictionary = runtime.clear_weather_override(0.0)
+            if not clear_result.get("ok", false) or runtime.get_active_weather_profile_id() != clear_id:
+                errors.append("Runtime weather overrides must clear safely back to the authored default.")
         var exit: Dictionary = play.exit_play()
         if not exit.get("ok", false): errors.append("Phase 11 Play environment must exit cleanly.")
-        if not runtime.get_evaluated_state().is_empty(): errors.append("Leaving Play must fully clear disposable environment evaluation state.")
+        if play.get_environment_runtime() != null: errors.append("Leaving Play must free the disposable environment runtime node completely.")
         if document != authored_before: errors.append("Build environment data must be identical after Play exits.")
         if editor.get_history_counts() != history_before: errors.append("Build Undo/Redo history must be identical after disposable Play exits.")
 
@@ -74,6 +76,7 @@ static func run_checks(tree_root: Node) -> Array[String]:
     if not legacy_enter.get("ok", false): errors.append("PlaySession must remain backward-compatible when no environment provider is configured.")
     else:
         if bool(legacy_enter.get("environment_active", true)): errors.append("PlaySession without an environment provider must not fabricate environment state.")
+        if missing_play.get_environment_runtime() != null: errors.append("Legacy Play without an environment provider must retain the Phase 7 zero-child disposable-runtime invariant.")
         missing_play.exit_play()
 
     fixture.queue_free()
