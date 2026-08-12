@@ -13,6 +13,8 @@ static func run_checks() -> Array[String]:
     var errors: Array[String] = []
     var root := "user://tests/phase6_failure_%s" % StableId.generate()
     var project = WorldProject.new(); project.initialize_new("Phase 6 Failure", &"small", "blank_sandbox")
+    var test_cells: Array[String] = [StableId.generate()]
+    project.cell_ids = test_cells
     var repository = GameplayRepository.new(root.path_join("project"))
     var opened: Dictionary = repository.open_or_create(project)
     if not opened.get("ok", false):
@@ -27,7 +29,7 @@ static func run_checks() -> Array[String]:
         errors.append("Corrupt gameplay registry JSON must fail closed without silent replacement.")
     _write_text(definitions_path, canonical_definitions)
 
-    var parsed := JSON.parse_string(canonical_definitions)
+    var parsed: Variant = JSON.parse_string(canonical_definitions)
     if parsed is Dictionary:
         parsed["schema_version"] = 99
         _write_text(definitions_path, JSON.stringify(parsed, "  ") + "\n")
@@ -35,8 +37,8 @@ static func run_checks() -> Array[String]:
         if future.get("ok", false): errors.append("Future gameplay document schema versions must reject safely.")
     _write_text(definitions_path, canonical_definitions)
 
-    var state = opened.get("state")
-    var entity = WorldEntity.new(); entity.initialize_new("Fault Owner", str(project.cell_ids[0])); project.entity_records.append(entity.to_dictionary())
+    var state: Variant = opened.get("state")
+    var entity = WorldEntity.new(); entity.initialize_new("Fault Owner", test_cells[0]); project.entity_records.append(entity.to_dictionary())
     var health: Dictionary = state.get_definition(Components.id_for("health"))
     var instance_id := StableId.generate()
     var instance := {"document_type": Contracts.COMPONENT_INSTANCE, "schema_version": Contracts.SCHEMA_VERSION, "instance_id": instance_id, "definition_id": Components.id_for("health"), "owner_entity_id": entity.entity_id, "values": Contracts.defaults_for(health)}
