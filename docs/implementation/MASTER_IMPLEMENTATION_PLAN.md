@@ -18,36 +18,26 @@
 - Grid/angle/surface/object/socket snapping and drop-to-ground.
 - Ghost placement, contextual toolbar, controller tool wheel, rendered verification.
 
-## Phase 4 — Universal asset library — COMPLETE ON MILESTONE BRANCH; MERGE-GATED
+## Phase 4 — Universal asset library — COMPLETE
 - Strictly read-only external source-folder registry.
-- Deterministic incremental scanning, SHA-256 indexing, and stable asset-ID reconciliation.
-- GLB/GLTF and Godot text/binary scene analysis plus project-managed derived imports.
-- Versioned catalog metadata, licensing, favorites, collections, duplicate detection, thumbnails, and cache invalidation.
-- Large-card browser by default with compact density, search and filters, keyboard/mouse and gamepad operation.
-- Real Phase 3 placement handoff through the existing ghost and command system; no prefab/component system fabricated.
-- Scale, persistence/restart, corrupt/missing input, source-read-only, gamepad, raw-log, and rendered visual verification.
+- Deterministic incremental scanning, SHA-256 indexing, stable asset-ID reconciliation, derived project-managed imports, metadata/licensing, thumbnails, search/filter/favorites/collections, and real placement handoff.
 
-Phase 4 must merge through its single completion PR targeting authoritative `master` before Phase 5 begins.
+## Phase 5 — Terrain + streaming — COMPLETE
+- Runtime terrain sculpting, deterministic terrain meshes/collision, world partition cells, dirty-cell persistence/recovery, streaming manager, and biome data foundation.
 
-## Phase 5 — Terrain + streaming — NOT STARTED / NOT AUTHORIZED YET
-- Runtime terrain sculpting.
-- World partition cells.
-- Save dirty cells.
-- Streaming manager.
-- Biome data model.
-
-## Phase 6 — Components, archetypes, prefabs
-- Component registry.
-- Initial component set.
+## Phase 6 — Components, archetypes, prefabs — COMPLETE
+- Component registry and initial component set.
 - Archetype conversion flow.
-- Prefab saving and inheritance.
-- Socket editor and attachments.
+- Prefab saving, inheritance and instance overrides.
+- Named typed sockets and stable attachments.
 
-## Phase 7 — Instant Play and templates
+## Phase 7 — Instant Play and templates — ACTIVE MILESTONE
 - Third-person and FPS foundations.
-- Build/Play state transition.
-- Template manifest system.
-- Initial prototype templates.
+- Build/Play state transition over the same loaded world with disposable runtime state.
+- Semantic gameplay input separated from editor input.
+- Versioned data-driven template manifest/registry and deterministic module resolution/application.
+- Initial prototype templates: Blank Sandbox, Third-Person Adventure, FPS, Survival, RPG, Driving, Walking Simulator.
+- One completion PR after full integration, regression, persistence, failure-path, performance-proxy, raw-log, and rendered visual verification.
 
 ## Phase 8 — Visual scripting
 - Graph schema/editor.

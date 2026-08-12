@@ -67,7 +67,7 @@ Phase 5 is complete and merged on authoritative `master` by PR #10.
 - [x] P05-T08 Complete Phase 5 integration, scale/performance, gamepad, failure-path, persistence, streaming, and rendered visual verification
 
 ## Phase 6 — Components, Archetypes, Prefabs
-Phase 6 implementation and verification are complete on `dev/phase6-components-prefabs-milestone`. The completion PR targeting authoritative `master` is the only remaining milestone gate.
+Phase 6 is complete and merged on authoritative `master` by PR #11.
 
 - [x] P06-T01 Implement versioned component-definition, component-instance, archetype, prefab, socket, and attachment persistence contracts
 - [x] P06-T02 Implement the initial reusable component registry with defaults, dependencies, conflicts, and validation
@@ -78,7 +78,19 @@ Phase 6 implementation and verification are complete on `dev/phase6-components-p
 - [x] P06-T07 Implement named typed sockets, socket editing, command-backed attachments, and runtime attachment resolution without path-based identity
 - [x] P06-T08 Complete Phase 6 workspace, persistence/restart, scale, keyboard/mouse, gamepad, failure-path, inheritance, attachment, and rendered visual verification
 
+## Phase 7 — Instant Play and Templates
+Phase 7 is active on `dev/phase7-instant-play-templates-milestone`, created from exact merged Phase 6 source `14d87bb12a3423dc54fc186f47f491a393537420`.
+
+- [ ] P07-T01 Implement versioned template-manifest contracts and validated data-driven registry
+- [ ] P07-T02 Implement isolated same-world Build ↔ Play runtime-state boundary and safe restoration
+- [ ] P07-T03 Implement semantic gameplay input and player-session foundation separate from editor navigation
+- [ ] P07-T04 Implement reusable third-person instant-play controller/camera foundation
+- [ ] P07-T05 Implement reusable FPS instant-play controller/camera foundation
+- [ ] P07-T06 Implement deterministic template application and runtime-module resolution integrated with prior phases
+- [ ] P07-T07 Implement all seven documented data-driven prototype templates without faking later-phase gameplay breadth
+- [ ] P07-T08 Complete Phase 7 integration, regressions, persistence/restart, failure paths, input, performance-proxy, raw-log, and rendered visual verification
+
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
 
-Do not begin Phase 7 until the Phase 6 completion PR is explicitly merged into authoritative `master`.
+Do not begin Phase 8 until the Phase 7 completion PR is explicitly merged into authoritative `master` unless a later explicit handoff says otherwise.
