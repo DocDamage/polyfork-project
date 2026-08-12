@@ -1,0 +1,56 @@
+name: Phase 13 Windows Export
+
+on:
+  push:
+    branches:
+      - dev/phase13-export-pipeline-milestone
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  windows-export-smoke:
+    runs-on: windows-2025
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.7.1 and Windows export templates
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Invoke-WebRequest -Uri 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_win64.exe.zip' -OutFile godot.zip
+          Expand-Archive godot.zip -DestinationPath godot
+          Invoke-WebRequest -Uri 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_export_templates.tpz' -OutFile templates.tpz
+          Copy-Item templates.tpz templates.zip
+          Expand-Archive templates.zip -DestinationPath template-package
+          $templateTarget = Join-Path $env:APPDATA 'Godot\export_templates\4.7.1.stable'
+          New-Item -ItemType Directory -Force -Path $templateTarget | Out-Null
+          Copy-Item 'template-package\templates\*' $templateTarget -Recurse -Force
+          $godot = (Get-ChildItem godot -Filter '*_console.exe' | Select-Object -First 1).FullName
+          if (-not $godot) { $godot = (Get-ChildItem godot -Filter '*.exe' | Select-Object -First 1).FullName }
+          if (-not $godot) { throw 'Godot executable not found.' }
+          "GODOT_EXE=$godot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          & $godot --version
+      - name: Build, export, copy, and launch Small Medium Large Windows packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:GODOT_EXE --headless --path . --script res://tests/phase13_windows_export_runner.gd 2>&1 | Tee-Object -FilePath phase13-windows-export.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $log = Get-Content phase13-windows-export.log -Raw
+          if ($log -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Strict Godot log gate failed.' }
+          if ($log -notmatch 'PASS: Phase 13 Windows Small/Medium/Large export and clean-package launch completed.') { throw 'Phase 13 Windows export completion marker missing.' }
+      - name: Upload Windows export evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase13-windows-export-evidence
+          path: |
+            phase13-windows-export.log
+            ${{ runner.temp }}/_github_home/AppData/Roaming/Godot/app_userdata/Polyfork/tests/phase13/**/exports/**
+            ${{ runner.temp }}/_github_home/AppData/Roaming/Godot/app_userdata/Polyfork/tests/phase13/**/clean-machine/**
+          if-no-files-found: warn
+          retention-days: 14

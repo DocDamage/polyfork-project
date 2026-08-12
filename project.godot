@@ -6,6 +6,9 @@ config_version=5
 config/name="PlayWorld Studio"
 run/main_scene="res://src/main/Main.tscn"
 
+[autoload]
+ExportWorkspace="*res://src/app/workspace/export_workspace_layer.gd"
+
 [display]
 window/size/viewport_width=1600
 window/size/viewport_height=900

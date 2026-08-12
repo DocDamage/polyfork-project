@@ -1,0 +1,57 @@
+name: Phase 13 Visual Evidence
+
+on:
+  push:
+    branches:
+      - dev/phase13-export-pipeline-milestone
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phase13-visual-capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 --connect-timeout 20 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+          ./Godot_v4.7.1-stable_linux.x86_64 --version
+      - name: Capture rendered Phase 13 Export workspace
+        shell: bash
+        run: |
+          set -uo pipefail; set +e
+          timeout --signal=TERM --kill-after=10s 180s xvfb-run -a ./Godot_v4.7.1-stable_linux.x86_64 \
+            --path . --rendering-method gl_compatibility --audio-driver Dummy --disable-vsync \
+            --script res://tests/runtime/capture_phase13.gd 2>&1 | tee godot-phase13-visual.log
+          godot_status=${PIPESTATUS[0]}; set -e
+          if [ "$godot_status" -ne 0 ]; then exit "$godot_status"; fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' godot-phase13-visual.log; then exit 1; fi
+          grep -F 'PASS: Phase 13 rendered Export workspace screenshot captured.' godot-phase13-visual.log
+          file artifacts/phase13/*.png
+      - name: Upload Phase 13 visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase13-visual-evidence
+          path: artifacts/phase13/*.png
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload Phase 13 visual log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase13-visual-log
+          path: godot-phase13-visual.log
+          if-no-files-found: warn
+          retention-days: 14

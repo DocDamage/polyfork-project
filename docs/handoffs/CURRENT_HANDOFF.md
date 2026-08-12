@@ -1,144 +1,98 @@
-# POLYFORK PROJECT — PHASE 12 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 13 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
 Use the GitHub connector for repository work.
 
 ## Authoritative branch
+The real project lives on `master`.
 
-The real project lives on:
+Authoritative pre-Phase-13 `master`:
 
-`master`
+`b2a97a6cea52c6620f2b826a390a1d2d531ad81e`
 
-Current authoritative `master`:
+This is the verified merge commit for PR #17 — Phase 12 — AI Creation. Phases 0 through 12 are complete and merged.
 
-`d7245cad68b512fc5cbf9b897bce506ecbb9837d`
+The repository default branch `main` remains obsolete starter code. **Never develop from `main`.**
 
-This is the verified merge commit for PR #16 — Phase 11 — Environment.
+## Phase 13 branch and base
+Phase 13 — Export Pipeline was developed continuously on:
 
-The repository default branch `main` remains obsolete starter code.
-
-**Never develop from `main`.**
-
-## Completed authoritative state
-
-PR #16 is merged.
-
-Phases 0 through 11 are complete on authoritative `master`.
-
-Phase 12 implementation is complete but is **not merged yet**.
-
-## Phase 12 milestone branch
-
-Phase 12 — AI Creation — was developed continuously on:
-
-`dev/phase12-ai-creation-milestone`
+`dev/phase13-export-pipeline-milestone`
 
 The branch was created from exactly:
 
-`d7245cad68b512fc5cbf9b897bce506ecbb9837d`
+`b2a97a6cea52c6620f2b826a390a1d2d531ad81e`
 
-The branch/base comparison was verified identical before Phase 12 writes: zero commits ahead and zero commits behind.
+Before Phase 13 writes, GitHub compare verification reported:
+- merge base exactly `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`;
+- 0 commits ahead;
+- 0 commits behind;
+- no obsolete `main` ancestry used.
 
-The verified code-complete head before final documentation closeout was:
+Verified code-complete head before documentation closeout:
 
-`31de153629880bde66667eb888128c023230baa5`
+`e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`
 
-That code-complete head remained based directly on the authorized Phase 11 merge commit with zero commits behind authoritative `master`.
+## Phase 13 status
+**Phase 13 implementation is complete.**
 
-No obsolete `main` ancestry was used.
+All internal checkpoints P13-T01 through P13-T10 are complete. The only authorized next repository action is opening the single Phase 13 completion PR to authoritative `master` and leaving it unmerged until explicit user authorization.
 
-## Phase 12 status
-
-All Phase 12 implementation checkpoints are complete:
-
-- [x] P12-T01 — schema-v1 request/proposal/action/history contracts, provider descriptors, privacy/limits, user-scoped provider configuration, no persisted credentials
-- [x] P12-T02 — provider registry and real OpenAI-compatible local/cloud HTTP adapter with structured responses/tool calls, timeouts/cancel/errors, environment credentials, disclosure metadata
-- [x] P12-T03 — bounded read-only project/catalog query tools over real entities/assets/gameplay/terrain/graphs/procedural/environment state with exact stable IDs and licensing metadata
-- [x] P12-T04 — strict proposal/action validation, deterministic normalization, stable-reference checks, action limits, missing/unavailable asset rejection
-- [x] P12-T05 — Suggest mode with bounded provider/tool orchestration and zero authored mutation
-- [x] P12-T06 — Preview mode with deterministic impact summaries/diffs, source-asset lineage, findings, zero authored mutation
-- [x] P12-T07 — Execute mode as one atomic universal transaction with rollback, one-step Undo/Redo, dirty state, and crash-safe AI history
-- [x] P12-T08 — cross-system actions for placement/transforms, gameplay composition, Visual Scripting graph creation, procedural authoring, and Environment authoring through existing systems
-- [x] P12-T09 — native AI workspace behind the existing AI dock entry with provider/prompt/result controls, local/cloud disclosure, Preview-before-Execute, keyboard/mouse/gamepad, cancellation/status
-- [x] P12-T10 — privacy/query/failure/isolation/rollback/history/cross-system/gamepad/scale/strict-log/inherited regression/Godot Smoke/rendered evidence/documentation closeout
-
-## Delivered Phase 12 capability
-
-Phase 12 adds a bounded AI authoring subsystem without granting providers direct project-file write access.
+## Delivered Phase 13 capability
+Phase 13 delivered a Windows-first export pipeline without creating a second runtime architecture.
 
 Delivered behavior includes:
+- schema-v1 export/build manifest and strict safe-path/target/classification validation;
+- exact deterministic runtime source dependency closure;
+- deterministic staging/assembly and repeat-stage replacement;
+- explicit stripping of editor shell/workspaces, authoring-only AI data, checkpoints/recovery copies, and other non-runtime project data;
+- preservation of authored world, terrain, gameplay, Visual Scripting, procedural, Environment, template/runtime, and resolved asset data required by standalone builds;
+- standalone bootstrap through thin adapters into the existing Phase 7 `PlaySession`;
+- Phase 7 runtime-module validation kept separate from Phase 4 Asset Library UUID resolution;
+- deterministic Asset Library dependency discovery/resolution with hard failure for missing or unavailable required assets;
+- read-only external asset sources with only required files staged into managed export space;
+- source lineage plus machine-readable and human-readable license/attribution reporting;
+- explicit unknown/missing-license findings without invented license grants or compatibility claims;
+- generated Windows Godot export preset and actionable export failures;
+- deterministic output/package/report structure;
+- repeat-export idempotency/stale-file replacement;
+- clean-package copy and launch verification outside the editor project;
+- Small/Medium/Large standalone Windows verification;
+- keyboard/mouse and gamepad semantic input verification in exported builds;
+- compact canonical Build-mode Export UI with deterministic output/status controls;
+- Export blocking for no-project, Play, transient placement, and invalid states;
+- strict Phase 13 foundation/runtime/workspace tests;
+- inherited Phase 6–12 regression coverage;
+- Godot Smoke;
+- rendered canonical Build → Export evidence;
+- exported standalone runtime/package evidence.
 
-- provider-independent AI request/proposal/action contracts;
-- real OpenAI-compatible chat provider support for local loopback endpoints and HTTPS cloud endpoints;
-- provider credentials resolved only from environment variables and never persisted in project data or AI history;
-- explicit local-only mode and explicit cloud-context-sharing consent;
-- bounded project context and bounded provider tool-query loops;
-- real read-only queries over the Phase 4 Asset Library and current authored project state;
-- exact stable asset/entity/component/biome/graph/procedural/environment reference handling;
-- sanitized license/asset metadata for AI context;
-- provider output treated as untrusted input and normalized/validated locally;
-- provider-generated persistent IDs rejected in favor of locally generated stable IDs;
-- proposal-local aliases such as `result_ref` / `entity_ref` so newly placed entities can be targeted later in the same atomic proposal without exposing their future UUIDs to the provider;
-- missing/unavailable Asset Library assets rejected before Preview/Execute;
-- Suggest mode with no authored mutation;
-- Preview mode with deterministic impacts and no authored mutation;
-- Execute mode that composes the existing project/gameplay/Visual Scripting/procedural/Environment command surfaces into one outer universal transaction;
-- all-or-nothing rollback on subcommand, runtime-refresh, or history-persistence failure;
-- exactly one universal Undo/Redo entry for an entire cross-system AI Execute operation;
-- project-managed crash-safe `ai/history.json` execution lineage with source asset IDs and applied/undone state;
-- cross-system actions for object placement/transform, gameplay components, Visual Scripting graph creation, procedural foliage creation, and Environment editing without duplicate state systems;
-- Build-only AI authoring enforcement so provider requests and Execute are unavailable during Play;
-- native AI workspace behind the existing AI dock entry with keyboard/mouse and Y/X/A gamepad controls;
-- Preview-before-Execute UX, provider status/cancellation, and clear local/cloud disclosure.
+## Verified completion gates
+All five required workflows passed on the exact code-complete head `e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`:
 
-## Security closeout
+- **Godot Smoke** — run `31617622730`
+- **Phase 13 Windows Export** — run `31617622756`
+- **Phase 13 Visual Evidence** — run `31617622776`
+- **Phase 13 Inherited Regressions** — run `31617622791`
+- **Phase 13 Contracts** — run `31617622792`
 
-An unused token-shaped `.polyforkAPI` file existed in the repository before Phase 12.
+The Windows gate verifies Build/stage/export for Small/Medium/Large projects, repeat export with stale-file replacement, copy to a separate clean-package location, standalone executable launch, Phase 7 third-person runtime boot, and keyboard/mouse plus gamepad semantic input bindings.
 
-Phase 12 did not read, expose, or use that token for provider authentication.
+The inherited regression gate verifies Phase 6 through Phase 12 contract coverage plus the Phase 7 playable-controller smoke. The rendered evidence gate captures the actual canonical Build → Export UI state.
 
-The Phase 12 branch now:
-
-- removes the tracked `.polyforkAPI` file; and
-- ignores `.polyforkAPI` and `.polyforkAPI.*` going forward.
-
-Because the credential existed in repository history before this milestone, deleting the active file does **not** remove the historical secret. The historical credential should be treated as exposed and rotated/revoked separately.
-
-## Verification completed
-
-The verified Phase 12 implementation passed seven dedicated Godot 4.7.1 suites:
-
-- `foundation` — provider contracts, privacy, user-scoped configuration, safe provider-response parsing;
-- `rollback` — forced subcommand/runtime-refresh rollback and single-Undo transaction behavior;
-- `history` — crash-safe AI history save/reopen, exact source asset lineage, wrong-project and corruption handling;
-- `execute` — real cross-system Preview/Execute/Undo/Redo and missing-asset rejection;
-- `workspace` — real `Main.tscn` AI dock/workspace, privacy controls, gamepad path, contextual exclusivity, Play closure;
-- `orchestration` — bounded provider tool rounds, Suggest/Preview zero mutation, Preview-to-Execute flow, Play blocking;
-- `scale` — representative 256-entity project, bounded query results, 64-action proposal validation/staging, 65th-action rejection.
-
-Additional completion gates passed:
-
-- complete inherited Phase 6–11 contract regression workflow, including Phase 7 playable-controller smoke;
-- current Godot Smoke with strict log gates;
-- rendered Phase 12 visual evidence using the real application shell and AI workspace.
-
-Rendered evidence was manually inspected and verifies:
-
-1. validated local-provider Preview with explicit no-Build-mutation disclosure;
-2. atomic Execute visibly applying the authored Environment change and reporting one universal Undo step;
-3. Undo restoring the complete prior authored/rendered state while retaining the validated proposal for inspection.
+## Security closeout reminder
+The tracked `.polyforkAPI` file was removed during Phase 12 and is ignored going forward. Its historical credential material remains present in Git history and should still be considered exposed and rotated/revoked separately.
 
 ## Completion PR gate
+Open exactly one Phase 13 completion PR from:
 
-Open exactly one Phase 12 completion PR from:
-
-`dev/phase12-ai-creation-milestone`
+`dev/phase13-export-pipeline-milestone`
 
 to authoritative:
 
 `master`
 
-Do **not** merge that PR without explicit user authorization.
+The PR must remain **unmerged** until explicit user authorization is given.
 
-Do not begin Phase 13 until the Phase 12 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
+Do not enable auto-merge. Do not begin Phase 14 until the Phase 13 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
