@@ -61,6 +61,21 @@ func continue_execution(ignore_breakpoint_node_id: String = "") -> Dictionary:
                 var position_value: Dictionary = _input_value(node_id, "position"); if not position_value.get("ok", false): _running = false; return position_value
                 var set_result: Dictionary = _set_entity_position(str(entity_value.get("value", "")), position_value.get("value")); if not set_result.get("ok", false): _running = false; return set_result
                 next_ports = ["next"]
+            "environment.set_time":
+                var hours_value: Dictionary = _input_value(node_id, "hours"); if not hours_value.get("ok", false): _running = false; return hours_value
+                var time_result: Dictionary = _call_context("environment_set_time", [float(hours_value.get("value", 0.0))])
+                if not time_result.get("ok", false): _running = false; return time_result
+                next_ports = ["next"]
+            "environment.set_weather":
+                var weather_properties: Dictionary = node.get("properties", {})
+                var weather_result: Dictionary = _call_context("environment_set_weather", [str(weather_properties.get("weather_profile_id", "")), float(weather_properties.get("transition_seconds", -1.0))])
+                if not weather_result.get("ok", false): _running = false; return weather_result
+                next_ports = ["next"]
+            "environment.clear_weather":
+                var clear_properties: Dictionary = node.get("properties", {})
+                var clear_result: Dictionary = _call_context("environment_clear_weather", [float(clear_properties.get("transition_seconds", -1.0))])
+                if not clear_result.get("ok", false): _running = false; return clear_result
+                next_ports = ["next"]
             "gameplay.set_component_value":
                 var component_entity: Dictionary = _input_value(node_id, "entity_id"); if not component_entity.get("ok", false): _running = false; return component_entity
                 var component_value: Dictionary = _input_value(node_id, "value"); if not component_value.get("ok", false): _running = false; return component_value
@@ -173,6 +188,7 @@ func _output_value(node_id: String, port: String) -> Dictionary:
             var variable_id := str(node.get("properties", {}).get("variable_id", "")); result = {"ok": true, "errors": [], "value": _variables[variable_id]} if _variables.has(variable_id) else _failure("Variable node references a missing variable.")
         "entity.get_position":
             var entity_value: Dictionary = _input_value(node_id, "entity_id"); result = entity_value if not entity_value.get("ok", false) else _get_entity_position(str(entity_value.get("value", "")))
+        "environment.get_state": result = _call_context("environment_get_state", [])
         "gameplay.get_component_value":
             var component_entity: Dictionary = _input_value(node_id, "entity_id")
             if not component_entity.get("ok", false): result = component_entity

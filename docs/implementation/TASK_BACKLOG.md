@@ -115,7 +115,7 @@ Phase 9 is complete and merged on authoritative `master` by PR #14 at `953d8b500
 - [x] P09-T08 Complete save/reopen, Undo/Redo, real external Asset Library/prefab source resolution, missing-reference failures, large-world streaming, terrain coupling, scale/performance, strict-log, inherited smoke, gamepad, and rendered visual verification
 
 ## Phase 10 — Gameplay Framework Breadth
-Phase 10 implementation is complete on `dev/phase10-gameplay-framework-milestone`, based exactly on authoritative `master` `953d8b500beb1b65485104c85ab9bd5c4ff8224b`. The milestone is completion-PR gated; do not merge without explicit user authorization.
+Phase 10 is complete and merged on authoritative `master` by PR #15 at `ac2753f81c9c6be53abe89b102e1f9911a595944`.
 
 - [x] P10-T01 Implement Phase 10 runtime gameplay-state contracts/service keyed by stable entity/component IDs, with disposable Play initialization, validation, event bus, and safe missing-reference behavior
 - [x] P10-T02 Implement reusable inventory/item/container state, quantity/capacity rules, transfers, pickups, interaction routing, and stable item/reference semantics
@@ -128,9 +128,23 @@ Phase 10 implementation is complete on `dev/phase10-gameplay-framework-milestone
 - [x] P10-T09 Expose reusable Phase 10 gameplay actions/events to Visual Scripting and the existing Phase 7 semantic input/runtime lifecycle, including repeated Play transition and rollback coverage
 - [x] P10-T10 Complete Gameplay workspace integration, keyboard/mouse + gamepad UX, save/reopen/failure/scale/performance tests, inherited regression gate preparation, strict-log gates, rendered evidence, documentation closeout, and one Phase 10 completion PR
 
-Phase 10 push validation includes Godot Smoke, the nine-suite Phase 10 contract matrix, representative 256-entity/768-component scale coverage, and rendered Gameplay/Play evidence. The completion PR is the authoritative inherited Phase 6–9 regression gate against `master`.
+## Phase 11 — Environment
+Phase 11 implementation and verification are complete on `dev/phase11-environment-milestone`, created from exactly authoritative `master` `ac2753f81c9c6be53abe89b102e1f9911a595944`. The milestone remains merge-gated until its single completion PR is explicitly approved and merged.
+
+- [x] P11-T01 Implement schema-v1 environment state, stable-ID weather profiles, validation, project registry synchronization, and crash-safe `environment/environment.json` persistence
+- [x] P11-T02 Implement environment authoring service plus snapshot command so Build-mode environment/profile editing uses universal Undo/Redo and project dirty-state semantics
+- [x] P11-T03 Implement deterministic time-of-day evaluation and Godot rendering bridge for directional sun, ambient/sky state, and fog-capable `Environment` resources
+- [x] P11-T04 Implement reusable weather profile selection, deterministic transitions, runtime events, and safe missing/corrupt profile fallback behavior
+- [x] P11-T05 Implement reusable wind state and consumer hooks for Phase 9 foliage/procedural runtime, particles, water, gameplay, and future systems
+- [x] P11-T06 Implement Phase 5 biome/environment overrides with deterministic precedence, active-cell/streaming awareness, terrain-edit refresh, and safe missing biome/profile references
+- [x] P11-T07 Implement stable water integration descriptors and runtime hooks for future providers without hardcoding a water asset/system
+- [x] P11-T08 Integrate disposable Build → Play → Build environment evaluation with Phase 7 PlaySession and expose useful environment actions/events to Phase 8 Visual Scripting
+- [x] P11-T09 Implement native Environment workspace authoring controls and status with keyboard/mouse plus gamepad paths while preserving the canonical UI direction
+- [x] P11-T10 Complete save/reopen, Undo/Redo, deterministic day/night, weather, biome, terrain/foliage/wind, streaming, Build/Play isolation, failure, gamepad, scale/performance, strict-log, inherited regression, Godot Smoke, rendered evidence, documentation closeout, and one Phase 11 completion PR
+
+Verification completed on the milestone branch includes six Phase 11 contract suites, the full inherited Phase 6–10 regression gate, Godot Smoke, and three rendered Phase 11 evidence captures covering authored Environment editing, disposable night/weather Play evaluation, and authoritative Build restoration.
 
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
 
-Do not begin Phase 11 until the Phase 10 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
+Do not begin Phase 12 until the Phase 11 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.

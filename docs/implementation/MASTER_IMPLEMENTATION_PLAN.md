@@ -47,7 +47,7 @@
 - Stable-ID road/path/fence splines with command-backed point authoring, generated `ArrayMesh` road/path ribbons, MultiMesh fence segments, streamed geometry, keyboard/mouse and gamepad authoring, strict regression gates, and rendered evidence.
 - Merged by PR #14 at authoritative `master` commit `953d8b500beb1b65485104c85ab9bd5c4ff8224b`.
 
-## Phase 10 — Gameplay Framework Breadth — IMPLEMENTATION COMPLETE / MERGE-GATED
+## Phase 10 — Gameplay Framework Breadth — COMPLETE
 Phase 10 was developed as one continuous milestone on `dev/phase10-gameplay-framework-milestone`, created from exactly authoritative `master` commit `953d8b500beb1b65485104c85ab9bd5c4ff8224b`.
 
 The milestone extends the existing Phase 6 gameplay-component contracts and Phase 7 disposable Play runtime rather than creating parallel gameplay systems. Authored Build data remains authoritative; mutable gameplay state is session/runtime state unless explicitly saved through the Phase 10 save-state layer.
@@ -65,10 +65,27 @@ Completed milestone breadth:
 - native Gameplay workspace integration with keyboard/mouse and gamepad authoring paths;
 - strict Phase 10 contract gates, representative 256-entity/768-component scale regression coverage, Godot smoke coverage, and rendered Phase 10 visual evidence exercising real Gameplay authoring and disposable Play transitions.
 
-Phase 10 is now completion-PR gated. The milestone completion PR targets authoritative `master`; do not merge it without explicit user authorization. Phase 11 remains blocked until that PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+Phase 10 was merged by PR #15 at authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
 
-## Phase 11 — Environment
-- Day/night, weather profile framework, fog/wind, water integration hooks, biome-environment coupling.
+## Phase 11 — Environment — IMPLEMENTATION COMPLETE / MERGE GATED
+Phase 11 was developed as one continuous milestone on `dev/phase11-environment-milestone`, created from exactly authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
+
+Completed milestone breadth:
+- schema-v1 authored environment registry persisted crash-safely under `environment/environment.json`, including stable weather-profile, biome-override, and water-hook identities mirrored into project registries;
+- command-backed Environment authoring through the existing universal Undo/Redo and project dirty-state path;
+- deterministic time-of-day evaluation layered over authored defaults, with configurable Play progression and weather transitions;
+- real Godot `WorldEnvironment`/`Environment`, `Sky`/`ProceduralSkyMaterial`, directional-sun, ambient-light, and fog rendering integrated into the existing editor/play viewport;
+- reusable weather profiles for sky, light, fog, precipitation/cloud metadata, wind, and water modifiers rather than hardcoded weather modes;
+- Phase 5 biome/environment coupling with deterministic precedence, position/cell awareness, streamed-world focus changes, and safe fallback for missing references;
+- reusable wind state consumed by the existing Phase 9 procedural runtime without mutating authored foliage/spline data;
+- stable water integration descriptors/hooks for future providers rather than a hardcoded water implementation;
+- fully disposable Phase 7 Play environment runtimes with authored Build restoration, no leaked Play nodes, and existing gameplay-event routing;
+- Phase 8 Visual Scripting Environment nodes for reading state, setting time/weather, and clearing runtime weather overrides;
+- native Environment authoring behind the canonical Water dock entry, preserving the existing shell while providing time/weather/fog/wind/biome/water controls with keyboard/mouse and gamepad paths;
+- six dedicated Phase 11 contract suites covering persistence/reopen/corruption, universal Undo/Redo, deterministic evaluation, weather/biome/wind/water coupling, Visual Scripting/Play isolation, real workspace input paths, and representative large-world scale/streaming;
+- explicit inherited Phase 6–10 contract regression gate, current Godot Smoke, strict Godot log gates, and three rendered Phase 11 evidence captures for authored editing, disposable night/weather Play, and authoritative Build restoration.
+
+Phase 11 implementation is complete on the milestone branch but remains completion-PR gated. Do not merge its completion PR without explicit user authorization. Phase 12 remains blocked until the Phase 11 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
 
 ## Phase 12 — AI creation
 - Provider interface.

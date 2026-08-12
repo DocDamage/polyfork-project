@@ -10,6 +10,7 @@ const TerrainWorkspaceLayer = preload("res://src/app/workspace/terrain_workspace
 const GameplayWorkspaceLayer = preload("res://src/app/workspace/gameplay_workspace_layer.gd")
 const VisualScriptingWorkspaceLayer = preload("res://src/app/workspace/visual_scripting_workspace_layer.gd")
 const ProceduralWorkspaceLayer = preload("res://src/app/workspace/procedural_workspace_layer.gd")
+const EnvironmentWorkspaceLayer = preload("res://src/app/workspace/environment_workspace_layer.gd")
 const TemplateRegistry = preload("res://src/templates/template_registry.gd")
 const TemplateApplication = preload("res://src/templates/template_application_service.gd")
 
@@ -24,6 +25,7 @@ var _terrain_workspace
 var _gameplay_workspace
 var _visual_scripting_workspace
 var _procedural_workspace
+var _environment_workspace
 
 
 func _ready() -> void:
@@ -50,12 +52,19 @@ func _process(delta: float) -> void:
         var terrain_result: Dictionary = _terrain_workspace.advance(delta)
         if terrain_result.get("attempted", false) and not terrain_result.get("ok", false):
             push_warning("Terrain autosave failed: %s" % terrain_result.get("errors", []))
+    if _environment_workspace != null:
+        var environment_result: Dictionary = _environment_workspace.advance(delta)
+        if environment_result.get("attempted", false) and not environment_result.get("ok", false):
+            push_warning("Environment preview refresh failed: %s" % environment_result.get("errors", []))
 
 
 func _unhandled_input(event: InputEvent) -> void:
     if not event.is_action_pressed("ui_cancel"):
         return
     if workspace_screen.visible:
+        if _environment_workspace != null and _environment_workspace.handle_cancel():
+            get_viewport().set_input_as_handled()
+            return
         if _procedural_workspace != null and _procedural_workspace.handle_cancel():
             get_viewport().set_input_as_handled()
             return
@@ -89,6 +98,7 @@ func get_terrain_workspace(): return _terrain_workspace
 func get_gameplay_workspace(): return _gameplay_workspace
 func get_visual_scripting_workspace(): return _visual_scripting_workspace
 func get_procedural_workspace(): return _procedural_workspace
+func get_environment_workspace(): return _environment_workspace
 
 
 func _attach_workspace_layers() -> void:
@@ -119,6 +129,13 @@ func _attach_workspace_layers() -> void:
     if not procedural_result.get("ok", false):
         push_warning("Unable to attach Procedural workspace layer: %s" % procedural_result.get("errors", []))
     _procedural_workspace.status_changed.connect(_on_workspace_status)
+
+    _environment_workspace = EnvironmentWorkspaceLayer.new()
+    workspace_screen.add_child(_environment_workspace)
+    var environment_result: Dictionary = _environment_workspace.bind_workspace(workspace_screen)
+    if not environment_result.get("ok", false):
+        push_warning("Unable to attach Environment workspace layer: %s" % environment_result.get("errors", []))
+    _environment_workspace.status_changed.connect(_on_workspace_status)
 
 
 func _on_home_route_requested(route: StringName) -> void:
@@ -209,6 +226,17 @@ func _activate_project(project) -> bool:
     if not procedural_result.get("ok", false):
         return _activation_failure("Unable to bind Procedural workspace", procedural_result)
 
+    var environment_result: Dictionary = _environment_workspace.bind_project(
+        project,
+        project_directory,
+        editor_session,
+        Callable(self, "mark_project_dirty"),
+        terrain_controller,
+        _procedural_workspace.get_runtime()
+    )
+    if not environment_result.get("ok", false):
+        return _activation_failure("Unable to bind Environment workspace", environment_result)
+
     var template_result: Dictionary = _prepare_template_baseline(project, editor_session, cell_resolver)
     if not template_result.get("ok", false):
         return _activation_failure("Unable to initialize project template", template_result)
@@ -218,6 +246,7 @@ func _activate_project(project) -> bool:
         play_session.configure_project_directory(project_directory)
         play_session.configure_visual_graph_provider(Callable(_visual_scripting_workspace.get_service(), "get_graphs"))
         play_session.configure_gameplay_state_provider(Callable(_gameplay_workspace.get_service(), "get_runtime_snapshot"))
+        play_session.configure_environment_state_provider(Callable(_environment_workspace, "get_play_bundle"))
         if terrain_controller != null:
             play_session.configure_streaming(Callable(terrain_controller, "update_streaming_focus"))
     return true
@@ -297,6 +326,7 @@ func _refresh_recent_project() -> void:
 
 func _on_workspace_mode_changed(mode: StringName) -> void:
     if _autosave_service != null: _autosave_service.set_suspended(mode == &"play")
+    if _environment_workspace != null: _environment_workspace.set_play_mode(mode == &"play")
     if mode == &"play": _close_contextual_tools()
 
 
@@ -308,6 +338,7 @@ func _ensure_build_mode() -> void:
 
 
 func _close_contextual_tools() -> void:
+    if _environment_workspace != null: _environment_workspace.close_tool()
     if _procedural_workspace != null: _procedural_workspace.close_tool()
     if _visual_scripting_workspace != null: _visual_scripting_workspace.close_tool()
     if _gameplay_workspace != null: _gameplay_workspace.close_tool()
