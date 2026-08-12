@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 10 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 11 ACTIVE HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -12,94 +12,86 @@ The real project lives on:
 
 Current authoritative `master`:
 
-`953d8b500beb1b65485104c85ab9bd5c4ff8224b`
+`ac2753f81c9c6be53abe89b102e1f9911a595944`
 
-This is the verified signed merge commit for PR #14 — Phase 9 — Foliage / Procedural / Splines.
+This is the verified signed merge commit for PR #15 — Phase 10 — Gameplay Framework Breadth.
 
 The repository default branch `main` remains obsolete starter code.
 
 **Never develop from `main`.**
 
-## Phase 9 status
+## Completed state
 
-PR #14 is merged.
+PR #15 is merged.
 
-Phases 0 through 9 are complete on authoritative `master`.
+Phases 0 through 10 are complete on authoritative `master`.
 
-## Phase 10 milestone branch
+## Phase 11 milestone branch
 
-Phase 10 — Gameplay Framework Breadth — implementation is complete on:
+Phase 11 — Environment — is active on:
 
-`dev/phase10-gameplay-framework-milestone`
+`dev/phase11-environment-milestone`
 
 The branch was created from exactly:
 
-`953d8b500beb1b65485104c85ab9bd5c4ff8224b`
+`ac2753f81c9c6be53abe89b102e1f9911a595944`
 
-No obsolete `main` ancestry was used.
+The branch/base comparison was verified identical before Phase 11 writes: zero commits ahead and zero commits behind.
 
-Phase 10 was developed as one continuous milestone without task-by-task pull requests.
+No obsolete `main` ancestry is being used.
 
-## Phase 10 completed breadth
+Phase 11 must be developed as one continuous milestone without task-by-task pull requests.
 
-- stable-ID disposable runtime gameplay state and event routing;
-- inventory, item/container quantity/capacity rules, transfer, pickups, and interaction routing;
-- reusable doors and health/damage/healing/death state;
-- basic NPC navigation/AI goals, destinations, waits, target interaction, and safe fallback behavior;
-- stable-ID dialogue conversations, lines, participants, conditions, choices, and progression;
-- stable-ID quests/objectives with progress, completion/failure, and event-driven updates;
-- reusable vehicles, seats, occupancy, enter/exit, throttle/steer/brake semantics, keyboard and gamepad input;
-- explicit project-managed save-state snapshots that restore opted-in runtime state without silently mutating authored Build data;
-- Visual Scripting-facing gameplay actions/events integrated with the existing Phase 7 Play lifecycle and semantic input;
-- native Gameplay workspace integration using the existing component/archetype/editor systems;
-- keyboard/mouse and gamepad authoring paths;
-- representative scale regression coverage for 256 entities and 768 gameplay components;
-- rendered Phase 10 evidence exercising real Gameplay authoring, a real gamepad authoring shortcut, and Build → Play → Build disposal;
-- strict Phase 10 contract and visual log gates.
+## Phase 11 objective
 
-## Phase 10 checkpoints
+Deliver a coherent, reusable, data-driven environment system that integrates day/night, weather, fog, wind, water hooks, and biome/environment coupling through the existing Polyfork architecture.
 
-- [x] P10-T01 — runtime gameplay-state contracts/service, stable IDs, Play lifecycle, event bus, validation
-- [x] P10-T02 — inventory/item/container state, transfers, pickups, interaction routing
-- [x] P10-T03 — doors plus health/damage/healing/death runtime systems
-- [x] P10-T04 — basic NPC navigation/AI goals, destinations, waits, target interaction
-- [x] P10-T05 — dialogue scaffolding with stable conversations/lines/participants/choices
-- [x] P10-T06 — quest scaffolding with stable quests/objectives and event-driven progress
-- [x] P10-T07 — vehicles, seats, occupancy, enter/exit, throttle/steer/brake semantics
-- [x] P10-T08 — explicit save-state snapshots and crash-safe restore without Build mutation
-- [x] P10-T09 — Visual Scripting and semantic input integration plus repeated Play/rollback coverage
-- [x] P10-T10 — Gameplay workspace UX, gamepad/keyboard coverage, scale/performance/failure QA, rendered evidence, docs closeout, single completion PR
+Authored Build data remains authoritative. Runtime evaluation during Play is disposable and must not silently mutate Build state. Persisted identities use stable IDs where identity is required, and missing/corrupt references fail safely.
 
-## Verified branch gates before completion PR
+## Phase 11 checkpoints
 
-The Phase 10 milestone branch has passed:
+- [ ] P11-T01 — schema-v1 environment state, stable weather-profile IDs, validation, registry synchronization, crash-safe persistence
+- [ ] P11-T02 — command-backed environment/profile authoring through universal Undo/Redo and project dirty-state semantics
+- [ ] P11-T03 — deterministic time-of-day evaluation and Godot rendering bridge for sun, ambient/sky, and fog-capable Environment resources
+- [ ] P11-T04 — weather profile selection/transitions, runtime events, deterministic evaluation, safe missing-profile fallback
+- [ ] P11-T05 — reusable wind state/hooks for foliage, particles, water, gameplay, and future consumers
+- [ ] P11-T06 — Phase 5 biome/environment overrides with deterministic precedence and streaming-aware active-cell behavior
+- [ ] P11-T07 — stable water integration descriptors/hooks for future providers without hardcoded water implementation
+- [ ] P11-T08 — Phase 7 disposable Play integration plus Phase 8 Visual Scripting environment actions/events
+- [ ] P11-T09 — native Environment workspace UX with keyboard/mouse and gamepad authoring paths
+- [ ] P11-T10 — persistence/Undo/day-night/weather/biome/foliage/wind/streaming/Build-Play isolation/failure/scale/gamepad/visual/strict-log/inherited regression/Godot Smoke closeout and one completion PR
 
-- Godot Smoke;
-- Phase 10 Contracts — nine suites: foundation, inventory, health, NPC, dialogue, quest, vehicle, save-state, scale regression;
-- Phase 10 Visual Evidence — rendered Gameplay workspace and disposable Play runtime capture with strict log checking.
+## Architecture inspection findings before implementation
 
-The completion PR targeting `master` is the authoritative inherited regression gate for Phase 6, Phase 7, Phase 8, Phase 9, Phase 10, rendered visual evidence, and Godot Smoke.
+- Phase 5 already owns terrain cells, biome assignment, dirty-cell persistence, deterministic streaming, and terrain refresh behavior; Phase 11 must consume those systems instead of recreating terrain or biome state.
+- Phase 7 already owns the isolated Build → Play → Build lifecycle; Play environment progression belongs in disposable session/runtime state.
+- Phase 9 already owns derived foliage/procedural runtime and streaming; wind/environment coupling must feed that runtime through reusable hooks without making generated foliage authoritative.
+- Phase 10 already owns reusable gameplay runtime events/state; environment signals may be consumed there but should not duplicate gameplay state.
+- `src/environment` is reserved and currently empty, making it the correct module boundary for the Phase 11 contracts/repository/service/runtime/render bridge.
+- Existing Phase-specific suite runners and integration-contract tests should be extended with a Phase 11 runner and environment contract suites rather than replaced.
 
-## Architecture rules preserved
+## Verification required before completion PR
 
-Phase 10 extends, rather than replaces:
+- persistence/save/reopen and corruption/future-schema handling;
+- universal Undo/Redo for authored environment editing;
+- deterministic day/night behavior;
+- weather profile switching and transitions;
+- biome/environment coupling and streamed-world behavior;
+- terrain/foliage/wind integration regression coverage;
+- stable water-hook behavior and missing-provider safety;
+- Build → Play → Build isolation;
+- Visual Scripting environment actions/events;
+- keyboard/mouse and gamepad authoring;
+- representative scale/performance checks;
+- strict Godot log gates;
+- inherited Phase 6–10 regression gates;
+- rendered Phase 11 visual evidence;
+- Godot Smoke.
 
-- Phase 2 stable project/entity identity and crash-safe persistence;
-- universal command history and Undo/Redo;
-- Phase 3 runtime entity/editor bridge;
-- Phase 4 Asset Library;
-- Phase 5 terrain and streaming;
-- Phase 6 component/archetype/prefab/socket systems;
-- Phase 7 disposable PlaySession and semantic gameplay input;
-- Phase 8 Visual Scripting;
-- Phase 9 procedural/foliage/spline runtime.
+## Completion gate
 
-Build remains authoritative. Mutable Play state is disposable unless explicitly captured by the Phase 10 save-state system. Persisted references use stable IDs. Missing/corrupt references fail safely. Keyboard/mouse and gamepad remain first-class.
-
-## Merge gate
-
-Open exactly one Phase 10 completion PR from `dev/phase10-gameplay-framework-milestone` to authoritative `master`.
+After all P11 checkpoints and verification are complete, open exactly one Phase 11 completion PR from `dev/phase11-environment-milestone` to authoritative `master`.
 
 Do not merge that PR without explicit user authorization.
 
-Do not begin Phase 11 until the Phase 10 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+Do not begin Phase 12 until the Phase 11 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
