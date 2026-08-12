@@ -30,26 +30,38 @@ Phase 8 — Visual Scripting — is implementation-complete and verified on:
 
 All internal checkpoints P08-T01 through P08-T08 are complete.
 
-Verified implementation/visual candidate before this documentation-only closeout:
+Phase 8 completion PR:
+
+- PR #13 — `https://github.com/DocDamage/polyfork-project/pull/13`
+- Title: `Phase 8 — Visual Scripting`
+- Base: `master`
+- Head: `dev/phase8-visual-scripting-milestone`
+- Status: **DRAFT / OPEN — DO NOT MERGE WITHOUT EXPLICIT USER AUTHORIZATION**
+
+Verified implementation/visual candidate before documentation closeout:
 
 `9136c572a8526409e6f6550d79b4afb73adeae30`
 
-The remaining Phase 8 milestone action is to open one completion PR targeting `master`. Do not merge that PR without explicit user authorization.
+Verified documentation-only pre-PR head:
 
-## Branch integrity before documentation closeout
+`5f6ab9c41fd07b8d1c9e12ca2c3e94ff8dabb0e5`
+
+This handoff-only PR-number commit is the final pre-merge branch mutation. All workflows on its resulting SHA must be green before PR #13 is considered merge-ready.
+
+## Branch integrity before this handoff-only commit
 
 - authoritative `master`: `06df50b6ffb752731d21f1ced88eb2cf1191f542`
 - merge base: `06df50b6ffb752731d21f1ced88eb2cf1191f542`
 - Phase 8 branch: ahead only
-- ahead of `master`: 15 commits
+- ahead of `master`: 16 commits
 - behind `master`: 0 commits
 
 No obsolete `main` ancestry was used.
 
-## Verified runs on the candidate
+## Verified pre-PR runs
 
 ### Phase 8 Contracts
-Run `31568775999` — SUCCESS
+Run `31569145553` — SUCCESS
 
 Passing suites:
 - foundation
@@ -63,7 +75,7 @@ Passing suites:
 - scale
 
 ### Godot Smoke
-Run `31568775977` — SUCCESS
+Run `31569145551` — SUCCESS
 
 Passing inherited jobs:
 - runtime smoke
@@ -72,11 +84,11 @@ Passing inherited jobs:
 - Phase 5 Terrain visual capture
 
 ### Phase 8 Visual Evidence
-Run `31568776022` — SUCCESS
+Run `31569145576` — SUCCESS
 
 Artifact:
-- ID `9130478900`
-- digest `sha256:038fec8b994001aab9c09093c2424ff46b91100e7d9077d850280e4487f5e075`
+- ID `9130618921`
+- digest `sha256:7d80d1d41f61ce543c47c2eb40b80d452f80468fecf41dd274cfaeb8426fe0c0`
 
 All dedicated Phase 8 verification runs use Godot `4.7.1.stable.official.a13da4feb` and reject `SCRIPT ERROR:` / engine `ERROR:` output.
 
@@ -172,11 +184,10 @@ Updated for actual Phase 8 implementation:
 
 ## Next action
 
-1. verify this documentation-only closeout head remains green on Phase 8, baseline, and rendered gates;
-2. open exactly one Phase 8 completion PR from `dev/phase8-visual-scripting-milestone` to authoritative `master`;
-3. review the PR and all inherited checks;
-4. merge only after explicit user authorization.
+1. verify the final handoff-only PR head remains green across Phase 8, baseline, and all PR-triggered inherited gates;
+2. review PR #13 and its checks;
+3. merge only after explicit user authorization.
 
-After the Phase 8 completion PR is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 9 milestone branch.
+After PR #13 is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 9 milestone branch.
 
-**Do not begin Phase 9 before the Phase 8 completion PR is explicitly merged.**
+**Do not begin Phase 9 before PR #13 is explicitly merged.**
