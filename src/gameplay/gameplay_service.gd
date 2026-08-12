@@ -39,6 +39,17 @@ func components_for_entity(entity_id: String) -> Array[Dictionary]: return [] if
 func sockets_for_entity(entity_id: String) -> Array[Dictionary]: return [] if _state == null else _state.sockets_for_owner("entity", entity_id)
 
 
+func get_runtime_snapshot() -> Dictionary:
+    if _state == null:
+        return {"definitions": [], "instances": [], "sockets": [], "attachments": []}
+    return {
+        "definitions": _copy_array(_state.definitions),
+        "instances": _copy_array(_state.instances),
+        "sockets": _copy_array(_state.sockets),
+        "attachments": _copy_array(_state.attachments),
+    }
+
+
 func add_component(entity_id: String, definition_id: String, values: Dictionary = {}) -> Dictionary:
     if not _is_bound(): return _failure("Gameplay service is not bound.")
     if not _entity_exists(entity_id): return _failure("Component target entity does not exist.")
