@@ -24,6 +24,8 @@ const Phase5ScalePerformanceContracts = preload("res://tests/integration/phase5_
 const Phase6ComponentArchetypeContracts = preload("res://tests/integration/phase6_component_archetype_contracts.gd")
 const Phase6PrefabContracts = preload("res://tests/integration/phase6_prefab_contracts.gd")
 const Phase6SocketAttachmentContracts = preload("res://tests/integration/phase6_socket_attachment_contracts.gd")
+const Phase6PersistenceFailureContracts = preload("res://tests/integration/phase6_persistence_failure_contracts.gd")
+const Phase6ScalePerformanceContracts = preload("res://tests/integration/phase6_scale_performance_contracts.gd")
 const ContinueReopenSmoke = preload("res://tests/runtime/continue_reopen_smoke.gd")
 const Phase3EditorSmoke = preload("res://tests/runtime/phase3_editor_smoke.gd")
 const Phase4AssetBrowserSmoke = preload("res://tests/runtime/phase4_asset_browser_smoke.gd")
@@ -34,25 +36,14 @@ const RUNTIME_SMOKE_SCENE := "res://tests/runtime/RuntimeSmoke.tscn"
 var _failures: Array[String] = []
 
 
-func _init() -> void:
-    call_deferred("_run")
+func _init() -> void: call_deferred("_run")
 
 
 func _run() -> void:
-    _run_unit_checks()
-    _run_integration_checks()
-    await _run_runtime_smoke()
-    _run_continue_reopen_smoke()
-    _run_phase3_editor_smoke()
-    _run_phase4_asset_browser_smoke()
-    _run_phase5_terrain_workspace_smoke()
-    _run_phase6_gameplay_workspace_smoke()
-    if _failures.is_empty():
-        print("PASS: PlayWorld Studio test harness completed.")
-        quit(0)
-        return
-    for failure in _failures:
-        push_error("FAIL: %s" % failure)
+    _run_unit_checks(); _run_integration_checks(); await _run_runtime_smoke()
+    _run_continue_reopen_smoke(); _run_phase3_editor_smoke(); _run_phase4_asset_browser_smoke(); _run_phase5_terrain_workspace_smoke(); _run_phase6_gameplay_workspace_smoke()
+    if _failures.is_empty(): print("PASS: PlayWorld Studio test harness completed."); quit(0); return
+    for failure in _failures: push_error("FAIL: %s" % failure)
     quit(1)
 
 
@@ -84,58 +75,51 @@ func _run_integration_checks() -> void:
     for error in Phase6ComponentArchetypeContracts.run_checks(): _failures.append(error)
     for error in Phase6PrefabContracts.run_checks(): _failures.append(error)
     for error in Phase6SocketAttachmentContracts.run_checks(): _failures.append(error)
+    for error in Phase6PersistenceFailureContracts.run_checks(): _failures.append(error)
+    for error in Phase6ScalePerformanceContracts.run_checks(): _failures.append(error)
 
 
 func _run_runtime_smoke() -> void:
     var packed := load(RUNTIME_SMOKE_SCENE) as PackedScene
     _expect(packed != null, "Runtime smoke scene must load.")
     if packed == null: return
-    var instance := packed.instantiate()
-    _expect(instance != null, "Runtime smoke scene must instantiate.")
+    var instance := packed.instantiate(); _expect(instance != null, "Runtime smoke scene must instantiate.")
     if instance == null: return
-    root.add_child(instance)
-    await process_frame
-    if not instance.has_method("run_checks"):
-        _failures.append("Runtime smoke scene must expose run_checks().")
+    root.add_child(instance); await process_frame
+    if not instance.has_method("run_checks"): _failures.append("Runtime smoke scene must expose run_checks().")
     else:
         var result: Dictionary = instance.call("run_checks")
         for error in result.get("errors", []): _failures.append(str(error))
         _expect(bool(result.get("ok", false)), "Runtime smoke scene reported failure.")
-    instance.queue_free()
-    await process_frame
+    instance.queue_free(); await process_frame
 
 
 func _run_continue_reopen_smoke() -> void:
-    var smoke := ContinueReopenSmoke.new()
-    root.add_child(smoke)
+    var smoke := ContinueReopenSmoke.new(); root.add_child(smoke)
     for error in smoke.run_checks(): _failures.append(error)
     smoke.queue_free()
 
 
 func _run_phase3_editor_smoke() -> void:
-    var smoke := Phase3EditorSmoke.new()
-    root.add_child(smoke)
+    var smoke := Phase3EditorSmoke.new(); root.add_child(smoke)
     for error in smoke.run_checks(): _failures.append(error)
     smoke.queue_free()
 
 
 func _run_phase4_asset_browser_smoke() -> void:
-    var smoke := Phase4AssetBrowserSmoke.new()
-    root.add_child(smoke)
+    var smoke := Phase4AssetBrowserSmoke.new(); root.add_child(smoke)
     for error in smoke.run_checks(): _failures.append(error)
     smoke.queue_free()
 
 
 func _run_phase5_terrain_workspace_smoke() -> void:
-    var smoke := Phase5TerrainWorkspaceSmoke.new()
-    root.add_child(smoke)
+    var smoke := Phase5TerrainWorkspaceSmoke.new(); root.add_child(smoke)
     for error in smoke.run_checks(): _failures.append(error)
     smoke.queue_free()
 
 
 func _run_phase6_gameplay_workspace_smoke() -> void:
-    var smoke := Phase6GameplayWorkspaceSmoke.new()
-    root.add_child(smoke)
+    var smoke := Phase6GameplayWorkspaceSmoke.new(); root.add_child(smoke)
     for error in smoke.run_checks(): _failures.append(error)
     smoke.queue_free()
 
