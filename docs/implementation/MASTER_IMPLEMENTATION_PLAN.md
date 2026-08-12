@@ -6,9 +6,9 @@
 - Authoritative `master`: `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`.
 - This is the verified signed merge commit for PR #18.
 - Phases 0 through 13 are complete and merged.
-- Phase 14 — Scale and Polish is unblocked.
-- Phase 14 milestone branch: `dev/phase14-scale-polish-milestone`, created from exactly `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`.
-- Pre-write Phase 14 compare gate: exact merge base, 0 commits ahead, 0 commits behind.
+- Phase 14 — Scale and Polish implementation and verification are complete on `dev/phase14-scale-polish-milestone` and are awaiting the single completion PR to `master`.
+- Verified Phase 14 implementation head before documentation-only closeout: `b15439461cfae5d41d5951b5af808d20f2bb5f1b`.
+- Phase 15 remains blocked until Phase 14 is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Phase 0 — Repository and contracts — COMPLETE
 Project skeleton, coding rules, docs, CI, task IDs, test harness, canonical UI reference, stable IDs, command interface, persistence versioning, and module boundaries.
@@ -47,64 +47,63 @@ Reusable runtime gameplay state, inventory/containers, doors, health, NPC AI, di
 Schema-v1 environment persistence, time/weather, real Godot environment rendering, wind, biome overrides, water hooks, disposable Play runtime, Visual Scripting Environment nodes, Environment workspace, regression/visual verification. Merged by PR #16 at `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
 
 ## Phase 12 — AI Creation — COMPLETE
-Phase 12 was developed continuously on `dev/phase12-ai-creation-milestone` and merged by PR #17. The resulting authoritative master after Phase 12 was `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`.
-
-Delivered milestone breadth includes local/cloud OpenAI-compatible providers, privacy/cloud consent, bounded read-only project and Asset Library queries, Suggest, zero-mutation Preview, Preview-before-Execute, local persistent-ID generation, strict proposal validation, missing-asset rejection, atomic cross-system Execute, one universal Undo/Redo entry, rollback, crash-safe AI history, cross-system authoring actions, native keyboard/mouse/gamepad AI workspace, strict tests/regressions/Godot Smoke/rendered evidence, and removal of the tracked `.polyforkAPI` file.
+Merged by PR #17. Delivered local/cloud OpenAI-compatible providers, explicit privacy/cloud consent, bounded read-only project/Asset Library queries, Suggest, zero-mutation Preview, Preview-before-Execute, local persistent IDs, proposal validation, missing-asset rejection, atomic cross-system Execute, rollback, one universal Undo/Redo entry, crash-safe AI history, cross-system authoring actions, native keyboard/mouse/gamepad AI workspace, and strict evidence/regressions.
 
 Historical `.polyforkAPI` credential material remains exposed in Git history and must be rotated/revoked separately.
 
 ## Phase 13 — Export Pipeline — COMPLETE — MERGED
-Phase 13 was developed continuously on `dev/phase13-export-pipeline-milestone` from authoritative Phase 12 master and merged by PR #18.
-
-Final Phase 13 branch head:
-
-`2fd3c5e9516e6cd135d4b899ab8a2a3fb8ad3eac`
-
-Resulting verified signed authoritative `master`:
+Merged by PR #18. Resulting verified signed authoritative `master`:
 
 `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
 
-Architecture invariant retained: exported games reuse the existing Phase 7 `PlaySession` and existing authored/runtime systems. Phase 13 did not introduce a parallel runtime engine.
+Delivered deterministic export/build manifests, runtime dependency closure, editor stripping/runtime-data preservation, Asset Library dependency resolution, licensing/attribution reports, Windows standalone export, repeat-export replacement, clean-package launch, Small/Medium/Large verification, exported keyboard/mouse/gamepad checks, canonical Build → Export UX, and strict inherited/runtime/rendered evidence while reusing the Phase 7 `PlaySession`.
 
-Delivered Phase 13 outcomes:
-- schema-v1 export/build manifest, safe package-path validation, and deterministic runtime/editor classification;
-- exact runtime source dependency closure and deterministic project staging;
-- editor shell/workspace/authoring data stripping while preserving runtime-required world, terrain, gameplay, Visual Scripting, procedural, Environment, template/module, and asset data;
-- standalone runtime bootstrap through thin adapters into the existing Phase 7 `PlaySession`;
-- deterministic authored Asset Library dependency discovery and Phase 4 resolution, with hard failure for missing/unavailable dependencies;
-- Phase 7 runtime module validation kept separate from Asset Library UUID dependency resolution;
-- deterministic license/attribution collection with explicit unknown-license findings and no invented license compatibility claims;
-- Windows standalone export orchestration, generated preset, safe output handling, deterministic package/report layout, and repeat-export stale-file replacement;
-- clean-package launch verification outside the editor project;
-- Small/Medium/Large Windows export verification;
-- semantic keyboard/mouse and gamepad verification in exported builds;
-- compact Build-mode Export UI integrated into the canonical workspace, blocked during invalid/transient/Play states;
-- strict Phase 13 foundation/runtime/workspace contracts, inherited Phase 6–12 regressions, Godot Smoke, rendered Export UI evidence, and exported runtime evidence.
+## Phase 14 — Scale and Polish — IMPLEMENTATION COMPLETE / COMPLETION PR NEXT
+Phase 14 was developed continuously on `dev/phase14-scale-polish-milestone` from exactly authoritative Phase 13 `master`.
 
-PR-triggered CI was fully green before merge. Initial isolated failures in several legacy contract matrices were GitHub-hosted runner failures while downloading Godot 4.7.1; those jobs passed on rerun without repository changes.
+Architecture invariant retained: Phase 14 optimizes and polishes existing systems; it does not introduce a replacement editor/runtime architecture and does not permit quality policy to mutate authored project semantics.
 
-Detailed completed checkpoints are recorded in `docs/implementation/PHASE13_EXPORT_PIPELINE_PLAN.md` and `docs/implementation/TASK_BACKLOG.md`.
+Delivered Phase 14 outcomes:
+- explicit Low/Balanced/High quality/performance policy with deterministic budgets;
+- deterministic Small/Medium/Large/Stress benchmark fixtures and CI scale reports;
+- terrain unchanged-target streaming fast path;
+- incremental/no-op procedural streaming hardening;
+- MultiMesh foliage visibility/shadow quality policy without authored scatter mutation;
+- performance-aware Play streaming and Environment cadence with accumulated simulation delta;
+- persistent user-only performance, UI-scale, reduced-motion, and density preferences;
+- real Settings UI replacing the former Home placeholder;
+- application-wide focusability/minimum-target accessibility policy and canonical visible focus styling;
+- keyboard/gamepad input-context detection and consistent glyph/hint language;
+- Home/Settings focus navigation and compact/adaptive layout behavior;
+- compact workspace behavior and touch-ready interaction targets;
+- canonical dark playful Nintendo/Apple-inspired visual parity preserved across new Phase 14 surfaces;
+- effective preset inspection in Settings and Export;
+- validated performance-profile propagation through editor Play, procedural rendering policy, Windows export, standalone loading, and the existing Phase 7 `PlaySession`;
+- backward-compatible Balanced fallback for legacy packages without a packaged profile;
+- dedicated Phase 14 contracts, scale stress, inherited Phase 6–13 regressions, Godot Smoke, rendered evidence, and real Windows profiled export/clean-package launch verification.
 
-## Phase 14 — Scale and Polish — UNBLOCKED
-Phase 14 is the next milestone. It must improve scale, responsiveness, accessibility, input completeness, and canonical visual quality without broadening into a new feature-architecture phase.
+Verified green on implementation head `b15439461cfae5d41d5951b5af808d20f2bb5f1b`:
+- Phase 14 Contracts — `31626516078`;
+- Phase 14 Scale Stress — `31626516104`;
+- Phase 14 Inherited Regressions — `31626516105`;
+- Godot Smoke — `31626516120`;
+- Phase 14 Visual Evidence — `31626516053`;
+- Phase 14 Windows Export — `31626516187`.
 
-Primary outcomes:
-- measurable performance budgets and quality/performance presets;
-- representative Small/Medium/Large and stress-scale profiling for editor, Play, streaming, procedural systems, save/load, and export;
-- large-world memory, frame-time, streaming, and responsiveness hardening;
-- accessibility pass covering readable scaling, contrast/focus, reduced-motion behavior, and non-color-only state communication;
-- controller completeness across all existing authoring/runtime surfaces, including focus recovery, glyph consistency, and remapping behavior;
-- touch-ready/adaptive layout foundations without compromising keyboard/mouse or gamepad use;
-- canonical UI visual-parity sweep against the approved dark playful Nintendo/Apple-inspired design language;
-- strict performance/accessibility/controller/UI regression gates, rendered evidence, and documentation closeout.
+The Windows gate launched Small/Low, Medium/Balanced, and Large/High clean packages, verified keyboard/mouse plus gamepad semantic input, reused the third-person Phase 7 controller, and passed repeat-export stale-file replacement.
 
-Detailed internal checkpoints are defined in `docs/implementation/PHASE14_SCALE_POLISH_PLAN.md` and `TASK_BACKLOG.md`.
+Detailed completed checkpoints are recorded in `docs/implementation/PHASE14_SCALE_POLISH_PLAN.md` and `TASK_BACKLOG.md`.
 
-## Phase 15 — Multiplayer foundations and collaboration roadmap
+Next authorized milestone action: open one Phase 14 completion PR targeting authoritative `master`. Do not merge it without explicit user authorization.
+
+## Phase 15 — Multiplayer foundations and collaboration roadmap — BLOCKED
+Potential later scope:
 - Network identity compatibility.
 - Co-op prototype support.
 - Competitive template hooks.
 - Collaboration design; implementation may be deferred.
+
+Do not begin Phase 15 until the Phase 14 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Release rule
 Work a phase continuously on its milestone branch. Intermediate commits and CI runs are expected; task-by-task PRs are not. At a milestone boundary, finish verification and documentation, then open one completion PR. Do not merge a completion PR without explicit user authorization, and do not start the next phase until the current completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.

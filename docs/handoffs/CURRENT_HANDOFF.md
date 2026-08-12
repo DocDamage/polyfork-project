@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 14 HANDOFF
+# POLYFORK PROJECT — PHASE 14 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -17,87 +17,86 @@ This is the verified signed merge commit for **PR #18 — Phase 13 — Export Pi
 
 The repository default branch `main` remains obsolete starter code. **Never develop from `main`.**
 
-## COMPLETED PROJECT STATE
+## MERGED PROJECT STATE
 Phases **0 through 13 are complete and merged** into authoritative `master`.
 
-Phase 13 delivered the Windows-first export pipeline, including:
-- deterministic export/build manifests and package layout;
-- exact runtime dependency closure;
-- editor-only stripping with runtime-required authored-data preservation;
-- Phase 4 Asset Library dependency resolution and missing-dependency failures;
-- deterministic license/attribution reporting;
-- standalone bootstrap reusing the existing Phase 7 `PlaySession` rather than a parallel runtime;
-- repeat-export replacement/idempotency;
-- Small/Medium/Large Windows package verification;
-- clean-package standalone launch verification;
-- keyboard/mouse and gamepad semantic-input verification;
-- canonical Build → Export UX;
-- strict Phase 13 contracts, inherited Phase 6–12 regressions, Godot Smoke, rendered UI evidence, and exported runtime evidence.
-
-PR #18 finished with all triggered CI green. Several isolated legacy matrix jobs initially failed before tests ran because GitHub-hosted runners could not complete Godot 4.7.1 downloads; reruns succeeded and the actual contract suites passed without code changes.
-
-## SECURITY REMINDER
-The tracked `.polyforkAPI` file was removed during Phase 12, but historical credential material remains in Git history and must still be treated as exposed and rotated/revoked separately.
+Phase 14 is **implemented and fully verified on its milestone branch but is not merged yet**.
 
 ## PHASE 14 BRANCH
-Phase 14 — Scale and Polish is now unblocked.
-
 Milestone branch:
 
 `dev/phase14-scale-polish-milestone`
 
-The branch was created from exactly:
+It was created from exactly authoritative Phase 13 `master`:
 
 `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
 
-Before any Phase 14 writes, GitHub compare verification reported:
-- merge base exactly `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`;
-- 0 commits ahead;
-- 0 commits behind;
-- no obsolete `main` ancestry used.
+Verified Phase 14 implementation head before documentation-only closeout:
 
-The first writes on the branch are documentation-only post-merge corrections and Phase 14 planning. No Phase 14 implementation code has been added by this handoff update.
+`b15439461cfae5d41d5951b5af808d20f2bb5f1b`
 
-## NEXT MILESTONE
-**Phase 14 — Scale and Polish**
+The branch has been developed continuously. No task-by-task Phase 14 PRs were opened.
 
-Phase 14 is a hardening/polish milestone, not a new feature-architecture phase. Existing systems from Phases 0–13 remain authoritative and should be optimized, completed, and visually/accessibly hardened rather than replaced.
+## PHASE 14 DELIVERED STATE
+Phase 14 delivered the Scale and Polish milestone, including:
+- deterministic Low/Balanced/High performance profiles and explicit budgets;
+- deterministic Small/Medium/Large/Stress benchmark fixtures;
+- terrain unchanged-target streaming fast path;
+- incremental/no-op procedural streaming hardening;
+- foliage visibility/shadow quality controls that preserve authored scatter data;
+- performance-aware Play streaming and Environment cadence with accumulated simulation delta;
+- persistent user-only performance, UI-scale, reduced-motion, and density preferences;
+- application-wide focusability and minimum interaction-target policy;
+- real Settings UI replacing the Home placeholder;
+- explicit Home/Settings keyboard/gamepad focus navigation;
+- keyboard/gamepad input-context detection and consistent control hints;
+- adaptive full/compact Home, Settings, and workspace behavior;
+- preserved canonical dark playful Nintendo/Apple-inspired UI language;
+- performance-aware Export UI refresh/status;
+- validated performance-policy propagation through editor Play, procedural rendering behavior, Windows export, standalone loading, and the existing Phase 7 `PlaySession`;
+- backward-compatible Balanced fallback for legacy export packages;
+- strict Phase 14 contracts, scale stress, inherited Phase 6–13 regressions, Godot Smoke, rendered evidence, and real Windows profiled clean-package launch verification.
 
-Required milestone outcomes include:
-- reproducible performance telemetry and budgets;
-- Low/Balanced/High quality-performance presets;
-- Small/Medium/Large plus stress-scale profiling;
-- terrain/streaming/entity/procedural/Environment/runtime performance hardening;
-- large-project editor responsiveness and save/open/Build↔Play/export stress verification;
-- accessibility scaling, contrast/focus, reduced-motion, and non-color-only status communication;
-- persistent accessibility preferences;
-- full controller navigation/focus/glyph/remapping coverage across existing workspaces and flows;
-- touch-ready/adaptive layouts without a separate mobile architecture;
-- canonical UI parity sweep against the approved dark playful Nintendo/Apple-inspired design language;
-- removal of generic slate/enterprise visual drift;
-- strict performance/accessibility/controller/adaptive-layout/UI regression gates;
-- inherited Phase 6–13 regression coverage;
-- strict Godot log gates and rendered evidence;
-- documentation closeout.
+Phase 14 did not replace the existing editor/runtime architecture and did not make authored project semantics dependent on quality preset selection.
 
-Detailed internal checkpoints are defined in:
+## VERIFIED PHASE 14 MATRIX
+All six gates passed on implementation head `b15439461cfae5d41d5951b5af808d20f2bb5f1b`:
+- Phase 14 Contracts — `31626516078` — PASS;
+- Phase 14 Scale Stress — `31626516104` — PASS;
+- Phase 14 Inherited Regressions — `31626516105` — PASS;
+- Godot Smoke — `31626516120` — PASS;
+- Phase 14 Visual Evidence — `31626516053` — PASS;
+- Phase 14 Windows Export — `31626516187` — PASS.
 
-`docs/implementation/PHASE14_SCALE_POLISH_PLAN.md`
+The Windows export gate built, repeated, copied, and launched:
+- Small with Low preset;
+- Medium with Balanced preset;
+- Large with High preset.
 
-and:
+Each clean standalone package reused the Phase 7 third-person controller path, verified keyboard/mouse and gamepad semantic input, consumed the intended packaged preset, and passed strict runtime logs.
 
-`docs/implementation/TASK_BACKLOG.md`
+Rendered Phase 14 evidence includes full and compact Settings and workspace/export captures at 1600×900 and 1024×640. The captured PNGs were inspected for clipping, overlap, focus visibility, compact-layout usability, and canonical visual consistency.
 
-## MILESTONE / PR RULE
-Work Phase 14 continuously on `dev/phase14-scale-polish-milestone`. Intermediate commits and CI runs are expected.
+No intentional Phase 14 performance exceptions remain open.
 
-Do **not** stop for task-by-task pull requests.
+## SECURITY REMINDER
+The tracked `.polyforkAPI` file was removed during Phase 12, but historical credential material remains in Git history and must still be treated as exposed and rotated/revoked separately.
 
-At Phase 14 completion:
-1. finish the full milestone;
-2. run all Phase 14 and inherited regression gates;
-3. close implementation-plan/backlog/handoff documentation;
-4. open **one** Phase 14 completion PR targeting authoritative `master`;
-5. do not merge it without explicit user authorization.
+## NEXT AUTHORIZED ACTION
+Open **one** Phase 14 completion PR from:
 
-Do not begin Phase 15 until that completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+`dev/phase14-scale-polish-milestone`
+
+to authoritative:
+
+`master`
+
+Do **not** merge it without explicit user authorization.
+
+After the completion PR is opened, update this handoff/backlog with the PR number if needed. Do not begin Phase 15.
+
+## PHASE 15 BLOCK
+Phase 15 remains blocked until:
+1. the Phase 14 completion PR is explicitly merged by user authorization;
+2. the resulting authoritative `master` SHA is verified;
+3. a new Phase 15 handoff is explicitly established.
