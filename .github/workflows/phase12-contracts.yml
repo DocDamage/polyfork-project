@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [foundation, execute]
+        suite: [foundation, execute, workspace]
     name: phase12-${{ matrix.suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 8
