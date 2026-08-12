@@ -17,14 +17,14 @@ var _writer
 
 func bind_runtime(project_directory: String, project_id: String, gameplay_runtime, world_runtime, writer = null) -> Dictionary:
     clear()
-    if project_directory.strip_edges().is_empty():
-        return _failure("Save-state runtime requires a project directory.")
-    if not StableId.is_valid(project_id):
-        return _failure("Save-state runtime requires a stable project ID.")
     if gameplay_runtime == null or not gameplay_runtime.has_method("is_loaded") or not gameplay_runtime.is_loaded():
         return _failure("Save-state runtime requires loaded gameplay state.")
     if world_runtime == null or not world_runtime.has_method("is_loaded") or not world_runtime.is_loaded():
         return _failure("Save-state runtime requires loaded world state.")
+    if project_directory.strip_edges().is_empty():
+        return {"ok": true, "errors": [], "enabled": false, "root": ""}
+    if not StableId.is_valid(project_id):
+        return _failure("Save-state runtime requires a stable project ID.")
     _project_id = project_id
     _root_directory = project_directory.trim_suffix("/").path_join("gameplay/save_states")
     _gameplay = gameplay_runtime
@@ -34,7 +34,7 @@ func bind_runtime(project_directory: String, project_id: String, gameplay_runtim
     if error != OK and error != ERR_ALREADY_EXISTS:
         clear()
         return _failure("Unable to create gameplay save-state directory.")
-    return {"ok": true, "errors": [], "root": _root_directory}
+    return {"ok": true, "errors": [], "enabled": true, "root": _root_directory}
 
 
 func clear() -> void:
@@ -129,7 +129,7 @@ func load_slot(slot: String) -> Dictionary:
 
 
 func slot_exists(slot: String) -> bool:
-    return _validate_slot(slot).is_empty() and FileAccess.file_exists(_slot_path(slot))
+    return _validate_slot(slot).is_empty() and not _root_directory.is_empty() and FileAccess.file_exists(_slot_path(slot))
 
 
 func validate_document(data: Dictionary) -> Array[String]:
