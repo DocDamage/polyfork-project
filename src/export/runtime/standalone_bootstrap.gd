@@ -87,9 +87,8 @@ func _start_multiplayer_from_environment() -> Dictionary:
     var capability: Dictionary = runtime.get("multiplayer", {}) if runtime.get("multiplayer", {}) is Dictionary else {}
     if not bool(capability.get("enabled", false)): return _failure("This exported project does not declare multiplayer capability.")
     var runtime_path: String = "res://src/network/" + "network_runtime_service.gd"
-    if not FileAccess.file_exists(runtime_path): return _failure("Multiplayer runtime dependency closure is missing from this export.")
     var runtime_script: Script = load(runtime_path)
-    if runtime_script == null: return _failure("Multiplayer runtime service could not be loaded from the export package.")
+    if runtime_script == null: return _failure("Multiplayer runtime dependency closure could not be loaded from this export.")
     _network_runtime = runtime_script.new()
     _network_runtime.name = "StandaloneNetworkRuntime"
     add_child(_network_runtime)
@@ -98,8 +97,7 @@ func _start_multiplayer_from_environment() -> Dictionary:
     var player_label: String = OS.get_environment("POLYFORK_MULTIPLAYER_PLAYER").strip_edges()
     if player_label.is_empty(): player_label = "Host" if role == "host" else "Client"
     var result: Dictionary
-    if role == "host":
-        result = _network_runtime.host(port, player_label)
+    if role == "host": result = _network_runtime.host(port, player_label)
     else:
         var address: String = OS.get_environment("POLYFORK_MULTIPLAYER_ADDRESS").strip_edges()
         if address.is_empty(): address = "127.0.0.1"
