@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [identity, loopback, replication, templates, lifecycle]
+        suite: [identity, loopback, replication, templates, lifecycle, match]
     name: phase15-${{ matrix.suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
