@@ -34,7 +34,7 @@ static func _materialize_template(registry, template_id: String) -> Array[String
     var gameplay = GameplayService.new()
     var gameplay_result: Dictionary = gameplay.bind_project(project, repository.get_project_directory(project.project_id), session, func() -> Dictionary: dirty[0] += 1; return {"ok": true, "errors": []})
     if not gameplay_result.get("ok", false): session.free(); return ["Gameplay fixture for %s could not bind: %s" % [template_id, gameplay_result.get("errors", [])]]
-    if gameplay.get_archetypes().size() != 9: errors.append("Phase 7 template initialization must preserve the nine Phase 6 archetypes.")
+    if gameplay.get_archetypes().size() != 10: errors.append("Phase 7 template initialization must preserve the nine Phase 6 archetypes plus the reusable Phase 7 player archetype.")
     var manifest: Dictionary = registry.get_manifest(template_id); var application = TemplateApplication.new()
     var materialize: Dictionary = application.materialize_starters(project, manifest, session, gameplay, func(_position: Vector3) -> String: return cell_id)
     if not materialize.get("ok", false): errors.append("Template %s starter materialization must succeed: %s" % [template_id, materialize.get("errors", [])]); session.free(); return errors
