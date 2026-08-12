@@ -91,7 +91,7 @@ Phase 7 is complete and merged on authoritative `master` by PR #12.
 - [x] P07-T08 Complete keyboard/mouse, gamepad, strict-log, inherited regression, and rendered visual verification for Build/Play and both playable controller foundations
 
 ## Phase 8 — Visual Scripting
-Phase 8 implementation and verification are complete on `dev/phase8-visual-scripting-milestone`. The single completion PR targeting authoritative `master` is the remaining milestone gate.
+Phase 8 is complete and merged on authoritative `master` by PR #13 at `6ea437f3d5ea1077773ef797e8f5895e84b5a7f1`.
 
 - [x] P08-T01 Implement schema-v1 graph contracts, stable graph/node/connection identity, built-in node definitions, and crash-safe project graph repository
 - [x] P08-T02 Implement command-backed graph/node/connection/variable authoring integrated with the existing universal Undo/Redo history
@@ -102,7 +102,19 @@ Phase 8 implementation and verification are complete on `dev/phase8-visual-scrip
 - [x] P08-T07 Implement debugger/validation UX with trace, breakpoints, paused/error state, runtime diagnostics, and template graph-reference validation
 - [x] P08-T08 Complete save/reopen, undo/redo, failure/corruption, live Play integration, scale/performance, strict-log, gamepad, inherited regression, and rendered visual verification
 
+## Phase 9 — Foliage / Procedural / Splines
+Phase 9 implementation and verification are complete on `dev/phase9-foliage-procedural-splines-milestone`. The single completion PR targeting authoritative `master` is the remaining milestone gate.
+
+- [x] P09-T01 Implement schema-v1 procedural registry, stable foliage/scatter/stroke/spline identities, crash-safe project persistence, registry synchronization, and corruption/future-schema failure paths
+- [x] P09-T02 Implement reusable foliage-set source resolution for built-in primitives, Asset Library assets, and Phase 6 prefabs, with real `MultiMeshInstance3D` batches
+- [x] P09-T03 Implement command-backed deterministic scatter layers and nondestructive paint/erase strokes with universal Undo/Redo and stable terrain-cell ownership
+- [x] P09-T04 Implement terrain/biome/slope/height/density/spacing filtering, automatic terrain-refresh regeneration, deterministic streaming, and derived-runtime lifecycle
+- [x] P09-T05 Implement command-backed stable-ID road/path/fence spline authoring, point editing, open/closed paths, width, sampling, and terrain-conformance configuration
+- [x] P09-T06 Implement streamed road/path ribbon geometry and fence segment MultiMeshes with terrain conformance and active-cell load/unload behavior
+- [x] P09-T07 Implement the native Procedural workspace behind the existing Foliage/Roads dock entries with paint/erase, spline creation, viewport interaction, keyboard/mouse, gamepad, status, contextual switching, and Back/Cancel behavior
+- [x] P09-T08 Complete save/reopen, Undo/Redo, real external Asset Library/prefab source resolution, missing-reference failures, large-world streaming, terrain coupling, scale/performance, strict-log, inherited smoke, gamepad, and rendered visual verification
+
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
 
-Do not begin Phase 9 until the Phase 8 completion PR is explicitly merged into authoritative `master`.
+Do not begin Phase 10 until the Phase 9 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
