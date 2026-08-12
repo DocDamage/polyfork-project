@@ -103,9 +103,10 @@ func sample_runtime() -> Dictionary:
     }
 
 func apply_accessibility_to_subtree(root: Node) -> void:
-    if root == null: return
+    if root == null or not is_instance_valid(root): return
     _apply_control(root)
-    for child in root.get_children(): apply_accessibility_to_subtree(child)
+    for child in root.get_children():
+        if is_instance_valid(child): apply_accessibility_to_subtree(child)
 
 func _persist_and_apply() -> Dictionary:
     _settings = UserPreferences.normalize(_settings)
@@ -121,7 +122,9 @@ func _apply_root_scale() -> void:
     if get_tree() == null or get_tree().root == null: return
     get_tree().root.content_scale_factor = float(_settings.get("ui_scale", 1.0))
 
-func _on_node_added(node: Node) -> void: call_deferred("apply_accessibility_to_subtree", node)
+func _on_node_added(node: Node) -> void:
+    if is_instance_valid(node): apply_accessibility_to_subtree(node)
+
 func _apply_existing_controls() -> void:
     if get_tree() == null or get_tree().root == null: return
     apply_accessibility_to_subtree(get_tree().root)
