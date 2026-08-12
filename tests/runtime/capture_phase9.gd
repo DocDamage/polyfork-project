@@ -39,25 +39,25 @@ func _run() -> void:
         _fail("Phase 9 capture could not resolve procedural service/runtime.")
         return
 
-    var grass: Dictionary = service.create_foliage_set("Meadow Grass", {"kind": "primitive", "primitive": "grass"}, {"scale_range": [0.75, 1.3], "max_instances_per_cell": 2400})
-    var trees: Dictionary = service.create_foliage_set("Pine Grove", {"kind": "primitive", "primitive": "tree"}, {"scale_range": [0.85, 1.35], "max_instances_per_cell": 256})
+    var grass: Dictionary = service.create_foliage_set("Meadow Grass", {"kind": "primitive", "primitive": "grass"}, {"scale_range": [0.75, 1.3], "max_instances_per_cell": 1200})
+    var trees: Dictionary = service.create_foliage_set("Pine Grove", {"kind": "primitive", "primitive": "tree"}, {"scale_range": [0.85, 1.35], "max_instances_per_cell": 128})
     if not grass.get("ok", false) or not trees.get("ok", false):
         _fail("Phase 9 capture could not create foliage sets.")
         return
-    var grass_layer: Dictionary = service.create_scatter_layer("Meadow", str(grass.get("foliage_set_id", "")), {"density_per_100m2": 18.0, "minimum_spacing_m": 0.8, "seed": 911})
-    var tree_layer: Dictionary = service.create_scatter_layer("Pines", str(trees.get("foliage_set_id", "")), {"density_per_100m2": 0.8, "minimum_spacing_m": 6.0, "seed": 912})
+    var grass_layer: Dictionary = service.create_scatter_layer("Meadow", str(grass.get("foliage_set_id", "")), {"density_per_100m2": 8.0, "minimum_spacing_m": 0.9, "seed": 911})
+    var tree_layer: Dictionary = service.create_scatter_layer("Pines", str(trees.get("foliage_set_id", "")), {"density_per_100m2": 0.5, "minimum_spacing_m": 6.0, "seed": 912})
     if not grass_layer.get("ok", false) or not tree_layer.get("ok", false):
         _fail("Phase 9 capture could not create scatter layers.")
         return
     var grass_id: String = str(grass_layer.get("scatter_layer_id", ""))
     var tree_id: String = str(tree_layer.get("scatter_layer_id", ""))
-    for center in [Vector3(-34, 0, -18), Vector3(28, 0, 18), Vector3(38, 0, -34)]:
-        var paint: Dictionary = service.add_scatter_stroke(grass_id, "paint", center, 34.0, 1.0)
+    for center in [Vector3(-30, 0, -18), Vector3(26, 0, 18), Vector3(38, 0, -30)]:
+        var paint: Dictionary = service.add_scatter_stroke(grass_id, "paint", center, 28.0, 1.0)
         if not paint.get("ok", false):
             _fail("Phase 9 capture could not paint meadow foliage.")
             return
     for center in [Vector3(-42, 0, 26), Vector3(36, 0, 34)]:
-        var paint: Dictionary = service.add_scatter_stroke(tree_id, "paint", center, 38.0, 1.0)
+        var paint: Dictionary = service.add_scatter_stroke(tree_id, "paint", center, 30.0, 1.0)
         if not paint.get("ok", false):
             _fail("Phase 9 capture could not paint tree foliage.")
             return
