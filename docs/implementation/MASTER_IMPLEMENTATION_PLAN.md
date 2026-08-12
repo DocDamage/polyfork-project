@@ -67,24 +67,25 @@ Completed milestone breadth:
 
 Phase 10 was merged by PR #15 at authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
 
-## Phase 11 — Environment — IN PROGRESS
-Phase 11 is developed as one continuous milestone on `dev/phase11-environment-milestone`, created from exactly authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
+## Phase 11 — Environment — IMPLEMENTATION COMPLETE / MERGE GATED
+Phase 11 was developed as one continuous milestone on `dev/phase11-environment-milestone`, created from exactly authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
 
-The milestone must produce one coherent data-driven environment runtime rather than independent day/night, weather, fog, wind, water, and biome systems. Authored Build environment data remains authoritative; Play evaluation is disposable and must integrate with the existing terrain/streaming, procedural foliage, gameplay, and Visual Scripting systems.
+Completed milestone breadth:
+- schema-v1 authored environment registry persisted crash-safely under `environment/environment.json`, including stable weather-profile, biome-override, and water-hook identities mirrored into project registries;
+- command-backed Environment authoring through the existing universal Undo/Redo and project dirty-state path;
+- deterministic time-of-day evaluation layered over authored defaults, with configurable Play progression and weather transitions;
+- real Godot `WorldEnvironment`/`Environment`, `Sky`/`ProceduralSkyMaterial`, directional-sun, ambient-light, and fog rendering integrated into the existing editor/play viewport;
+- reusable weather profiles for sky, light, fog, precipitation/cloud metadata, wind, and water modifiers rather than hardcoded weather modes;
+- Phase 5 biome/environment coupling with deterministic precedence, position/cell awareness, streamed-world focus changes, and safe fallback for missing references;
+- reusable wind state consumed by the existing Phase 9 procedural runtime without mutating authored foliage/spline data;
+- stable water integration descriptors/hooks for future providers rather than a hardcoded water implementation;
+- fully disposable Phase 7 Play environment runtimes with authored Build restoration, no leaked Play nodes, and existing gameplay-event routing;
+- Phase 8 Visual Scripting Environment nodes for reading state, setting time/weather, and clearing runtime weather overrides;
+- native Environment authoring behind the canonical Water dock entry, preserving the existing shell while providing time/weather/fog/wind/biome/water controls with keyboard/mouse and gamepad paths;
+- six dedicated Phase 11 contract suites covering persistence/reopen/corruption, universal Undo/Redo, deterministic evaluation, weather/biome/wind/water coupling, Visual Scripting/Play isolation, real workspace input paths, and representative large-world scale/streaming;
+- explicit inherited Phase 6–10 contract regression gate, current Godot Smoke, strict Godot log gates, and three rendered Phase 11 evidence captures for authored editing, disposable night/weather Play, and authoritative Build restoration.
 
-Planned milestone breadth:
-- schema-versioned authored environment state and stable-ID weather profile records with crash-safe project persistence;
-- command-backed Build-mode environment editing through the universal Undo/Redo history;
-- deterministic time-of-day evaluation layered over authored defaults;
-- weather profile switching and transition evaluation without genre-specific assumptions;
-- Godot `WorldEnvironment`/`Environment` integration for sky, ambient light, fog, and related render settings;
-- reusable wind state/hooks for foliage, particles, water, gameplay, and future consumers;
-- stable water integration descriptors/hooks rather than a hardcoded water implementation;
-- biome-driven environment overrides coupled to Phase 5 terrain cells and deterministic streaming;
-- disposable Build → Play → Build environment state with Visual Scripting-facing actions/events;
-- Environment workspace controls with keyboard/mouse and gamepad authoring, persistence/failure/scale gates, inherited regression checks, and rendered visual evidence.
-
-Phase 11 remains completion-PR gated. Open one completion PR targeting authoritative `master` only after the full milestone is implemented and verified. Do not merge it without explicit user authorization. Phase 12 remains blocked until the Phase 11 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+Phase 11 implementation is complete on the milestone branch but remains completion-PR gated. Do not merge its completion PR without explicit user authorization. Phase 12 remains blocked until the Phase 11 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
 
 ## Phase 12 — AI creation
 - Provider interface.
