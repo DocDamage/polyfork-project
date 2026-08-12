@@ -18,6 +18,7 @@ const RuntimeNpcAiService = preload("res://src/gameplay/runtime_npc_ai_service.g
 const RuntimeDialogueService = preload("res://src/gameplay/runtime_dialogue_service.gd")
 const RuntimeQuestService = preload("res://src/gameplay/runtime_quest_service.gd")
 const RuntimeVehicleService = preload("res://src/gameplay/runtime_vehicle_service.gd")
+const RuntimeSaveStateService = preload("res://src/gameplay/runtime_save_state_service.gd")
 
 var _runtime_state = RuntimeState.new()
 var _gameplay_runtime = RuntimeGameplayState.new()
@@ -28,10 +29,12 @@ var _npc_runtime = RuntimeNpcAiService.new()
 var _dialogue_runtime = RuntimeDialogueService.new()
 var _quest_runtime = RuntimeQuestService.new()
 var _vehicle_runtime = RuntimeVehicleService.new()
+var _save_state_runtime = RuntimeSaveStateService.new()
 var _visual_runtime = VisualGraphRuntime.new()
 var _visual_graph_provider := Callable()
 var _gameplay_state_provider := Callable()
 var _last_visual_result: Dictionary = {}
+var _project_directory := ""
 var _editor_session
 var _player: CharacterBody3D
 var _active := false
@@ -45,6 +48,7 @@ func _init() -> void: name = "PlaySession"
 func configure_streaming(callback: Callable) -> void: _streaming_callback = callback
 func configure_visual_graph_provider(provider: Callable) -> void: _visual_graph_provider = provider
 func configure_gameplay_state_provider(provider: Callable) -> void: _gameplay_state_provider = provider
+func configure_project_directory(project_directory: String) -> void: _project_directory = project_directory.trim_suffix("/")
 
 func enter_play(editor_session) -> Dictionary:
     if _active: return _failure("Play session is already active.")
@@ -70,7 +74,7 @@ func enter_play(editor_session) -> Dictionary:
     if not gameplay_result.get("ok", false):
         _runtime_state.clear(); GameplayInput.uninstall_owned()
         return gameplay_result
-    var services_result: Dictionary = _bind_gameplay_services()
+    var services_result: Dictionary = _bind_gameplay_services(project_data)
     if not services_result.get("ok", false):
         _clear_runtime_services(); _gameplay_runtime.clear(); _runtime_state.clear(); GameplayInput.uninstall_owned()
         return services_result
@@ -130,6 +134,7 @@ func get_npc_runtime(): return _npc_runtime
 func get_dialogue_runtime(): return _dialogue_runtime
 func get_quest_runtime(): return _quest_runtime
 func get_vehicle_runtime(): return _vehicle_runtime
+func get_save_state_runtime(): return _save_state_runtime
 func get_player(): return _player
 func get_last_visual_graph_result() -> Dictionary: return _last_visual_result.duplicate(true)
 
@@ -164,7 +169,7 @@ func _update_streaming_focus() -> void:
     var result: Variant = _streaming_callback.call(_player.global_position)
     if result is Dictionary and not result.get("ok", false): push_warning("Play streaming focus update failed: %s" % str(result.get("errors", [])))
 
-func _bind_gameplay_services() -> Dictionary:
+func _bind_gameplay_services(project_data: Dictionary) -> Dictionary:
     var inventory_result: Dictionary = _inventory_runtime.bind_runtime(_gameplay_runtime)
     if not inventory_result.get("ok", false): return inventory_result
     var interaction_result: Dictionary = _interaction_runtime.bind_runtime(_gameplay_runtime, _inventory_runtime)
@@ -179,9 +184,13 @@ func _bind_gameplay_services() -> Dictionary:
     if not dialogue_result.get("ok", false): return dialogue_result
     var vehicle_result: Dictionary = _vehicle_runtime.bind_runtime(_gameplay_runtime, _runtime_state)
     if not vehicle_result.get("ok", false): return vehicle_result
+    if _project_directory.is_empty(): return _failure("Play session project directory is not configured.")
+    var save_result: Dictionary = _save_state_runtime.bind_runtime(_project_directory, str(project_data.get("project_id", "")), _gameplay_runtime, _runtime_state)
+    if not save_result.get("ok", false): return save_result
     return {"ok": true, "errors": []}
 
 func _clear_runtime_services() -> void:
+    _save_state_runtime.clear()
     _vehicle_runtime.clear()
     _dialogue_runtime.clear()
     _quest_runtime.clear()
