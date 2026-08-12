@@ -33,15 +33,16 @@ func open_or_create(project) -> Dictionary:
     if project == null: return _failure("Gameplay repository requires a world project.")
     var make_error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(root_directory))
     if make_error != OK and make_error != ERR_ALREADY_EXISTS: return _failure("Unable to create gameplay storage directory.")
-    var state = GameplayState.new()
-    var created: Array[String] = []
+    var state = GameplayState.new(); var created: Array[String] = []
     for section_value in DOCUMENTS.keys():
-        var section := str(section_value)
-        var load_result: Dictionary = _load_or_seed(section)
+        var section := str(section_value); var load_result: Dictionary = _load_or_seed(section)
         if not load_result.get("ok", false): return load_result
         _assign_section(state, section, _dictionary_array(load_result.get("records", [])))
         if load_result.get("created", false): created.append(section)
-    var errors: Array[String] = state.validate(project)
+    # Gameplay records may legitimately outlive a currently loaded/deleted world entity so
+    # Delete/Undo and streamed availability remain recoverable. Internal gameplay references
+    # stay strict here; authoring services separately require live world targets before edits.
+    var errors: Array[String] = state.validate(null)
     if not errors.is_empty(): return {"ok": false, "errors": errors}
     return {"ok": true, "errors": [], "state": state, "created_sections": created, "root": root_directory}
 
@@ -52,11 +53,9 @@ func flush_sections(state, sections: Array[String]) -> Dictionary:
     for section in sections:
         if not DOCUMENTS.has(section): return _failure("Unknown gameplay persistence section: %s" % section)
         unique[section] = true
-    var saved: Array[String] = []
-    var ordered: Array = unique.keys(); ordered.sort()
+    var saved: Array[String] = []; var ordered: Array = unique.keys(); ordered.sort()
     for section_value in ordered:
-        var section := str(section_value)
-        var result := _write_section(section, state.get(section))
+        var section := str(section_value); var result := _write_section(section, state.get(section))
         if not result.get("ok", false): return {"ok": false, "errors": result.get("errors", []), "saved_sections": saved}
         saved.append(section)
     return {"ok": true, "errors": [], "saved_sections": saved}
@@ -84,19 +83,14 @@ func _load_or_seed(section: String) -> Dictionary:
         var errors: Array[String] = _validate_document(section, read.get("data", {}))
         if not errors.is_empty(): return {"ok": false, "errors": errors}
         return {"ok": true, "errors": [], "records": _dictionary_array(read["data"].get(str(DOCUMENTS[section][2]), [])), "created": false}
-    var records: Array[Dictionary] = _dictionary_array(_seed_records(section))
-    var write: Dictionary = _write_section(section, records)
+    var records: Array[Dictionary] = _dictionary_array(_seed_records(section)); var write: Dictionary = _write_section(section, records)
     if not write.get("ok", false): return write
     return {"ok": true, "errors": [], "records": records.duplicate(true), "created": true}
 
 
 func _write_section(section: String, records: Array) -> Dictionary:
     var spec: Array = DOCUMENTS[section]
-    var data := {
-        "document_type": str(spec[1]),
-        "schema_version": Contracts.SCHEMA_VERSION,
-        str(spec[2]): records.duplicate(true)
-    }
+    var data := {"document_type": str(spec[1]), "schema_version": Contracts.SCHEMA_VERSION, str(spec[2]): records.duplicate(true)}
     var validator := func(value: Dictionary) -> Array[String]: return _validate_document(section, value)
     var result: Dictionary = writer.write_validated_dictionary(get_path(section), data, validator)
     if result.get("ok", false): _write_counts[section] = int(_write_counts.get(section, 0)) + 1
@@ -104,19 +98,15 @@ func _write_section(section: String, records: Array) -> Dictionary:
 
 
 func _validate_document(section: String, data: Dictionary) -> Array[String]:
-    var errors: Array[String] = []
-    var spec: Array = DOCUMENTS[section]
+    var errors: Array[String] = []; var spec: Array = DOCUMENTS[section]
     if data.get("document_type") != spec[1]: errors.append("Gameplay %s document_type is invalid." % section)
     if int(data.get("schema_version", 0)) != Contracts.SCHEMA_VERSION: errors.append("Gameplay %s schema_version is unsupported." % section)
     var records = data.get(str(spec[2]), [])
     if not records is Array: errors.append("Gameplay %s records must be an array." % section); return errors
-    var validator := _record_validator(section)
-    var id_field := _id_field(section)
-    var seen: Dictionary = {}
+    var validator := _record_validator(section); var id_field := _id_field(section); var seen: Dictionary = {}
     for item in records:
         if not item is Dictionary: errors.append("Gameplay %s registry must contain dictionaries only." % section); continue
-        errors.append_array(validator.call(item))
-        var id := str(item.get(id_field, ""))
+        errors.append_array(validator.call(item)); var id := str(item.get(id_field, ""))
         if seen.has(id): errors.append("Gameplay %s registry contains duplicate IDs." % section)
         seen[id] = true
     return errors
