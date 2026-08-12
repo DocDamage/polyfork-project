@@ -36,14 +36,13 @@ func _exercise_template(template_id: String, errors: Array[String]) -> void:
     if workspace.call("get_mode") != &"play" or not play.call("is_active") or player == null:
         errors.append("%s Build -> Play must create an active real player controller." % template_id); await _dispose(main); return
     if workspace.call("get_runtime_entity_node", spawn_id) != null: errors.append("%s authored player-start proxy must be excluded from Play runtime physics/visuals." % template_id)
-    _print_contact_diagnostics(template_id, main, player)
+    _assert_terrain_contact(template_id, player, errors)
     if not player.call("is_on_floor"): errors.append("%s player must settle against real terrain collision/gravity." % template_id)
     var start_position: Vector3 = player.global_position
     Input.action_press(GameplayInput.MOVE_FORWARD, 1.0)
     for _index in range(16): await physics_frame
     Input.action_release(GameplayInput.MOVE_FORWARD)
     var horizontal_distance := Vector2(player.global_position.x - start_position.x, player.global_position.z - start_position.z).length()
-    print("PHASE7_DIAG %s movement start=%s end=%s velocity=%s horizontal=%.4f" % [template_id, start_position, player.global_position, player.velocity, horizontal_distance])
     if horizontal_distance < 0.25: errors.append("%s semantic gameplay movement must move the real controller." % template_id)
     var yaw_before := float(player.rotation.y)
     var mouse := InputEventMouseMotion.new(); mouse.relative = Vector2(80.0, 0.0); player.call("_unhandled_input", mouse)
@@ -66,22 +65,15 @@ func _exercise_template(template_id: String, errors: Array[String]) -> void:
     await _dispose(main)
 
 
-func _print_contact_diagnostics(template_id: String, main: Node, player: CharacterBody3D) -> void:
-    var terrain_layer = main.call("get_terrain_workspace")
-    var controller = terrain_layer.call("get_controller") if terrain_layer != null else null
-    var runtime = controller.get_runtime() if controller != null else null
-    var sample: float = float(runtime.sample_height(player.global_position)) if runtime != null else -9999.0
-    var chunks: int = int(runtime.chunk_count()) if runtime != null else -1
-    var query := PhysicsRayQueryParameters3D.create(Vector3(player.global_position.x, 10.0, player.global_position.z), Vector3(player.global_position.x, -10.0, player.global_position.z))
+func _assert_terrain_contact(template_id: String, player: CharacterBody3D, errors: Array[String]) -> void:
+    var start := Vector3(player.global_position.x, player.global_position.y + 3.0, player.global_position.z)
+    var finish := Vector3(player.global_position.x, player.global_position.y - 3.0, player.global_position.z)
+    var query := PhysicsRayQueryParameters3D.create(start, finish)
     query.exclude = [player.get_rid()]
     var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
-    var collider_name := "none"
-    var hit_position := Vector3.ZERO
-    if not hit.is_empty():
-        var collider = hit.get("collider")
-        collider_name = str(collider.name) if collider is Node else str(collider)
-        hit_position = hit.get("position", Vector3.ZERO)
-    print("PHASE7_DIAG %s floor=%s position=%s velocity=%s sample_height=%.4f chunks=%d ray_collider=%s ray_hit=%s" % [template_id, player.is_on_floor(), player.global_position, player.velocity, sample, chunks, collider_name, hit_position])
+    var collider = hit.get("collider") if not hit.is_empty() else null
+    if not collider is StaticBody3D or collider.name != "TerrainCollision":
+        errors.append("%s player contact ray must resolve the real Phase 5 TerrainCollision surface." % template_id)
 
 
 func _dispose(main: Node) -> void:
