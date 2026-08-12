@@ -98,12 +98,14 @@ func _check_workspace(main_instance: Control, workspace: Control, errors: Array[
         errors.append("Exactly two selected socket-capable objects must enable the contextual Attach action.")
     else:
         attach.emit_signal("pressed")
-        if service.get_attachments().size() != 1:
+        var attachments: Array[Dictionary] = service.get_attachments()
+        if attachments.size() != 1:
             errors.append("Gameplay panel must author a stable socket attachment between two selected entities.")
         else:
-            var runtime_child = workspace.call("get_runtime_entity_node", spawned_id)
+            var authored_child_id := str(attachments[0].get("child_entity_id", ""))
+            var runtime_child = workspace.call("get_runtime_entity_node", authored_child_id)
             if runtime_child == null or runtime_child.get_parent() == null or not runtime_child.get_parent().has_meta(RuntimeAttachmentResolver.ANCHOR_META):
-                errors.append("Real workspace attachment must resolve through a transient runtime anchor.")
+                errors.append("Real workspace attachment must resolve the authored child through a transient runtime anchor.")
 
     var cancel := InputEventAction.new(); cancel.action = &"ui_cancel"; cancel.pressed = true
     main_instance.call("_unhandled_input", cancel)
