@@ -45,7 +45,7 @@ static func run_checks() -> Array[String]:
     var derived_id := str(derived.get("prefab_id", "")); var effective: Dictionary = PrefabResolver.new(gameplay.get_state()).resolve(derived_id)
     if not derived.get("ok", false) or not effective.get("ok", false) or str(_node(effective.get("nodes", []), root_node_id).get("display_name", "")) != "Derived Root": errors.append("Derived prefab must resolve base data plus its explicit override.")
 
-    var before_count := project.entity_records.size(); var one: Dictionary = prefabs.instantiate_prefab(derived_id, Vector3(8.0, 0.0, 0.0)); var one_root := str(one.get("root_entity_id", ""))
+    var before_count: int = project.entity_records.size(); var one: Dictionary = prefabs.instantiate_prefab(derived_id, Vector3(8.0, 0.0, 0.0)); var one_root := str(one.get("root_entity_id", ""))
     var two: Dictionary = prefabs.instantiate_prefab(derived_id, Vector3(14.0, 0.0, 0.0)); var two_root := str(two.get("root_entity_id", ""))
     if not one.get("ok", false) or not two.get("ok", false) or project.entity_records.size() != before_count + 6: errors.append("Repeated prefab instantiation must create complete effective hierarchies.")
     if one_root == two_root or not StableId.is_valid(one_root) or not StableId.is_valid(two_root): errors.append("Repeated prefab instantiation must allocate fresh entity UUIDs.")
