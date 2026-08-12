@@ -1,8 +1,8 @@
 # Prototype Template System
 
-Templates are data-driven project starters, not forks of the editor. A template configures existing reusable systems and may declare later-phase capabilities as planned modules, but it must not fabricate unavailable runtime behavior.
+Templates are data-driven project starters, not forks of the editor. A template configures existing reusable systems and may declare available capabilities/modules, but it must not fabricate unavailable runtime behavior.
 
-## Initial Phase 7 templates
+## Initial templates
 - `blank_sandbox`
 - `third_person_adventure`
 - `fps`
@@ -11,42 +11,43 @@ Templates are data-driven project starters, not forks of the editor. A template 
 - `driving`
 - `walking_simulator`
 
-The registry loads these manifests from `templates/manifests/` and rejects missing, malformed, duplicate-ID, future-schema, or unavailable-required-module inputs.
+The registry loads manifests from `templates/manifests/` and rejects missing, malformed, duplicate-ID, future-schema, or unavailable-required-module inputs.
 
 ## Manifest contract
-Schema-v1 manifests declare:
-- `template_id` and display metadata
-- `required_runtime_modules`
-- deterministic `starter_entities`
-- semantic `input_mapping`
-- optional `default_player_archetype`
-- `camera_configuration`
-- `example_graph_references`
-- `ui_hud_packages`
-- `export_settings`
-- `tutorial_steps`
-- `planned_modules`
+Schema-v1 template manifests retain their Phase 7 fields such as template identity/display data, required runtime modules, deterministic starter entities, semantic input mapping, player/camera defaults, graph/HUD references, export settings, tutorial steps, and planned modules.
 
-Starter entities use a stable `starter_key`, display name, semantic role, optional archetype key, and transform. Their world-entity IDs are derived deterministically from project ID + template ID + starter key, then persist normally with the project.
+Phase 15 additionally allows a normalized `multiplayer` capability:
+- `enabled`
+- `mode`: `coop` or `competitive`
+- `min_players` / `max_players` (bounded; implementation maximum 16)
+- `spawn_strategy`: `offset` or `spawn_points`
+- `spawn_spacing`
+- `teams[]`
+- `score_mode`: `none`, `player`, `team`, `objective`
+- `rejoin_allowed`
+
+Disabled/missing capability normalizes to single-player behavior.
+
+## Phase 15 multiplayer-enabled templates
+Current template integration enables multiplayer capability for:
+- Third-Person Adventure — co-op, 1–4, objective-oriented configuration;
+- FPS — competitive, 2–8, team-oriented score configuration;
+- Survival — co-op.
+
+Other templates remain offline unless their manifest intentionally opts in later.
 
 ## Runtime module contract
-Phase 7 resolves only currently available modules. Required modules that do not exist fail before partial application. Later gameplay systems such as combat, survival loops, RPG progression, inventory, quests, dialogue, or vehicle driving remain `planned_modules` until their owning phases implement them.
+Template application resolves only currently available runtime modules. Required modules that do not exist fail before partial application. Phase 15 registers its multiplayer runtime capability without replacing the common template/project architecture.
 
-Projects may enable/disable available runtime modules after creation. Disabling the active controller module fails safe to `controller = none`; enabling another available controller module allows the project to change play style without rewriting the project's original template identity.
+Projects may enable/disable available runtime modules after creation according to owning contracts. Genre choice must never permanently trap the project in one editor fork.
 
-## Reusable Player archetype
-Phase 7 extends the Phase 6 archetype registry with one stable `player` preset while preserving the original nine Phase 6 presets.
+## Starter materialization / identity
+Starter entities use stable starter keys and deterministic authored world-entity IDs. Runtime networking may map transient session/player identity to playable runtime entities, but it never replaces the authored starter/entity IDs.
 
-Playable templates use that reusable Player archetype for their authored player-start marker. The marker remains authored Build data with stable identity, but its proxy/collision is excluded from the disposable Play runtime while the transient `CharacterBody3D` controller owns gameplay.
+Template materialization remains idempotent and project-managed. External Asset Library source folders remain read-only.
 
-Driving also materializes a real Phase 6 Vehicle archetype prototype. Actual vehicle control is deliberately deferred rather than simulated.
-
-## Materialization and persistence
-Template application writes project-managed runtime configuration and resolved dependencies. Starter materialization is idempotent: repeating it does not duplicate authored entities or create user Undo/Redo history.
-
-Template runtime configuration, starter IDs, entity ownership, transforms, and component-instance references are verified across save/reopen.
-
-External Asset Library source folders remain read-only; template application creates only project-managed data.
+## Export interaction
+Export staging reads normalized project runtime multiplayer capability. Offline templates/projects omit network closure; enabled multiplayer projects package the capability profile and required runtime network dependencies.
 
 ## Genre-lock rule
-Choosing a template must never permanently trap the project in one genre. Templates provide deterministic starting composition; the resulting project remains editable through the common world, component, prefab, module, and later visual-scripting systems.
+Choosing a template provides deterministic starting composition. The resulting project remains editable through the common world, component, prefab, runtime module, Visual Scripting, gameplay, environment, AI, export, and multiplayer-capability systems.

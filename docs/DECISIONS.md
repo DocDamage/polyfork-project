@@ -2,7 +2,7 @@
 
 - Engine: Godot 4.7.x.
 - Initial platform strategy: desktop first, broader exports later.
-- Baseline GPU: RTX 3060 12 GB class; scalable quality presets.
+- Baseline GPU: RTX 3060 12 GB class; scalable Low/Balanced/High quality profiles, with Balanced as the default.
 - Runtime editing is primary; not a Godot-editor-only tool.
 - World size chosen before creation: Small, Medium, Large/streamed.
 - Terrain: runtime sculptable.
@@ -15,14 +15,17 @@
 - Roads: spline-based.
 - Buildings: support seamless, loaded, and purpose-built interior approaches.
 - Vehicles: smart archetype with optional manual socket/wheel setup.
-- Templates include starter mechanics.
-- Undo/redo: mandatory.
+- Templates include starter mechanics and remain data-driven rather than editor forks.
+- Undo/redo: mandatory for authored mutations.
 - Thumbnail studio: automatic.
 - Asset inspection: detailed metrics.
 - AI: provider agnostic, catalog-aware, Suggest/Preview/Execute, transactional.
 - Procedural tools: nondestructive until baked.
 - Reusable world chunks: yes.
-- Multiplayer direction: co-op, competitive, and future collaborative editing.
+- Multiplayer direction: bounded direct-connect co-op and competitive gameplay networking is implemented as opt-in Play-session functionality; offline remains first-class.
+- Multiplayer authority: host-authoritative gameplay mutations and runtime save authority; clients do not directly commit authoritative replicated gameplay state.
+- Multiplayer identity: session/peer/network IDs are runtime-only and never replace authored stable IDs.
+- Collaboration boundary: future collaborative authoring is a separate durable command/history-aware protocol; gameplay replication must not be presented as collaborative editing.
 - Environment: day/night and weather.
 - Water/biome/world art: system must integrate the user's owned asset libraries rather than assume one built-in art set.
 - Foliage: dedicated instanced system.

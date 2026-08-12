@@ -84,13 +84,25 @@ func toggle_door(actor_entity_id: String, door_entity_id: String) -> Dictionary:
     if bool(door.get("locked", false)):
         _runtime.emit_event("door.blocked", actor_entity_id, door_entity_id, {"reason": "locked"})
         return _failure("Door is locked.")
-    var new_open := not is_door_open(door_entity_id)
-    _door_open_state[door_entity_id] = new_open
-    _runtime.emit_event("door.opened" if new_open else "door.closed", actor_entity_id, door_entity_id, {
-        "open": new_open,
-        "open_angle": float(door.get("open_angle", 90.0)),
-    })
-    return {"ok": true, "errors": [], "door_entity_id": door_entity_id, "open": new_open}
+    return set_door_open(door_entity_id, not is_door_open(door_entity_id), actor_entity_id)
+
+
+func set_door_open(door_entity_id: String, open: bool, source_entity_id: String = "") -> Dictionary:
+    if _runtime == null:
+        return _failure("Interaction service is not bound.")
+    var door: Dictionary = _runtime.get_component_values(door_entity_id, "door")
+    if door.is_empty():
+        return _failure("Target entity is not a door.")
+    if not source_entity_id.is_empty() and not _runtime.has_entity(source_entity_id):
+        return _failure("Door state source entity reference does not resolve.")
+    var previous := is_door_open(door_entity_id)
+    _door_open_state[door_entity_id] = open
+    if previous != open:
+        _runtime.emit_event("door.opened" if open else "door.closed", source_entity_id, door_entity_id, {
+            "open": open,
+            "open_angle": float(door.get("open_angle", 90.0)),
+        })
+    return {"ok": true, "errors": [], "door_entity_id": door_entity_id, "open": open, "changed": previous != open}
 
 
 func is_door_open(door_entity_id: String) -> bool:

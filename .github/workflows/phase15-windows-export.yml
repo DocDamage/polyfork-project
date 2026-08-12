@@ -1,0 +1,115 @@
+name: Phase 15 Windows Multiplayer Export
+
+on:
+  push:
+    branches:
+      - dev/phase15-multiplayer-collaboration-milestone
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  windows-multiplayer-export-smoke:
+    runs-on: windows-2025
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.7.1 and Windows export templates
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $godotUri = 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_win64.exe.zip'
+          $templatesUri = 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_export_templates.tpz'
+          for ($attempt = 1; $attempt -le 6; $attempt++) {
+            try { Invoke-WebRequest -Uri $godotUri -OutFile godot.zip; break }
+            catch { if ($attempt -eq 6) { throw }; Start-Sleep -Seconds (2 * $attempt) }
+          }
+          Expand-Archive godot.zip -DestinationPath godot
+          for ($attempt = 1; $attempt -le 6; $attempt++) {
+            try { Invoke-WebRequest -Uri $templatesUri -OutFile templates.tpz; break }
+            catch { if ($attempt -eq 6) { throw }; Start-Sleep -Seconds (2 * $attempt) }
+          }
+          Copy-Item templates.tpz templates.zip
+          Expand-Archive templates.zip -DestinationPath template-package
+          $templateTarget = Join-Path $env:APPDATA 'Godot\export_templates\4.7.1.stable'
+          New-Item -ItemType Directory -Force -Path $templateTarget | Out-Null
+          Copy-Item 'template-package\templates\*' $templateTarget -Recurse -Force
+          $godot = (Get-ChildItem godot -Filter '*_console.exe' | Select-Object -First 1).FullName
+          if (-not $godot) { $godot = (Get-ChildItem godot -Filter '*.exe' | Select-Object -First 1).FullName }
+          if (-not $godot) { throw 'Godot executable not found.' }
+          "GODOT_EXE=$godot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          & $godot --version
+      - name: Build multiplayer and offline packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:GODOT_EXE --headless --path . --script res://tests/phase15_windows_export_runner.gd 2>&1 | Tee-Object -FilePath phase15-windows-export.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $log = Get-Content phase15-windows-export.log -Raw
+          if ($log -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Strict Godot export log gate failed.' }
+          if ($log -notmatch 'PASS: Phase 15 Windows multiplayer/offline export packages verified.') { throw 'Phase 15 Windows package verification marker missing.' }
+      - name: Launch exported host and client concurrently
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = Join-Path $env:GITHUB_WORKSPACE 'artifacts\phase15\windows\Phase15_Multiplayer'
+          $exe = Join-Path $package 'Phase15_Multiplayer.exe'
+          if (-not (Test-Path $exe)) { throw "Multiplayer export executable missing: $exe" }
+          $port = 34915
+          $hostCmd = Join-Path $env:RUNNER_TEMP 'phase15-host.cmd'
+          $clientCmd = Join-Path $env:RUNNER_TEMP 'phase15-client.cmd'
+          @"
+          @echo off
+          set POLYFORK_MULTIPLAYER_ROLE=host
+          set POLYFORK_MULTIPLAYER_PORT=$port
+          set POLYFORK_MULTIPLAYER_PLAYER=Host
+          set POLYFORK_MULTIPLAYER_EXPECTED_PEERS=2
+          set POLYFORK_MULTIPLAYER_SMOKE=1
+          "$exe" --headless > "$env:GITHUB_WORKSPACE\phase15-host.log" 2>&1
+          exit /b %ERRORLEVEL%
+          "@ | Set-Content -Path $hostCmd -Encoding ASCII
+          @"
+          @echo off
+          set POLYFORK_MULTIPLAYER_ROLE=client
+          set POLYFORK_MULTIPLAYER_ADDRESS=127.0.0.1
+          set POLYFORK_MULTIPLAYER_PORT=$port
+          set POLYFORK_MULTIPLAYER_PLAYER=Client
+          set POLYFORK_MULTIPLAYER_EXPECTED_PEERS=2
+          set POLYFORK_MULTIPLAYER_SMOKE=1
+          "$exe" --headless > "$env:GITHUB_WORKSPACE\phase15-client.log" 2>&1
+          exit /b %ERRORLEVEL%
+          "@ | Set-Content -Path $clientCmd -Encoding ASCII
+          $hostProcess = Start-Process -FilePath cmd.exe -ArgumentList '/c', $hostCmd -PassThru -WindowStyle Hidden
+          Start-Sleep -Seconds 1
+          $clientProcess = Start-Process -FilePath cmd.exe -ArgumentList '/c', $clientCmd -PassThru -WindowStyle Hidden
+          $deadline = (Get-Date).AddSeconds(45)
+          while ((!$hostProcess.HasExited -or !$clientProcess.HasExited) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $hostProcess.Refresh(); $clientProcess.Refresh() }
+          if (!$hostProcess.HasExited) { Stop-Process -Id $hostProcess.Id -Force; throw 'Exported host timed out.' }
+          if (!$clientProcess.HasExited) { Stop-Process -Id $clientProcess.Id -Force; throw 'Exported client timed out.' }
+          if ($hostProcess.ExitCode -ne 0) { throw "Exported host exited $($hostProcess.ExitCode)." }
+          if ($clientProcess.ExitCode -ne 0) { throw "Exported client exited $($clientProcess.ExitCode)." }
+          $hostLog = Get-Content phase15-host.log -Raw
+          $clientLog = Get-Content phase15-client.log -Raw
+          Write-Host "HOST LOG`n$hostLog"
+          Write-Host "CLIENT LOG`n$clientLog"
+          foreach ($entry in @(@('host',$hostLog), @('client',$clientLog))) {
+            $name = $entry[0]; $text = $entry[1]
+            if ($text -notmatch "PASS: Phase 15 standalone multiplayer $name connected") { throw "$name multiplayer completion marker missing." }
+            if ($text -notmatch 'local_input=true remote_input=false keyboard_mouse=true gamepad=true') { throw "$name input ownership marker missing." }
+            if ($text -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw "$name emitted strict Godot errors." }
+          }
+      - name: Upload Phase 15 Windows multiplayer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase15-windows-multiplayer-evidence
+          path: |
+            phase15-windows-export.log
+            phase15-host.log
+            phase15-client.log
+            artifacts/phase15/windows/**
+          if-no-files-found: warn
+          retention-days: 14

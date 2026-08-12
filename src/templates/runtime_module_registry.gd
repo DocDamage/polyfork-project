@@ -8,7 +8,8 @@ const MODULES := {
     "phase6.gameplay": {"phase": 6, "description": "Components, archetypes, prefabs, sockets"},
     "play.third_person": {"phase": 7, "description": "Reusable third-person instant-play controller"},
     "play.first_person": {"phase": 7, "description": "Reusable first-person instant-play controller"},
-    "ui.basic": {"phase": 1, "description": "Existing workspace UI foundation"}
+    "ui.basic": {"phase": 1, "description": "Existing workspace UI foundation"},
+    "phase15.multiplayer": {"phase": 15, "description": "Host-authoritative multiplayer runtime and session contracts"}
 }
 
 

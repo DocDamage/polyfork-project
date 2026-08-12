@@ -1,6 +1,8 @@
 class_name PlayWorldTemplateManifest
 extends RefCounted
 
+const MultiplayerTemplate = preload("res://src/network/multiplayer_template_contract.gd")
+
 const DOCUMENT_TYPE := "playworld_template_manifest"
 const SCHEMA_VERSION := 1
 const CONTROLLERS := ["none", "third_person", "first_person"]
@@ -33,6 +35,10 @@ static func validate_dictionary(data: Dictionary) -> Array[String]:
     if not data.get("export_settings") is Dictionary: errors.append("Template manifest export_settings must be a dictionary.")
     _validate_tutorial_steps(data.get("tutorial_steps"), errors)
     _validate_string_array(data.get("planned_modules", []), "planned_modules", errors, true)
+    if data.has("multiplayer"):
+        errors.append_array(MultiplayerTemplate.validate(data.get("multiplayer")))
+        if MultiplayerTemplate.supports_multiplayer(data) and not data.get("required_runtime_modules", []).has("phase15.multiplayer"):
+            errors.append("Multiplayer-enabled templates must require phase15.multiplayer runtime support.")
     return errors
 
 

@@ -9,17 +9,17 @@
 - Template Browser
 - Settings
 
-## Tier 2 workspaces
-- Visual Script Editor
-- Prefab Editor
-- Archetype Editor
+## Tier 2 workspaces / contextual surfaces
+- Visual Script Editor / Logic
+- Prefab / Archetype composition surfaces
 - Terrain Workspace
-- Biome Editor
+- Biome / Environment controls
 - Road/Spline Editor
 - Foliage Rules Editor
 - AI Command/History
 - Project Export
 - Asset Inspector
+- Multiplayer Play surface — Offline / Host & Play / Join & Play with player/endpoint/capability/session state
 
 ## Overlays and sheets
 - Command palette
@@ -32,9 +32,16 @@
 - License/source details
 - Duplicate asset warning
 - Import issue report
-- Performance warning
+- Performance warning / settings
 - Undo history
 - Controller cheat sheet
 
+## Multiplayer surface requirements
+- Must remain contextual rather than permanently taking viewport space.
+- Must expose player name, host/join address, port, declared capability summary, peer/session status, and explicit Offline/Host/Join actions.
+- Must support keyboard/mouse and deterministic gamepad focus.
+- Compact layout must stay fully on-screen at narrower supported captures such as 1024×640.
+- Closing or switching away must not imply that authored project state changed.
+
 ## Screen acceptance rule
-Every screen must define: primary goal, single primary action, escape/back behavior, controller focus path, touch fallback, empty state, loading state, error state, and advanced-details path.
+Every screen/contextual surface must define: primary goal, single primary action or clearly ranked action group, escape/back behavior, controller focus path, touch fallback/readiness, empty state, loading/connecting state where applicable, error state, and advanced-details path.

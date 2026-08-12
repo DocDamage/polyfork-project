@@ -1,0 +1,71 @@
+name: Phase 15 Inherited Regressions
+
+on:
+  push:
+    branches:
+      - dev/phase15-multiplayer-collaboration-milestone
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  inherited-phase6-through-phase14:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 8 --retry-all-errors --retry-delay 3 --connect-timeout 20 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+      - name: Run inherited Phase 6-14 contract and scale gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT=./Godot_v4.7.1-stable_linux.x86_64
+          run_suite() {
+            local phase="$1" suite="$2" env_name="PHASE${1}_SUITE" runner="res://tests/phase${1}_suite_runner.gd" log="phase${1}-${2}.log"
+            set +e
+            env "${env_name}=${suite}" timeout --signal=TERM --kill-after=10s 180s "$GODOT" --headless --path . --script "$runner" 2>&1 | tee "$log"
+            local godot_status=${PIPESTATUS[0]}; set -e
+            if [ "$godot_status" -ne 0 ]; then return "$godot_status"; fi
+            if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' "$log"; then return 1; fi
+            grep -F "PASS: Phase ${phase} ${suite} contract suite completed." "$log"
+          }
+          for suite in components prefabs sockets persistence scale workspace; do run_suite 6 "$suite"; done
+          for suite in templates play; do run_suite 7 "$suite"; done
+          set +e
+          timeout --signal=TERM --kill-after=10s 180s "$GODOT" --headless --path . --script res://tests/runtime/phase7_playable_smoke.gd 2>&1 | tee phase7-playable.log
+          playable_status=${PIPESTATUS[0]}; set -e
+          if [ "$playable_status" -ne 0 ]; then exit "$playable_status"; fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' phase7-playable.log; then exit 1; fi
+          grep -F 'PASS: Phase 7 playable controller smoke completed.' phase7-playable.log
+          for suite in foundation authoring compiler runtime macros workspace debugger play scale; do run_suite 8 "$suite"; done
+          for suite in foundation foliage splines sources scale workspace; do run_suite 9 "$suite"; done
+          for suite in foundation inventory health npc dialogue quest vehicle save_state scale_regression; do run_suite 10 "$suite"; done
+          for suite in foundation coupling play_visual persistence_undo workspace scale_streaming; do run_suite 11 "$suite"; done
+          for suite in foundation rollback history execute workspace orchestration scale; do run_suite 12 "$suite"; done
+          for suite in foundation runtime workspace; do run_suite 13 "$suite"; done
+          for suite in foundation export accessibility; do run_suite 14 "$suite"; done
+          set +e
+          timeout --signal=TERM --kill-after=10s 300s "$GODOT" --headless --path . --script res://tests/runtime/phase14_scale_stress.gd 2>&1 | tee phase14-scale-stress.log
+          stress_status=${PIPESTATUS[0]}; set -e
+          if [ "$stress_status" -ne 0 ]; then exit "$stress_status"; fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' phase14-scale-stress.log; then exit 1; fi
+          grep -F 'PASS: Phase 14 Small/Medium/Large/Stress scale smoke completed.' phase14-scale-stress.log
+      - name: Upload inherited regression logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase15-inherited-phase6-through-phase14-logs
+          path: phase*.log
+          if-no-files-found: error
+          retention-days: 14

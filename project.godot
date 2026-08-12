@@ -9,6 +9,8 @@ run/main_scene="res://src/main/Main.tscn"
 [autoload]
 ScalePolish="*res://src/scale/scale_polish_service.gd"
 ExportWorkspace="*res://src/app/workspace/export_workspace_layer.gd"
+NetworkRuntime="*res://src/network/network_runtime_service.gd"
+MultiplayerWorkspace="*res://src/app/workspace/multiplayer_workspace_layer.gd"
 
 [display]
 window/size/viewport_width=1600

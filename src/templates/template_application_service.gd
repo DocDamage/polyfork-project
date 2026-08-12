@@ -31,6 +31,8 @@ func apply_to_project(project, manifest: Dictionary, module_registry = null) -> 
         "ui_hud_packages": manifest.get("ui_hud_packages", []).duplicate(),
         "tutorial_steps": manifest.get("tutorial_steps", []).duplicate(true)
     }
+    var multiplayer = manifest.get("multiplayer", null)
+    if multiplayer is Dictionary: runtime_config["multiplayer"] = multiplayer.duplicate(true)
     project.template_id = str(manifest.get("template_id", ""))
     project.runtime_config = runtime_config
     project.export_settings = manifest.get("export_settings", {}).duplicate(true)

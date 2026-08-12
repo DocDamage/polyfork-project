@@ -3,13 +3,14 @@
   "schema_version": 1,
   "template_id": "third_person_adventure",
   "display": {"name": "Third-Person Adventure", "summary": "Playable third-person exploration starter using the Phase 7 controller foundation.", "category": "adventure"},
-  "required_runtime_modules": ["core.world", "core.terrain", "core.semantic_input", "phase6.gameplay", "play.third_person"],
+  "required_runtime_modules": ["core.world", "core.terrain", "core.semantic_input", "phase6.gameplay", "play.third_person", "phase15.multiplayer"],
   "starter_entities": [
     {"starter_key": "player_start", "display_name": "Player Start", "role": "player_spawn", "archetype_key": "player", "transform": {"position": [8.0, 2.0, 8.0], "rotation_degrees": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}}
   ],
   "input_mapping": {"profile": "semantic_default"},
   "default_player_archetype": "20000000-0000-4000-8000-00000000000a",
   "camera_configuration": {"controller": "third_person", "spawn_position": [8.0, 2.0, 8.0], "jump_enabled": true, "move_speed": 6.0, "camera_distance": 4.5},
+  "multiplayer": {"enabled": true, "mode": "coop", "min_players": 1, "max_players": 4, "spawn_strategy": "offset", "spawn_spacing": 2.5, "teams": [], "score_mode": "objective", "rejoin_allowed": true},
   "example_graph_references": [],
   "ui_hud_packages": ["hud_basic"],
   "export_settings": {"preset_id": null},

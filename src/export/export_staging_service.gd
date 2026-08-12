@@ -6,8 +6,10 @@ const StagingPlan = preload("res://src/export/export_staging_plan.gd")
 const SourceClosure = preload("res://src/export/export_source_closure.gd")
 const WorldProject = preload("res://src/world/world_project.gd")
 const PerformanceProfiles = preload("res://src/scale/performance_profiles.gd")
+const MultiplayerTemplateContract = preload("res://src/network/multiplayer_template_contract.gd")
 
 const RUNTIME_ROOTS: Array[String] = ["src/export/runtime/StandaloneRuntime.tscn"]
+const MULTIPLAYER_RUNTIME_ROOTS: Array[String] = ["src/network/network_runtime_service.gd"]
 
 func assemble(project_directory: String, stage_root: String, project_data: Dictionary, dependencies: Array, build_id: String, package_name: String, license_report: Dictionary = {}, performance_profile: Dictionary = {}) -> Dictionary:
     var errors: Array[String] = []
@@ -19,8 +21,9 @@ func assemble(project_directory: String, stage_root: String, project_data: Dicti
         var profile_errors: Array[String] = PerformanceProfiles.validate_profile(performance_profile)
         if not profile_errors.is_empty(): return {"ok": false, "errors": profile_errors}
         effective_profile = PerformanceProfiles.get_profile(performance_profile.get("preset_id", PerformanceProfiles.DEFAULT))
+    var multiplayer_capability: Dictionary = multiplayer_capability_for_project(project_data)
     if not _reset_directory(stage_root): return _failure("Unable to reset deterministic export staging directory.")
-    var closure: Dictionary = SourceClosure.resolve(RUNTIME_ROOTS)
+    var closure: Dictionary = SourceClosure.resolve(runtime_roots_for_project(project_data))
     if not closure.get("ok", false): return closure
     var manifest_files: Array[Dictionary] = []
     for source_path_value in closure.get("paths", []):
@@ -50,6 +53,10 @@ func assemble(project_directory: String, stage_root: String, project_data: Dicti
         var profile_write: Dictionary = _write_json(stage_root.path_join("runtime_data/performance_profile.json"), effective_profile)
         if not profile_write.get("ok", false): return profile_write
         manifest_files.append(_runtime_file("runtime_data/performance_profile.json"))
+    if bool(multiplayer_capability.get("enabled", false)):
+        var multiplayer_write: Dictionary = _write_json(stage_root.path_join("runtime_data/multiplayer_profile.json"), multiplayer_capability)
+        if not multiplayer_write.get("ok", false): return multiplayer_write
+        manifest_files.append(_runtime_file("runtime_data/multiplayer_profile.json"))
 
     var ordered_dependencies: Array = dependencies.duplicate(true); ordered_dependencies.sort_custom(func(a, b): return str(a.get("asset_id", "")) < str(b.get("asset_id", "")))
     for dependency_value in ordered_dependencies:
@@ -70,8 +77,9 @@ func assemble(project_directory: String, stage_root: String, project_data: Dicti
     var attribution_text: String = str(license_report.get("text", "Polyfork Export Attributions\n============================\n"))
     var attribution_write: Dictionary = _write_text(stage_root.path_join("ATTRIBUTIONS.txt"), attribution_text); if not attribution_write.get("ok", false): return attribution_write
     manifest_files.append(_runtime_file("ATTRIBUTIONS.txt"))
-    var report: Dictionary = {"document_type": "export_report", "schema_version": Contracts.SCHEMA_VERSION, "build_id": build_id, "project_id": str(sanitized_project.get("project_id", "")), "target": Contracts.TARGET_WINDOWS, "package_name": package_name, "dependency_count": ordered_dependencies.size(), "license_findings": license_report.get("findings", []).duplicate(true), "attributions": license_report.get("attributions", []).duplicate(true)}
+    var report: Dictionary = {"document_type": "export_report", "schema_version": Contracts.SCHEMA_VERSION, "build_id": build_id, "project_id": str(sanitized_project.get("project_id", "")), "target": Contracts.TARGET_WINDOWS, "package_name": package_name, "dependency_count": ordered_dependencies.size(), "license_findings": license_report.get("findings", []).duplicate(true), "attributions": license_report.get("attributions", []).duplicate(true), "multiplayer_enabled": bool(multiplayer_capability.get("enabled", false))}
     if not effective_profile.is_empty(): report["performance_profile"] = effective_profile.duplicate(true)
+    if bool(multiplayer_capability.get("enabled", false)): report["multiplayer_capability"] = multiplayer_capability.duplicate(true)
     var report_write: Dictionary = _write_json(stage_root.path_join("export_report.json"), report); if not report_write.get("ok", false): return report_write
     manifest_files.append(_runtime_file("export_report.json"))
 
@@ -79,7 +87,20 @@ func assemble(project_directory: String, stage_root: String, project_data: Dicti
     var manifest_errors: Array[String] = Contracts.validate_manifest(manifest)
     if not manifest_errors.is_empty(): return {"ok": false, "errors": manifest_errors}
     var manifest_write: Dictionary = _write_json(stage_root.path_join("export_manifest.json"), manifest); if not manifest_write.get("ok", false): return manifest_write
-    return {"ok": true, "errors": [], "stage_root": stage_root, "manifest": manifest, "runtime_source_paths": closure.get("paths", []), "file_count": manifest_files.size() + 1, "performance_profile": effective_profile.duplicate(true)}
+    return {"ok": true, "errors": [], "stage_root": stage_root, "manifest": manifest, "runtime_source_paths": closure.get("paths", []), "file_count": manifest_files.size() + 1, "performance_profile": effective_profile.duplicate(true), "multiplayer_capability": multiplayer_capability.duplicate(true)}
+
+static func runtime_roots_for_project(project_data: Dictionary) -> Array[String]:
+    var roots: Array[String] = RUNTIME_ROOTS.duplicate()
+    var capability: Dictionary = multiplayer_capability_for_project(project_data)
+    if bool(capability.get("enabled", false)):
+        for root in MULTIPLAYER_RUNTIME_ROOTS:
+            if not roots.has(root): roots.append(root)
+    roots.sort()
+    return roots
+
+static func multiplayer_capability_for_project(project_data: Dictionary) -> Dictionary:
+    var runtime: Dictionary = project_data.get("runtime", {}) if project_data.get("runtime", {}) is Dictionary else {}
+    return MultiplayerTemplateContract.normalize(runtime.get("multiplayer", null))
 
 static func _runtime_file(path: String) -> Dictionary: return {"package_path": path, "classification": Contracts.RUNTIME_REQUIRED}
 
