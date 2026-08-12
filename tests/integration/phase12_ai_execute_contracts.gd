@@ -22,11 +22,12 @@ static func run_checks(tree_root: Node) -> Array[String]:
     DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(root_dir))
     var project = WorldProject.new()
     project.initialize_new("Phase 12 Execute", &"small", "blank_sandbox")
-    project.cell_ids = [StableId.generate()]
+    var owned_cells: Array[String] = [StableId.generate()]
+    project.cell_ids = owned_cells
     var fixture := Node3D.new(); tree_root.add_child(fixture)
     var editor = EditorSession.new(); fixture.add_child(editor)
-    var dirty_count := 0
-    var dirty_callback := func() -> Dictionary: dirty_count += 1; return {"ok": true, "errors": []}
+    var dirty_counter := {"count": 0}
+    var dirty_callback := func() -> Dictionary: dirty_counter["count"] = int(dirty_counter["count"]) + 1; return {"ok": true, "errors": []}
     var bind_editor: Dictionary = editor.bind_project(project, dirty_callback)
     if not bind_editor.get("ok", false): fixture.queue_free(); return ["Phase 12 execute fixture could not bind EditorSession."]
     var assets = AssetLibrary.new(root_dir); var asset_load: Dictionary = assets.load_library()
@@ -61,8 +62,7 @@ static func run_checks(tree_root: Node) -> Array[String]:
     var before_instances: int = gameplay.get_state().instances.size(); var before_graphs: int = visual.get_graphs().size(); var before_foliage: int = procedural.get_foliage_sets().size(); var before_environment: Dictionary = environment.get_state().authored_state.duplicate(true)
     var preview: Dictionary = previewer.preview(proposal)
     if not preview.get("ok", false): errors.append("Cross-system proposal Preview must succeed: %s" % preview.get("errors", []))
-    if project.to_dictionary() != before_project or gameplay.get_state().instances.size() != before_instances or visual.get_graphs().size() != before_graphs or procedural.get_foliage_sets().size() != before_foliage or environment.get_state().authored_state != before_environment:
-        errors.append("AI Preview must not mutate any authored subsystem.")
+    if project.to_dictionary() != before_project or gameplay.get_state().instances.size() != before_instances or visual.get_graphs().size() != before_graphs or procedural.get_foliage_sets().size() != before_foliage or environment.get_state().authored_state != before_environment: errors.append("AI Preview must not mutate any authored subsystem.")
     var execute: Dictionary = executor.execute(proposal, "fixture-provider", "fixture prompt", false)
     if not execute.get("ok", false): errors.append("Cross-system AI Execute must succeed: %s" % execute.get("errors", []))
     else:
@@ -78,18 +78,16 @@ static func run_checks(tree_root: Node) -> Array[String]:
         if history_entries.size() != 1 or str(history_entries[0].get("status", "")) != "applied": errors.append("AI Execute must persist one applied execution-history entry.")
         var undo: Dictionary = editor.get_history().undo()
         if not undo.get("ok", false): errors.append("Universal Undo must revert the complete AI Execute transaction.")
-        elif project.to_dictionary().get("entities", []) != before_project.get("entities", []) or gameplay.get_state().instances.size() != before_instances or visual.get_graphs().size() != before_graphs or procedural.get_foliage_sets().size() != before_foliage or environment.get_state().authored_state != before_environment:
-            errors.append("One Undo must restore every subsystem touched by AI Execute.")
+        elif project.to_dictionary().get("entities", []) != before_project.get("entities", []) or gameplay.get_state().instances.size() != before_instances or visual.get_graphs().size() != before_graphs or procedural.get_foliage_sets().size() != before_foliage or environment.get_state().authored_state != before_environment: errors.append("One Undo must restore every subsystem touched by AI Execute.")
         elif str(executor.get_history_entries()[0].get("status", "")) != "undone": errors.append("Undo must update project-managed AI execution history.")
         var redo: Dictionary = editor.get_history().redo()
         if not redo.get("ok", false): errors.append("Universal Redo must reapply the complete AI Execute transaction.")
-        elif project.entity_records.size() != 1 or visual.get_graphs().size() != before_graphs + 1 or procedural.get_foliage_sets().size() != before_foliage + 1 or float(environment.get_state().authored_state.get("time_of_day_hours", 0.0)) != 22.0:
-            errors.append("One Redo must reapply every subsystem touched by AI Execute.")
+        elif project.entity_records.size() != 1 or visual.get_graphs().size() != before_graphs + 1 or procedural.get_foliage_sets().size() != before_foliage + 1 or float(environment.get_state().authored_state.get("time_of_day_hours", 0.0)) != 22.0: errors.append("One Redo must reapply every subsystem touched by AI Execute.")
         elif str(executor.get_history_entries()[0].get("status", "")) != "applied": errors.append("Redo must restore applied AI execution-history status.")
 
     var missing_asset: Dictionary = AiContracts.new_proposal(StableId.generate(), "Missing asset", [_action("entity.place_asset", {"asset_id": StableId.generate(), "position": [0.0, 0.0, 0.0]})])
     if actions.validate_proposal(missing_asset).is_empty(): errors.append("AI proposals must reject asset IDs absent from the real Asset Library.")
-    if dirty_count <= 0: errors.append("AI Execute/Undo/Redo must flow through project dirty-state signaling.")
+    if int(dirty_counter["count"]) <= 0: errors.append("AI Execute/Undo/Redo must flow through project dirty-state signaling.")
     fixture.queue_free()
     return errors
 
