@@ -22,6 +22,8 @@ var _semantic = SemanticSearch.new()
 func _init(project_dir: String, explicit_library_root: String = "") -> void:
     project_directory = project_dir.trim_suffix("/")
     managed_root = explicit_library_root.trim_suffix("/")
+    if managed_root.is_empty() and bool(ProjectSettings.get_setting("playworld/assets/use_shared_library", false)):
+        managed_root = str(ProjectSettings.get_setting("playworld/assets/library_root", "user://asset_library")).trim_suffix("/")
     if managed_root.is_empty(): managed_root = project_directory.path_join("asset_library")
     _registry = SourceRegistry.new(managed_root)
     _catalog = AssetCatalog.new(managed_root)
