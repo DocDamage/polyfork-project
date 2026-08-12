@@ -31,10 +31,12 @@ static func run_checks() -> Array[String]:
     if not state_errors.is_empty(): errors.append("Seed component/archetype state must cross-validate: %s" % [state_errors])
     if state.archetypes.size() != 9: errors.append("Initial archetype registry must contain the nine documented presets.")
 
-    var plan := state.dependency_plan(Components.id_for("vehicle_body"), [])
+    var no_existing: Array[String] = []
+    var plan := state.dependency_plan(Components.id_for("vehicle_body"), no_existing)
     var expected := [Components.id_for("collision"), Components.id_for("physics_prop"), Components.id_for("vehicle_body")]
     if not plan.get("ok", false) or plan.get("definition_ids", []) != expected: errors.append("Component dependency plan must be deterministic and dependency-first.")
-    var conflict := state.conflict_for(Components.id_for("character_controller"), [Components.id_for("physics_prop")])
+    var conflict_existing: Array[String] = [Components.id_for("physics_prop")]
+    var conflict := state.conflict_for(Components.id_for("character_controller"), conflict_existing)
     if not conflict.get("ok", false) or not conflict.get("conflict", false): errors.append("Explicit component conflicts must be detected without silently removing authored data.")
 
     var collision := state.get_definition(Components.id_for("collision"))
@@ -63,8 +65,9 @@ static func run_checks() -> Array[String]:
     var open_result := repository.open_or_create(project)
     if not open_result.get("ok", false): errors.append("Gameplay repository must seed valid project-managed registries: %s" % [open_result.get("errors", [])])
     else:
-        var reopened = GameplayRepository.new(repo_root.path_join("project")).open_or_create(project)
-        if not reopened.get("ok", false) or reopened.get("state").definitions.size() != 21: errors.append("Gameplay definitions must survive repository reopen with stable identity.")
+        var reopened: Dictionary = GameplayRepository.new(repo_root.path_join("project")).open_or_create(project)
+        if not reopened.get("ok", false): errors.append("Gameplay repository reopen failed: %s" % [reopened.get("errors", [])])
+        elif reopened.get("state").definitions.size() != 21: errors.append("Gameplay definitions must survive repository reopen with stable identity.")
     return errors
 
 
