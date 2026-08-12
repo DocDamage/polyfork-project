@@ -1,0 +1,47 @@
+name: Phase 16 Shared Asset Library
+
+on:
+  push:
+    branches:
+      - dev/phase16-milestone
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  shared-asset-library:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 8 --retry-all-errors --retry-delay 3 --connect-timeout 20 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+      - name: Verify universal Asset Library across projects
+        shell: bash
+        run: |
+          set -uo pipefail; set +e
+          timeout --signal=TERM --kill-after=10s 240s \
+            ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . \
+            --script res://tests/phase16_shared_assets_runner.gd 2>&1 | tee phase16-shared-assets.log
+          status=${PIPESTATUS[0]}; set -e
+          if [ "$status" -ne 0 ]; then exit "$status"; fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' phase16-shared-assets.log; then exit 1; fi
+          grep -F 'PASS: Phase 16 shared universal Asset Library contract completed.' phase16-shared-assets.log
+      - name: Upload shared-library evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase16-shared-assets-log
+          path: phase16-shared-assets.log
+          if-no-files-found: error
+          retention-days: 14
