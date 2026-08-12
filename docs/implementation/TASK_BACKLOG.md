@@ -129,18 +129,20 @@ Phase 10 is complete and merged on authoritative `master` by PR #15 at `ac2753f8
 - [x] P10-T10 Complete Gameplay workspace integration, keyboard/mouse + gamepad UX, save/reopen/failure/scale/performance tests, inherited regression gate preparation, strict-log gates, rendered evidence, documentation closeout, and one Phase 10 completion PR
 
 ## Phase 11 — Environment
-Phase 11 is active on `dev/phase11-environment-milestone`, created from exactly authoritative `master` `ac2753f81c9c6be53abe89b102e1f9911a595944`. Work the milestone continuously and open one completion PR only after full verification.
+Phase 11 implementation and verification are complete on `dev/phase11-environment-milestone`, created from exactly authoritative `master` `ac2753f81c9c6be53abe89b102e1f9911a595944`. The milestone remains merge-gated until its single completion PR is explicitly approved and merged.
 
-- [ ] P11-T01 Implement schema-v1 environment state, stable-ID weather profiles, validation, project registry synchronization, and crash-safe `environment/environment.json` persistence
-- [ ] P11-T02 Implement environment authoring service plus snapshot command so Build-mode environment/profile editing uses universal Undo/Redo and project dirty-state semantics
-- [ ] P11-T03 Implement deterministic time-of-day evaluation and Godot rendering bridge for directional sun, ambient/sky state, and fog-capable `Environment` resources
-- [ ] P11-T04 Implement reusable weather profile selection, deterministic transitions, runtime events, and safe missing/corrupt profile fallback behavior
-- [ ] P11-T05 Implement reusable wind state and consumer hooks for Phase 9 foliage/procedural runtime, particles, water, gameplay, and future systems
-- [ ] P11-T06 Implement Phase 5 biome/environment overrides with deterministic precedence, active-cell/streaming awareness, terrain-edit refresh, and safe missing biome/profile references
-- [ ] P11-T07 Implement stable water integration descriptors and runtime hooks for future providers without hardcoding a water asset/system
-- [ ] P11-T08 Integrate disposable Build → Play → Build environment evaluation with Phase 7 PlaySession and expose useful environment actions/events to Phase 8 Visual Scripting
-- [ ] P11-T09 Implement native Environment workspace authoring controls and status with keyboard/mouse plus gamepad paths while preserving the canonical UI direction
-- [ ] P11-T10 Complete save/reopen, Undo/Redo, deterministic day/night, weather, biome, terrain/foliage/wind, streaming, Build/Play isolation, failure, gamepad, scale/performance, strict-log, inherited regression, Godot Smoke, rendered evidence, documentation closeout, and one Phase 11 completion PR
+- [x] P11-T01 Implement schema-v1 environment state, stable-ID weather profiles, validation, project registry synchronization, and crash-safe `environment/environment.json` persistence
+- [x] P11-T02 Implement environment authoring service plus snapshot command so Build-mode environment/profile editing uses universal Undo/Redo and project dirty-state semantics
+- [x] P11-T03 Implement deterministic time-of-day evaluation and Godot rendering bridge for directional sun, ambient/sky state, and fog-capable `Environment` resources
+- [x] P11-T04 Implement reusable weather profile selection, deterministic transitions, runtime events, and safe missing/corrupt profile fallback behavior
+- [x] P11-T05 Implement reusable wind state and consumer hooks for Phase 9 foliage/procedural runtime, particles, water, gameplay, and future systems
+- [x] P11-T06 Implement Phase 5 biome/environment overrides with deterministic precedence, active-cell/streaming awareness, terrain-edit refresh, and safe missing biome/profile references
+- [x] P11-T07 Implement stable water integration descriptors and runtime hooks for future providers without hardcoding a water asset/system
+- [x] P11-T08 Integrate disposable Build → Play → Build environment evaluation with Phase 7 PlaySession and expose useful environment actions/events to Phase 8 Visual Scripting
+- [x] P11-T09 Implement native Environment workspace authoring controls and status with keyboard/mouse plus gamepad paths while preserving the canonical UI direction
+- [x] P11-T10 Complete save/reopen, Undo/Redo, deterministic day/night, weather, biome, terrain/foliage/wind, streaming, Build/Play isolation, failure, gamepad, scale/performance, strict-log, inherited regression, Godot Smoke, rendered evidence, documentation closeout, and one Phase 11 completion PR
+
+Verification completed on the milestone branch includes six Phase 11 contract suites, the full inherited Phase 6–10 regression gate, Godot Smoke, and three rendered Phase 11 evidence captures covering authored Environment editing, disposable night/weather Play evaluation, and authoritative Build restoration.
 
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
