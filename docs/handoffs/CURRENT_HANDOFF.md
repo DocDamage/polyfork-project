@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 6 HANDOFF
+# POLYFORK PROJECT — PHASE 6 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -9,7 +9,7 @@ The real project lives on:
 
 `master`
 
-Current authoritative `master` after merged PR #10:
+Authoritative `master` before Phase 6 merge:
 
 `6007a68bf98996d8f4b7619249506c91a8a54f75`
 
@@ -17,109 +17,180 @@ The repository default branch `main` remains obsolete starter code.
 
 **Never develop from `main`.**
 
-## Current project state
-Phases 0 through 5 are complete and merged.
+## Current milestone status
+Phases 0 through 5 are merged on authoritative `master`.
 
-Phase 5 delivered runtime terrain sculpting, stable terrain/cell persistence, Small/Medium/Large partition topology, deterministic Large-world streaming, incremental dirty-cell saves and recovery, data-driven biomes, stable cross-cell entity references, command-backed terrain undo/redo, keyboard/mouse/gamepad authoring, and rendered terrain evidence.
-
-## Development workflow
-The project uses milestone-based development, not one PR per small task.
-
-For Phase 6:
-1. Start from authoritative `master` commit `6007a68bf98996d8f4b7619249506c91a8a54f75`.
-2. Use the already-created milestone branch `dev/phase6-components-prefabs-milestone`.
-3. Work continuously through P06-T01 through P06-T08.
-4. Use intermediate commits and CI runs as needed.
-5. Fix failures without weakening tests.
-6. Update architecture, backlog, and handoff docs during closeout.
-7. Open exactly one Phase 6 completion PR targeting `master` after the milestone is complete and verified.
-8. Do not merge that PR without explicit user authorization.
-
-# NEXT AUTHORIZED MILESTONE
-
-## Phase 6 — Components, Archetypes, Prefabs
-
-Milestone branch:
+Phase 6 — Components, Archetypes, Prefabs — is implementation-complete and verified on:
 
 `dev/phase6-components-prefabs-milestone`
 
-Complete continuously:
+All internal Phase 6 checkpoints P06-T01 through P06-T08 are complete.
 
-- **P06-T01** — versioned component-definition, component-instance, archetype, prefab, socket, and attachment persistence contracts
-- **P06-T02** — initial reusable component registry with defaults, dependencies, conflicts, and validation
-- **P06-T03** — command-backed add/remove/configure component workflows for existing world entities
-- **P06-T04** — data-driven archetype registry and reversible archetype conversion/application flow
-- **P06-T05** — prefab save/snapshot, managed prefab repository, and stable-ID prefab instantiation through existing placement/runtime systems
-- **P06-T06** — prefab inheritance, derived prefabs, meaningful per-instance overrides, and deterministic effective-value resolution
-- **P06-T07** — named typed sockets, socket editing, command-backed attachments, and runtime attachment resolution without path-based identity
-- **P06-T08** — workspace, persistence/restart, scale, keyboard/mouse, gamepad, failure-path, inheritance, attachment, and rendered visual verification
+Completion PR:
 
-Use one Phase 6 branch and one completion PR. Do not stop at individual task boundaries.
+- PR #11 — `https://github.com/DocDamage/polyfork-project/pull/11`
+- Title: `Phase 6 — Components, Archetypes, Prefabs`
+- Base: `master`
+- Head: `dev/phase6-components-prefabs-milestone`
+- Status: **OPEN — DO NOT MERGE WITHOUT EXPLICIT USER AUTHORIZATION**
 
-## Product requirements
-Phase 6 must preserve the project gameplay-object model:
-- Any placed object can remain scenery or be promoted into a gameplay object.
-- Components are composable reusable behavior/data modules.
-- Archetypes bundle expected components and defaults without replacing stable entity identity.
-- Prefabs save reusable configured objects back into project-managed content storage.
-- Prefab inheritance supports base/derived relationships and meaningful per-instance overrides.
-- Named typed sockets support Grip, Seat, Mount, DoorHandle, Light, LootSpawn, Wheel, Muzzle, Camera, InteractionPoint, and custom extension points.
+No Phase 7 work has started.
 
-The initial component library is defined by `docs/systems/ENTITY_COMPONENT_PREFAB_SYSTEM.md` and must include:
-TransformMetadata, Collision, Interactable, Health, Damageable, PhysicsProp, InventoryContainer, Pickup, AudioEmitter, LightSource, Door, Seat, VehicleBody, CharacterController, NPCBrain, SpawnPoint, DialogueParticipant, QuestParticipant, TriggerVolume, SaveState, NetworkIdentityStub.
+## Verified implementation/docs head before this handoff-only closeout
 
-Phase 6 establishes valid data, editing, composition, prefab, inheritance, and attachment foundations. It must not prematurely implement the broad gameplay behavior systems reserved for Phase 10.
+`66637197968b95ff0aff91403268af603cc19568`
 
-## Architecture constraints
-- Persistent component, archetype, prefab, socket, attachment, and instance references use stable UUIDs only.
-- Scene-tree paths, node names, array indexes, asset source paths, or runtime node pointers may not become persistent identity.
-- Component definitions explicitly declare property schema/defaults, dependencies, conflicts, editor category, and future runtime hook metadata.
-- Dependency application must be deterministic and visible; conflicts must reject or require explicit resolution rather than silently removing authored data.
-- Component edits, archetype application, prefab assignment/instantiation, socket edits, and attachment edits are authored mutations and must be reversible through the existing command history.
-- Archetype application may add/configure required components, but must not replace the entity UUID or silently discard unrelated components.
-- Prefabs are project-managed canonical authored data, not Asset Library source mutations. Phase 4 external source folders remain read-only.
-- Prefab inheritance must reject cycles and missing base references.
-- Derived prefabs store their own stable identity and only authored differences where practical; effective resolution must be deterministic and independently testable.
-- Prefab instances retain stable entity IDs separate from prefab IDs. Instantiating a prefab more than once allocates new entity UUIDs while preserving the prefab reference.
-- Editing a prefab definition must never silently rewrite unrelated world entity identity.
-- Instance overrides remain explicit data; base prefab updates must not overwrite a valid explicit override.
-- Sockets are named typed stable-ID records with local transforms. Attachments persist by entity ID + socket ID, not node paths.
-- Runtime attachment resolution must fail safely when parent/socket/child is unavailable and recover when references become loadable again.
-- Cross-cell streaming from Phase 5 must remain valid for prefab instances and attachments.
-- Preserve the Phase 3 command/undo/redo system, Phase 4 Asset Library placement/read-only guarantees, and Phase 5 terrain/streaming behavior.
-- Core workflows support keyboard/mouse and gamepad.
-- Preserve the canonical dark playful Nintendo-forward / Apple-clean UI direction; extend contextual editor surfaces instead of creating an enterprise dashboard.
-- Keep production files around 300 LOC where practical and split by responsibility.
-- Never weaken tests to make broken behavior pass.
-- Continue using Godot 4.7.1 and the strict CI error-output gate.
+That head was verified green across all Phase 6 and inherited gates before the handoff-only commit.
 
-## Verification expectations
-The Phase 6 completion gate must behaviorally verify at least:
-- schema validation and unsupported/future versions
-- stable IDs and duplicate-ID rejection
-- all initial component definitions load and validate
-- property default/type/range/enum validation where declared
-- deterministic dependency resolution
+### Green verification runs
+- Godot Smoke: `31552050248` — SUCCESS
+  - runtime smoke
+  - Phase 1 visual capture
+  - Phase 4 visual capture
+  - Phase 5 visual capture
+- Phase 6 Contracts: `31552050246` — SUCCESS
+  - components
+  - prefabs
+  - sockets
+  - persistence
+  - scale
+  - real workspace
+- Phase 6 Visual Evidence: `31552050285` — SUCCESS
+- Phase 6 visual evidence artifact: `9124608541`
+
+Strict CI rejects `SCRIPT ERROR:` and engine `ERROR:` output. Phase 6 rendered evidence was manually inspected in addition to the automated PASS gate.
+
+## Branch integrity
+Immediately before PR creation:
+- merge base: `6007a68bf98996d8f4b7619249506c91a8a54f75`
+- authoritative `master`: `6007a68bf98996d8f4b7619249506c91a8a54f75`
+- Phase 6 branch: ahead only
+- behind `master`: 0 commits
+
+The completion branch therefore starts from the exact merged Phase 5 source-of-truth commit and contains no `main` ancestry drift.
+
+## Phase 6 delivered
+
+### Component and archetype foundation
+- schema-v1 component-definition and component-instance contracts
+- all 21 required initial component definitions
+- typed property defaults and validation
+- deterministic dependency closure
 - explicit conflict rejection
-- add/remove/configure component undo/redo and persistence
-- save/reopen component instances without identity drift
-- archetype application retaining entity identity and unrelated components
-- archetype dependency/conflict behavior and undo/redo
-- prefab save/reopen/instantiate and duplicate instance identity
-- prefab inheritance resolution, override preservation, cycle/missing-base failure paths
-- prefab instance save/reopen with stable prefab references
-- socket add/edit/remove validation and undo/redo
-- attachment creation/reparent/unattach using stable IDs and local socket transforms
-- missing/unloaded socket/parent/child safe failure and recovery
-- streamed cross-cell attachment/reference behavior
-- Asset Library source folders remain read-only
-- representative component/prefab scale tests
-- real keyboard/mouse workflows
-- real gamepad workflows
+- stable component instance identity
+- command-backed add/remove/configure workflows
+- nine data-driven archetype presets
+- archetype application preserving entity UUID and unrelated components
+- universal Undo/Redo integration
+
+### Project-managed gameplay persistence
+Phase 6 canonical authored data lives under:
+
+```text
+<project>/gameplay/
+  definitions.json
+  instances.json
+  archetypes.json
+  prefabs.json
+  sockets.json
+  attachments.json
+  prefab_instances.json
+```
+
+Persistence uses the existing crash-safe safe-JSON promotion path. Corrupt JSON and unsupported future schema versions fail closed. Failed promotion preserves prior canonical content. JSON arrays are explicitly reconstructed into typed gameplay state on reopen.
+
+Phase 4 external Asset Library source folders remain read-only and are never used for generated prefab/component content.
+
+### Prefabs and inheritance
+- save configured real world-entity hierarchies as managed prefabs
+- preserve asset references, transforms, component values, and named sockets
+- stable prefab and prefab-node UUIDs
+- fresh world-entity/component/socket UUIDs on every instantiation
+- stable prefab-instance records
+- deterministic base/derived inheritance
+- missing-base and inheritance-cycle rejection
+- explicit per-instance overrides that win over inherited values
+- Phase 5 cell resolver used for prefab placement ownership
+
+### Sockets and attachments
+- stable named typed socket records
+- Grip, Seat, Mount, DoorHandle, Light, LootSpawn, Wheel, Muzzle, Camera, InteractionPoint, and Custom extension support
+- command-backed socket add/edit/remove
+- command-backed attach/detach
+- attachment persistence by stable entity/socket IDs, never scene paths
+- transient runtime attachment anchors
+- safe unresolved state when participants are unavailable/streamed out
+- recovery when references become available again
+- fresh entity-owned socket IDs when a prefab is instantiated
+
+### Entity lifecycle compatibility
+Generic Phase 3 duplicate no longer aliases gameplay-owned component instance IDs.
+
+Gameplay records may remain dormant while their world owner is temporarily absent because of delete/undo/streaming. This preserves recoverability without weakening gameplay-internal reference validation or allowing new authoring against missing targets.
+
+### Gameplay workspace
+The existing Gameplay dock now opens a compact contextual composition panel with:
+- archetype selector/application
+- component selector/addition
+- prefab name/save
+- prefab selector/place
+- socket name/category/add
+- two-object attachment action
+
+The panel preserves the existing canonical dark playful Nintendo-forward / Apple-clean workspace rather than introducing a dashboard redesign.
+
+Keyboard/mouse controls use native focusable Godot controls. Gamepad X adds a component, Y applies an archetype, A activates focused native controls, and Escape closes Gameplay before leaving the workspace. Terrain, Asset Library, and the Phase 3 left-shoulder tool wheel remain available.
+
+## Verification coverage
+Phase 6 behaviorally verifies:
+- schema/type/range/enum validation
+- unsupported/future versions
+- stable IDs and duplicate rejection
+- all 21 built-in component definitions
+- deterministic dependencies and conflicts
+- component add/remove/configure + Undo/Redo + reopen
+- archetype identity preservation + Undo/Redo
+- prefab save/reopen/instantiate
+- repeated prefab identity separation
+- inheritance/overrides/cycle/missing-base behavior
+- prefab instance references
+- socket add/edit/remove + Undo/Redo
+- attachment/detach + runtime presentation
+- unloaded/missing participant safe behavior
+- streamed references
+- duplicate/delete gameplay recovery
+- Phase 4 source-folder read-only guarantees through inherited tests
+- real keyboard/mouse and gamepad workflows
+- representative scale workload
 - rendered Phase 6 visual evidence
-- strict raw Godot log inspection
+- strict Godot output gate
 
-## Completion gate
-Phase 6 is complete only when P06-T01 through P06-T08 are implemented and verified together. Then update backlog/architecture/handoff docs and open one Phase 6 completion PR targeting authoritative `master`.
+Representative scale verification covers 200 world entities, 600 component instances, and 50 derived-prefab inheritance chains. The time budget is a CI regression proxy, not a hardware FPS claim.
 
-Do not begin Phase 7 until the Phase 6 completion PR is explicitly merged.
+## Rendered evidence
+The Phase 6 rendered artifact contains:
+- `00-canonical-reference.png`
+- `01-gameplay-composition.png`
+- `02-prefab-socket-attachment.png`
+
+The captures show the real workspace with gameplay composition, applied components/archetype state, a named Grip socket, managed prefab state, two selected objects, and attachment controls.
+
+## Documentation closeout
+Updated for actual Phase 6 implementation:
+- `docs/architecture/SYSTEM_ARCHITECTURE.md`
+- `docs/architecture/DATA_MODEL.md`
+- `docs/architecture/FILE_FORMATS_VERSIONING.md`
+- `docs/implementation/TASK_BACKLOG.md`
+- this handoff
+
+## Next action
+The only authorized Phase 6 action is to review and explicitly merge PR #11.
+
+After PR #11 is explicitly merged:
+1. verify the resulting authoritative `master` SHA;
+2. read the master implementation plan for Phase 7 scope;
+3. create a Phase 7 milestone branch from that exact `master` commit;
+4. update the handoff/backlog on the Phase 7 branch;
+5. continue Phase 7 as one milestone with one completion PR.
+
+**Do not begin Phase 7 before PR #11 is explicitly merged.**
