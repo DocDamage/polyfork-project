@@ -1,166 +1,134 @@
 # Phase 13 — Export Pipeline Implementation Plan
 
-## Base and branch contract
+## Completion state
+**COMPLETE — COMPLETION PR PENDING**
+
 - Authoritative base: `master` at `b2a97a6cea52c6620f2b826a390a1d2d531ad81e`.
 - Milestone branch: `dev/phase13-export-pipeline-milestone`.
 - Pre-write compare gate: exact merge base, 0 ahead, 0 behind.
 - `main` is obsolete and prohibited as a development base.
+- Verified code-complete head before documentation closeout: `e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`.
 - One milestone PR only; do not merge without explicit authorization.
 
-## Architectural invariant
-Export is packaging and runtime bootstrapping, not a second engine. Exported games must reuse the Phase 7 Play/runtime foundation and existing systems for world data, terrain/streaming, gameplay, templates/modules, Visual Scripting, procedural content, Environment, and semantic input.
+## Architectural invariant — SATISFIED
+Export is packaging and runtime bootstrapping, not a second engine. Exported games reuse the Phase 7 `PlaySession` and existing world, terrain/streaming, gameplay, templates/modules, Visual Scripting, procedural, Environment, and semantic-input implementations.
 
-Editor-only systems may be omitted from the staged/exported project, but runtime-required code cannot be duplicated or reimplemented merely for export.
+The standalone path uses thin read-only staging/load adapters around those systems. No parallel runtime architecture was introduced.
 
-## P13-T01 — Contracts and package model
-Implement schema-v1 contracts for:
-- export manifest and build identity;
-- target/platform settings (Windows first);
-- deterministic package paths;
-- runtime/editor classification;
-- dependency entries and source lineage;
-- license/attribution entries;
-- validation findings;
-- export result/report metadata.
+## P13-T01 — Contracts and package model — COMPLETE
+Delivered schema-v1 contracts for build/export manifests, target/platform settings, deterministic package paths, runtime/editor classification, dependencies/source lineage, license/attribution entries, validation findings, and export results/reports.
 
-Acceptance:
+Verified behavior:
 - strict schema/version validation;
-- deterministic serialization/order;
-- unsafe/absolute traversal-style package paths rejected;
-- unknown target/runtime class rejected;
-- manifest contains no local secret/provider credential values.
+- deterministic ordering;
+- unsafe traversal/absolute package paths rejected;
+- unknown target/runtime classification rejected;
+- prohibited credential material rejected from manifests.
 
-## P13-T02 — Dependency discovery
-Discover runtime dependencies from the real authored project rather than scanning arbitrary editor state.
+## P13-T02 — Dependency discovery — COMPLETE
+Delivered deterministic authored dependency discovery with separate validation for Phase 7 runtime module IDs and Asset Library UUID dependencies.
 
-Include references from:
-- world entities and placed asset IDs;
-- Phase 6 gameplay/prefab definitions and attachments;
-- Phase 7 selected template and runtime modules;
-- Phase 8 Visual Scripting graphs/macros and runtime references;
-- Phase 9 foliage/scatter/spline source references;
-- Phase 11 Environment/water integration descriptors where they identify shipped resources;
-- terrain/project-managed runtime data required for standalone boot.
+Verified behavior:
+- world and authored subsystem references are scanned deterministically;
+- procedural asset sources participate in discovery;
+- runtime module IDs such as `core.world` are not misinterpreted as Asset Library UUIDs;
+- editor selection/history/UI state is not treated as runtime dependency input;
+- dependencies are de-duplicated and ordered.
 
-Acceptance:
-- stable-ID based, deterministic, de-duplicated results;
-- no dependency inferred from editor selection/history/UI state;
-- missing references return explicit findings rather than silent omission.
+## P13-T03 — Asset Library resolution — COMPLETE
+Delivered resolution through the existing Phase 4 Asset Library metadata and source registry.
 
-## P13-T03 — Asset Library resolution
-Resolve external dependencies through the existing Phase 4 catalog/import metadata.
+Verified behavior:
+- external source folders remain read-only;
+- only required assets are copied into deterministic project-managed staging paths;
+- source asset/path lineage is preserved;
+- missing or unavailable required assets block export;
+- arbitrary source-folder bulk copy is not used.
 
-Acceptance:
-- external source folders stay read-only;
-- shipped copies are staged into project-managed export space;
-- source asset ID and source path lineage retained in the report;
-- unavailable/missing required asset blocks export;
-- no arbitrary source-folder bulk copy.
+## P13-T04 — Licensing and attribution — COMPLETE
+Delivered deterministic machine-readable and human-readable attribution output.
 
-## P13-T04 — Licensing and attribution
-Aggregate license/attribution data for shipped dependencies.
+Verified behavior:
+- known Asset Library author/source/license metadata is preserved;
+- unknown/missing license information is reported explicitly;
+- no license grant or compatibility claim is invented;
+- output ordering is deterministic.
 
-Acceptance:
-- deterministic deduplication/order;
-- preserve author/source/license fields already known to the Asset Library;
-- unknown or missing license data is reported explicitly;
-- never invent a license grant or compatibility claim;
-- generate human-readable attribution plus machine-readable report data.
+## P13-T05 — Deterministic staging and stripping — COMPLETE
+Delivered staging from exact runtime source dependency closure plus an explicit authored-data plan.
 
-## P13-T05 — Deterministic staging and stripping
-Build a staging tree from an allowlisted runtime model.
+Verified behavior:
+- required runtime source/data is copied deterministically;
+- editor shell/workspaces, authoring-only AI/config/history data, checkpoints, recovery copies, and other non-runtime data are excluded;
+- authored world, terrain, gameplay, Visual Scripting, procedural, Environment, template/runtime, and resolved asset data required by the standalone build is preserved;
+- source project is not mutated;
+- repeated staging replaces stale output.
 
-Runtime-required examples:
-- Phase 7 runtime/session/controller and semantic input code;
-- world/project records needed to load the authored game;
-- terrain/streaming runtime;
-- gameplay runtime primitives and opted-in save-state behavior;
-- Visual Scripting compiler/interpreter/runtime session as required;
-- procedural runtime generation/source data;
-- Environment evaluator/render/runtime;
-- resolved templates/runtime modules;
-- resolved shipped assets.
+## P13-T06 — Standalone runtime bootstrap — COMPLETE
+Delivered a standalone entry scene/bootstrap with thin runtime adapters feeding the existing Phase 7 `PlaySession`.
 
-Editor-only examples:
-- Home/New World/editor workspace scenes;
-- inspector/tool panels/gizmos/selection/placement ghost;
-- authoring commands and Undo/Redo history where not required at runtime;
-- AI provider/workspace/configuration/orchestration;
-- thumbnail/browser/source-scanning UI and authoring caches;
-- editor evidence/test data.
+Verified behavior:
+- editor shell is not instantiated;
+- Phase 7 template/runtime modules resolve through the existing registry;
+- semantic input is installed through the existing gameplay input map;
+- terrain/streaming, gameplay, Visual Scripting, procedural, and Environment paths use existing implementations;
+- standalone runtime saves use the existing runtime save-state boundary rather than editor project mutation.
 
-Acceptance:
-- classification is explicit and testable, not filename-guessing at export time;
-- staging is deterministic for the same project/config;
-- authoring-only files are absent;
-- all required runtime files/data are present;
-- source project is never mutated.
+## P13-T07 — Windows export orchestration — COMPLETE
+Delivered Windows-first standalone export orchestration including managed preset generation, safe output validation, deterministic staging/output paths, Godot invocation, package promotion, reports, and repeat-export replacement.
 
-## P13-T06 — Standalone runtime bootstrap
-Add an exported entry scene/bootstrap that loads the staged authored project and enters the existing Phase 7 runtime path directly.
+Verified behavior:
+- Small/Medium/Large Windows projects export successfully;
+- a second export replaces stale package files rather than accumulating them;
+- failed dependencies/export conditions return explicit failures;
+- package includes executable/runtime payload plus manifest/report/attribution outputs.
 
-Acceptance:
-- no editor shell is instantiated;
-- selected Phase 7 template/runtime modules resolve normally;
-- semantic input is installed for keyboard/mouse and gamepad;
-- terrain/streaming, gameplay, Visual Scripting, procedural, and Environment runtime integrations use their existing implementations;
-- runtime mutable state remains disposable or save-state managed according to existing contracts.
+## P13-T08 — Build → Export UX — COMPLETE
+Delivered a compact Build-mode Export control integrated into the canonical workspace rather than a separate export application or permanent enterprise-style toolbar.
 
-## P13-T07 — Windows export orchestration
-Windows is the first supported standalone target.
+Verified behavior:
+- Windows target/output/status are visible in the Export panel;
+- keyboard/mouse and gamepad focus paths are supported;
+- Export is unavailable with no project and blocked during Play/transient placement/invalid states;
+- successful export reports the deterministic output location.
 
-Implement:
-- generated/managed Godot export preset contract;
-- deterministic staging/output directories;
-- safe output-path validation;
-- Godot command/export invocation boundary with actionable exit/error reporting;
-- repeat-export replacement/idempotency semantics;
-- deterministic report/artifact naming.
-
-Acceptance:
-- second identical export does not accumulate stale files;
-- failed export leaves an explicit failure report and does not masquerade as success;
-- editor project remains intact;
-- package contains standalone executable/PCK or equivalent Godot Windows artifacts plus attribution/report files.
-
-## P13-T08 — Build → Export UX
-Expose export from the existing canonical application shell without adding permanent enterprise-style chrome.
-
-Acceptance:
-- clear Windows target/output/status controls;
-- keyboard/mouse path;
-- gamepad reachable path;
-- export disabled/blocked for no project, Play-active/transient states, validation failure, or unresolved dependencies;
-- success reveals the deterministic output location/report.
-
-## P13-T09 — Automated verification
-Add dedicated Phase 13 suites for:
+## P13-T09 — Automated verification — COMPLETE
+Dedicated Phase 13 suites verify behavior rather than symbol presence, including:
 - manifest/schema/path/classification contracts;
-- dependency discovery and de-duplication;
-- Phase 4 asset resolution and missing dependency failures;
-- licensing/attribution aggregation;
+- source dependency closure;
+- Asset Library resolution and missing dependencies;
+- license/attribution behavior;
 - editor stripping/runtime preservation;
 - deterministic/idempotent staging;
-- standalone bootstrap reusing Phase 7 runtime;
-- Small/Medium/Large representative project manifests/staging;
-- keyboard/gamepad input contract preservation;
-- inherited Phase 6–12 regressions and strict Godot log gates.
+- standalone bootstrap reuse of Phase 7 runtime;
+- semantic keyboard/gamepad input contracts;
+- canonical Export workspace behavior and transient-state blocking;
+- inherited Phase 6–12 regressions.
 
-Tests must verify behavior, not merely symbol existence.
+## P13-T10 — Real export evidence and closeout — COMPLETE
+The milestone gate completed:
+1. representative Small/Medium/Large projects were created/staged/exported;
+2. Windows standalone packages were produced;
+3. package/report/attribution layout was verified;
+4. exports were repeated and stale-file replacement verified;
+5. packages were copied to a separate clean-package location;
+6. copied executables launched through the existing Phase 7 third-person runtime;
+7. keyboard/mouse and gamepad semantic bindings were verified;
+8. strict Godot log gates passed;
+9. inherited Phase 6–12 regression gates passed;
+10. Godot Smoke passed;
+11. rendered canonical Build → Export evidence was captured;
+12. documentation closeout was completed.
 
-## P13-T10 — Real export evidence and closeout
-Run the real Windows milestone gate:
-1. create/open representative project;
-2. Build/save;
-3. export;
-4. inspect package structure/report/attributions;
-5. launch standalone build without the editor shell;
-6. verify runtime world/template path, keyboard/mouse and gamepad semantics;
-7. verify strict logs;
-8. repeat export and verify deterministic replacement/idempotency;
-9. run representative Small/Medium/Large coverage;
-10. retain rendered/exported runtime evidence;
-11. run inherited Phase 6–12 regression gates and Godot Smoke;
-12. close documentation and open one Phase 13 completion PR.
+### Verified code-complete workflow evidence
+All five workflows passed on `e8c939a4bc86ef011fcb42c0e8f4b197b470b4e2`:
+- Godot Smoke — `31617622730`
+- Phase 13 Windows Export — `31617622756`
+- Phase 13 Visual Evidence — `31617622776`
+- Phase 13 Inherited Regressions — `31617622791`
+- Phase 13 Contracts — `31617622792`
 
-Do not merge that PR without explicit user authorization. Do not begin Phase 14 before merge verification.
+## Completion PR gate
+The only authorized next step is one Phase 13 completion PR from `dev/phase13-export-pipeline-milestone` to authoritative `master`.
+
+Do **not** merge that PR without explicit user authorization. Do **not** begin Phase 14 until the PR is explicitly merged and the resulting authoritative `master` SHA is verified.
