@@ -74,7 +74,7 @@ func refresh_state() -> void:
     var configuration: Dictionary = _workspace.get_configuration() if _workspace.has_method("get_configuration") else {}
     var runtime: Dictionary = configuration.get("runtime", {})
     var capability: Dictionary = TemplateContract.normalize(runtime.get("multiplayer", null))
-    var supported := bool(capability.get("enabled", false))
+    var supported: bool = bool(capability.get("enabled", false))
     _button.disabled = not supported
     if _capability_label != null:
         if supported:
@@ -87,20 +87,18 @@ func refresh_state() -> void:
         else:
             _capability_label.text = "This template is offline-only."
     var status: Dictionary = _network.get_status() if _network != null and _network.has_method("get_status") else {}
-    var role := str(status.get("role", Contract.ROLE_OFFLINE))
-    var ready := bool(status.get("ready", false))
-    var peer_count := int(status.get("peer_count", 0))
+    var role: String = str(status.get("role", Contract.ROLE_OFFLINE))
+    var ready: bool = bool(status.get("ready", false))
+    var peer_count: int = int(status.get("peer_count", 0))
     if role == Contract.ROLE_OFFLINE:
         _button.text = "Multiplayer"
     elif ready:
         _button.text = "%s • %d" % ["Host" if role == Contract.ROLE_HOST else "Joined", peer_count]
     else:
         _button.text = "Host Armed" if role == Contract.ROLE_HOST else "Join Armed"
-    if _peer_status != null:
-        _peer_status.text = "Peers • %d" % peer_count if ready else "No active network peers"
-    if _status != null:
-        _status.text = _status_text(status)
-    var in_play := _workspace.has_method("get_mode") and _workspace.get_mode() == &"play"
+    if _peer_status != null: _peer_status.text = "Peers • %d" % peer_count if ready else "No active network peers"
+    if _status != null: _status.text = _status_text(status)
+    var in_play: bool = bool(_workspace.has_method("get_mode") and _workspace.get_mode() == &"play")
     if _host_button != null: _host_button.disabled = not supported or in_play or ready
     if _join_button != null: _join_button.disabled = not supported or in_play or ready
     if _offline_button != null: _offline_button.disabled = role == Contract.ROLE_OFFLINE and not ready
@@ -125,7 +123,7 @@ func get_address_field() -> LineEdit: return _address
 func get_port_field() -> SpinBox: return _port
 
 func _bind_current_workspace() -> void:
-    var current := get_tree().current_scene
+    var current: Node = get_tree().current_scene
     if current == null: return
     var workspace = current.get_node_or_null("WorkspaceScreen")
     if workspace == null: workspace = current.find_child("WorkspaceScreen", true, false)
@@ -187,7 +185,7 @@ func _host_and_play() -> void:
 
 func _join_and_play() -> void:
     if _network == null: _set_status("Multiplayer runtime service is unavailable.", true); return
-    var address := _address.text.strip_edges()
+    var address: String = _address.text.strip_edges()
     var result: Dictionary = _network.join(address, int(_port.value), _player_label.text.strip_edges())
     if not result.get("ok", false): _set_status(str(result.get("errors", ["Unable to arm client session."])[0]), true); return
     _set_status("Join armed for %s:%d. Entering Play…" % [address, int(_port.value)], false)
@@ -202,7 +200,7 @@ func _go_offline() -> void:
 
 func _enter_play() -> void:
     if _workspace == null: return
-    var play_button := _workspace.find_child("PlayButton", true, false) as Button
+    var play_button: Button = _workspace.find_child("PlayButton", true, false) as Button
     if play_button != null and not play_button.disabled: play_button.emit_signal("pressed")
 
 func _on_network_status_changed(_value: Dictionary) -> void: refresh_state()
@@ -216,12 +214,12 @@ func _on_layout_mode_changed(_compact: bool) -> void:
 
 func _update_input_hint() -> void:
     if _hint == null: return
-    var gamepad := _scale != null and _scale.has_method("get_input_context") and _scale.get_input_context() == &"gamepad"
+    var gamepad: bool = bool(_scale != null and _scale.has_method("get_input_context") and _scale.get_input_context() == &"gamepad")
     _hint.text = "D-pad / stick: move focus  •  A: select  •  B: close" if gamepad else "Tab / Shift+Tab: move focus  •  Enter: select  •  Esc: close"
 
 func _status_text(status: Dictionary) -> String:
-    var role := str(status.get("role", Contract.ROLE_OFFLINE))
-    var state := str(status.get("state", "build"))
+    var role: String = str(status.get("role", Contract.ROLE_OFFLINE))
+    var state: String = str(status.get("state", "build"))
     if not status.get("last_error", []).is_empty(): return str(status.get("last_error", ["Network error"])[0])
     if role == Contract.ROLE_OFFLINE: return "Offline Play uses the existing single-player runtime unchanged."
     if state == "build": return "%s armed. Start Play to create the network session." % ("Host" if role == Contract.ROLE_HOST else "Join")
