@@ -17,6 +17,7 @@ const RuntimeHealthService = preload("res://src/gameplay/runtime_health_service.
 const RuntimeNpcAiService = preload("res://src/gameplay/runtime_npc_ai_service.gd")
 const RuntimeDialogueService = preload("res://src/gameplay/runtime_dialogue_service.gd")
 const RuntimeQuestService = preload("res://src/gameplay/runtime_quest_service.gd")
+const RuntimeVehicleService = preload("res://src/gameplay/runtime_vehicle_service.gd")
 
 var _runtime_state = RuntimeState.new()
 var _gameplay_runtime = RuntimeGameplayState.new()
@@ -26,6 +27,7 @@ var _health_runtime = RuntimeHealthService.new()
 var _npc_runtime = RuntimeNpcAiService.new()
 var _dialogue_runtime = RuntimeDialogueService.new()
 var _quest_runtime = RuntimeQuestService.new()
+var _vehicle_runtime = RuntimeVehicleService.new()
 var _visual_runtime = VisualGraphRuntime.new()
 var _visual_graph_provider := Callable()
 var _gameplay_state_provider := Callable()
@@ -127,6 +129,7 @@ func get_health_runtime(): return _health_runtime
 func get_npc_runtime(): return _npc_runtime
 func get_dialogue_runtime(): return _dialogue_runtime
 func get_quest_runtime(): return _quest_runtime
+func get_vehicle_runtime(): return _vehicle_runtime
 func get_player(): return _player
 func get_last_visual_graph_result() -> Dictionary: return _last_visual_result.duplicate(true)
 
@@ -135,6 +138,8 @@ func _physics_process(delta: float) -> void:
     _update_streaming_focus()
     var npc_result: Dictionary = _npc_runtime.advance(delta)
     if not npc_result.get("ok", false): push_warning("NPC runtime advance failed: %s" % str(npc_result.get("errors", [])))
+    var vehicle_result: Dictionary = _vehicle_runtime.advance(delta)
+    if not vehicle_result.get("ok", false): push_warning("Vehicle runtime advance failed: %s" % str(vehicle_result.get("errors", [])))
 func _unhandled_input(event: InputEvent) -> void:
     if _active and event.is_action_pressed(GameplayInput.EXIT): exit_requested.emit(); get_viewport().set_input_as_handled()
 
@@ -172,9 +177,12 @@ func _bind_gameplay_services() -> Dictionary:
     if not quest_result.get("ok", false): return quest_result
     var dialogue_result: Dictionary = _dialogue_runtime.bind_runtime(_gameplay_runtime)
     if not dialogue_result.get("ok", false): return dialogue_result
+    var vehicle_result: Dictionary = _vehicle_runtime.bind_runtime(_gameplay_runtime, _runtime_state)
+    if not vehicle_result.get("ok", false): return vehicle_result
     return {"ok": true, "errors": []}
 
 func _clear_runtime_services() -> void:
+    _vehicle_runtime.clear()
     _dialogue_runtime.clear()
     _quest_runtime.clear()
     _npc_runtime.clear()
