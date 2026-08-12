@@ -8,15 +8,32 @@ const NodeLibrary = preload("res://src/visual_scripting/builtin_visual_node_libr
 func compile_graph(graph: Dictionary, graph_registry: Dictionary = {}) -> Dictionary:
     var errors: Array[String] = Contracts.validate_graph(graph, NodeLibrary.keys())
     if not errors.is_empty(): return {"ok":false,"errors":errors}
-    var nodes: Dictionary = {}; var definitions: Dictionary = {}; var entries: Array[String] = []
+    var nodes: Dictionary = {}; var definitions: Dictionary = {}; var entries: Array[String] = []; var macro_dependencies: Array[String] = []
     for value in graph.get("nodes", []):
-        var node: Dictionary = value; var node_id := str(node.get("node_id", "")); var type_key := str(node.get("type_key", ""))
-        nodes[node_id] = node.duplicate(true); definitions[node_id] = NodeLibrary.get_definition(type_key)
-        if type_key == "event.start": entries.append(node_id)
-    if str(graph.get("kind", "event")) == "event" and entries.is_empty(): errors.append("Event visual graph requires at least one Start node.")
-    entries.sort()
-    var exec_out: Dictionary = {}; var data_in: Dictionary = {}; var macro_dependencies: Array[String] = []
-    var connections: Array[Dictionary] = []
+        var node: Dictionary = value; var node_id := str(node.get("node_id", "")); var type_key := str(node.get("type_key", "")); var definition := NodeLibrary.get_definition(type_key)
+        if type_key == "macro.entry":
+            definition["value_outputs"] = _interface_types(graph.get("interface", {}).get("inputs", []))
+            if str(graph.get("kind", "")) == "macro": entries.append(node_id)
+        elif type_key == "macro.return": definition["value_inputs"] = _interface_types(graph.get("interface", {}).get("outputs", []))
+        elif type_key == "macro.call":
+            var macro_id := str(node.get("properties", {}).get("macro_graph_id", ""))
+            if macro_id.is_empty() or not StableId.is_valid(macro_id): errors.append("Macro Call node requires a stable macro_graph_id.")
+            elif graph_registry.is_empty():
+                if not macro_dependencies.has(macro_id): macro_dependencies.append(macro_id)
+            else:
+                var macro: Dictionary = graph_registry.get(macro_id, {})
+                if macro.is_empty(): errors.append("Macro Call references a missing graph: %s" % macro_id)
+                elif str(macro.get("kind", "")) != "macro": errors.append("Macro Call target must be a macro graph: %s" % macro_id)
+                else:
+                    definition["value_inputs"] = _interface_types(macro.get("interface", {}).get("inputs", [])); definition["value_outputs"] = _interface_types(macro.get("interface", {}).get("outputs", []))
+                    if not macro_dependencies.has(macro_id): macro_dependencies.append(macro_id)
+        elif type_key == "event.start" and str(graph.get("kind", "event")) == "event": entries.append(node_id)
+        nodes[node_id] = node.duplicate(true); definitions[node_id] = definition
+    var graph_kind := str(graph.get("kind", "event"))
+    if graph_kind == "event" and entries.is_empty(): errors.append("Event visual graph requires at least one Start node.")
+    if graph_kind == "macro" and entries.size() != 1: errors.append("Macro visual graph requires exactly one Macro Entry node.")
+    entries.sort(); macro_dependencies.sort()
+    var exec_out: Dictionary = {}; var data_in: Dictionary = {}; var connections: Array[Dictionary] = []
     for value in graph.get("connections", []): connections.append(value.duplicate(true))
     connections.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return str(a.get("connection_id", "")) < str(b.get("connection_id", "")))
     for connection in connections:
@@ -25,8 +42,7 @@ func compile_graph(graph: Dictionary, graph_registry: Dictionary = {}) -> Dictio
         if kind == "exec":
             if not source_definition.get("exec_outputs", []).has(from_port): errors.append("Exec source port does not exist: %s.%s" % [from_id, from_port]); continue
             if not target_definition.get("exec_inputs", []).has(to_port): errors.append("Exec target port does not exist: %s.%s" % [to_id, to_port]); continue
-            var source_outputs: Dictionary = exec_out.get(from_id, {})
-            var targets: Array[String] = []
+            var source_outputs: Dictionary = exec_out.get(from_id, {}); var targets: Array[String] = []
             for target_value in source_outputs.get(from_port, []): targets.append(str(target_value))
             targets.append(to_id); targets.sort(); source_outputs[from_port] = targets; exec_out[from_id] = source_outputs
         else:
@@ -38,26 +54,13 @@ func compile_graph(graph: Dictionary, graph_registry: Dictionary = {}) -> Dictio
             var source_type := str(source_outputs[from_port]); var target_type := str(target_inputs[to_port])
             if not _types_compatible(source_type, target_type): errors.append("Incompatible visual graph data types: %s -> %s" % [source_type, target_type]); continue
             data_in[target_key] = {"node_id":from_id,"port":from_port,"type":source_type}
-    for node_id in nodes.keys():
-        var node: Dictionary = nodes[node_id]
-        if str(node.get("type_key", "")) != "macro.call": continue
-        var macro_id := str(node.get("properties", {}).get("macro_graph_id", ""))
-        if macro_id.is_empty(): errors.append("Macro Call node requires macro_graph_id."); continue
-        if not StableId.is_valid(macro_id): errors.append("Macro Call node requires a stable macro graph ID."); continue
-        if not graph_registry.is_empty():
-            var macro: Dictionary = graph_registry.get(macro_id, {})
-            if macro.is_empty(): errors.append("Macro Call references a missing graph: %s" % macro_id); continue
-            if str(macro.get("kind", "")) != "macro": errors.append("Macro Call target must be a macro graph: %s" % macro_id); continue
-        if not macro_dependencies.has(macro_id): macro_dependencies.append(macro_id)
-    macro_dependencies.sort()
     if not errors.is_empty(): return {"ok":false,"errors":errors}
-    return {"ok":true,"errors":[],"plan":{"graph_id":str(graph.get("graph_id", "")),"kind":str(graph.get("kind", "event")),"enabled":bool(graph.get("enabled", true)),"nodes":nodes,"definitions":definitions,"entries":entries,"exec_out":exec_out,"data_in":data_in,"variables":graph.get("variables", []).duplicate(true),"interface":graph.get("interface", {}).duplicate(true),"macro_dependencies":macro_dependencies}}
+    return {"ok":true,"errors":[],"plan":{"graph_id":str(graph.get("graph_id", "")),"kind":graph_kind,"enabled":bool(graph.get("enabled", true)),"nodes":nodes,"definitions":definitions,"entries":entries,"exec_out":exec_out,"data_in":data_in,"variables":graph.get("variables", []).duplicate(true),"interface":graph.get("interface", {}).duplicate(true),"macro_dependencies":macro_dependencies}}
 
 func compile_registry(graphs: Array[Dictionary]) -> Dictionary:
     var by_id: Dictionary = {}
     for graph in graphs: by_id[str(graph.get("graph_id", ""))] = graph.duplicate(true)
-    var plans: Dictionary = {}; var errors: Array[String] = []
-    var ids: Array[String] = []
+    var plans: Dictionary = {}; var errors: Array[String] = []; var ids: Array[String] = []
     for graph_id in by_id.keys(): ids.append(str(graph_id))
     ids.sort()
     for graph_id in ids:
@@ -70,13 +73,11 @@ func compile_registry(graphs: Array[Dictionary]) -> Dictionary:
     return {"ok":true,"errors":[],"plans":plans}
 
 func _validate_macro_cycles(plans: Dictionary) -> Array[String]:
-    var errors: Array[String] = []; var visiting: Dictionary = {}; var visited: Dictionary = {}
-    var ids: Array[String] = []
+    var errors: Array[String] = []; var visiting: Dictionary = {}; var visited: Dictionary = {}; var ids: Array[String] = []
     for graph_id in plans.keys(): ids.append(str(graph_id))
     ids.sort()
     for graph_id in ids:
-        var path: Array[String] = []
-        _visit_macro(graph_id, plans, visiting, visited, path, errors)
+        var path: Array[String] = []; _visit_macro(graph_id, plans, visiting, visited, path, errors)
     return errors
 
 func _visit_macro(graph_id: String, plans: Dictionary, visiting: Dictionary, visited: Dictionary, path: Array[String], errors: Array[String]) -> void:
@@ -88,6 +89,12 @@ func _visit_macro(graph_id: String, plans: Dictionary, visiting: Dictionary, vis
     for dependency in plan.get("macro_dependencies", []):
         if plans.has(str(dependency)): _visit_macro(str(dependency), plans, visiting, visited, path, errors)
     path.pop_back(); visiting.erase(graph_id); visited[graph_id] = true
+
+static func _interface_types(ports: Array) -> Dictionary:
+    var result: Dictionary = {}
+    for value in ports:
+        if value is Dictionary: result[str(value.get("name", ""))] = str(value.get("type", "any"))
+    return result
 
 static func _types_compatible(source_type: String, target_type: String) -> bool:
     if source_type == "any" or target_type == "any" or source_type == target_type: return true

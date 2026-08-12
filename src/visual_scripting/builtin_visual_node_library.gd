@@ -15,6 +15,8 @@ const DEFINITIONS := [
     {"key":"variable.set","display_name":"Set Variable","category":"Variables","exec_inputs":["in"],"exec_outputs":["next"],"value_inputs":{"value":"any"},"value_outputs":{"value":"any"},"properties":{"variable_id":""}},
     {"key":"entity.get_position","display_name":"Get Position","category":"Entity","exec_inputs":[],"exec_outputs":[],"value_inputs":{"entity_id":"entity"},"value_outputs":{"position":"vector3"},"properties":{}},
     {"key":"entity.set_position","display_name":"Set Position","category":"Entity","exec_inputs":["in"],"exec_outputs":["next"],"value_inputs":{"entity_id":"entity","position":"vector3"},"value_outputs":{},"properties":{}},
+    {"key":"macro.entry","display_name":"Macro Entry","category":"Macro","exec_inputs":[],"exec_outputs":["next"],"value_inputs":{},"value_outputs":{},"properties":{}},
+    {"key":"macro.return","display_name":"Macro Return","category":"Macro","exec_inputs":["in"],"exec_outputs":[],"value_inputs":{},"value_outputs":{},"properties":{}},
     {"key":"macro.call","display_name":"Call Macro","category":"Macro","exec_inputs":["in"],"exec_outputs":["next"],"value_inputs":{},"value_outputs":{},"properties":{"macro_graph_id":""}},
     {"key":"debug.print","display_name":"Print","category":"Debug","exec_inputs":["in"],"exec_outputs":["next"],"value_inputs":{"value":"any"},"value_outputs":{},"properties":{}}
 ]
