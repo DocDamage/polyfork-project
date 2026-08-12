@@ -129,7 +129,7 @@ Phase 10 is complete and merged on authoritative `master` by PR #15 at `ac2753f8
 - [x] P10-T10 Complete Gameplay workspace integration, keyboard/mouse + gamepad UX, save/reopen/failure/scale/performance tests, inherited regression gate preparation, strict-log gates, rendered evidence, documentation closeout, and one Phase 10 completion PR
 
 ## Phase 11 — Environment
-Phase 11 implementation and verification are complete on `dev/phase11-environment-milestone`, created from exactly authoritative `master` `ac2753f81c9c6be53abe89b102e1f9911a595944`. The milestone remains merge-gated until its single completion PR is explicitly approved and merged.
+Phase 11 is complete and merged on authoritative `master` by PR #16 at `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
 
 - [x] P11-T01 Implement schema-v1 environment state, stable-ID weather profiles, validation, project registry synchronization, and crash-safe `environment/environment.json` persistence
 - [x] P11-T02 Implement environment authoring service plus snapshot command so Build-mode environment/profile editing uses universal Undo/Redo and project dirty-state semantics
@@ -142,9 +142,21 @@ Phase 11 implementation and verification are complete on `dev/phase11-environmen
 - [x] P11-T09 Implement native Environment workspace authoring controls and status with keyboard/mouse plus gamepad paths while preserving the canonical UI direction
 - [x] P11-T10 Complete save/reopen, Undo/Redo, deterministic day/night, weather, biome, terrain/foliage/wind, streaming, Build/Play isolation, failure, gamepad, scale/performance, strict-log, inherited regression, Godot Smoke, rendered evidence, documentation closeout, and one Phase 11 completion PR
 
-Verification completed on the milestone branch includes six Phase 11 contract suites, the full inherited Phase 6–10 regression gate, Godot Smoke, and three rendered Phase 11 evidence captures covering authored Environment editing, disposable night/weather Play evaluation, and authoritative Build restoration.
+## Phase 12 — AI Creation
+Phase 12 is active on `dev/phase12-ai-creation-milestone`, created from exactly authoritative `master` `d7245cad68b512fc5cbf9b897bce506ecbb9837d`. Work the milestone continuously and open one completion PR only after full verification.
+
+- [ ] P12-T01 Implement schema-v1 AI request/proposal/action/history contracts, provider descriptors, privacy policy, limits, and user-scoped provider configuration that never persists credentials in project data
+- [ ] P12-T02 Implement provider registry plus real OpenAI-compatible local/cloud HTTP adapter with environment-scoped credentials, structured responses/tool calls, timeout/cancel/error handling, and cloud/local disclosure metadata
+- [ ] P12-T03 Implement bounded read-only AI query tools over the actual project and Phase 4 Asset Library, including entities, gameplay, terrain/biomes, Visual Scripting, procedural systems, environment state, asset licenses, and exact stable IDs
+- [ ] P12-T04 Implement strict proposal/action validation, deterministic normalization, action limits, stable-reference checking, and explicit rejection of unavailable/missing assets or unsupported provider output
+- [ ] P12-T05 Implement Suggest mode as read-only provider orchestration with bounded query/tool loops, project-aware recommendations, and zero authored mutation
+- [ ] P12-T06 Implement Preview mode with deterministic action impact summaries/diffs, source-asset lineage, validation findings, and zero authored mutation
+- [ ] P12-T07 Implement Execute mode by composing existing subsystem commands into one atomic universal transaction with rollback, one-step Undo/Redo, dirty-state integration, and project-managed AI execution history
+- [ ] P12-T08 Implement representative cross-system AI actions for existing-asset placement/transforms, gameplay composition, Visual Scripting graph creation, procedural settings/creation, and Environment authoring without parallel state systems
+- [ ] P12-T09 Implement native AI workspace behind the existing AI dock entry with provider/mode/prompt/context/result controls, explicit local/cloud disclosure, keyboard/mouse and gamepad authoring, Preview-before-Execute UX, and cancellation/status handling
+- [ ] P12-T10 Complete privacy/credential, project/catalog query, missing-asset, invalid-provider-output, Suggest/Preview/Execute isolation, atomic rollback/Undo, save/reopen/history, cross-system, gamepad, scale/performance, strict-log, inherited regression, Godot Smoke, rendered visual evidence, documentation closeout, and one Phase 12 completion PR
 
 ## Later phases
 Before beginning a later phase, decompose it into implementation-sized internal tasks. Use intermediate commits and CI runs inside the milestone, then open one PR at the milestone boundary.
 
-Do not begin Phase 12 until the Phase 11 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
+Do not begin Phase 13 until the Phase 12 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.

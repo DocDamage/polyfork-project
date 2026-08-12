@@ -67,7 +67,7 @@ Completed milestone breadth:
 
 Phase 10 was merged by PR #15 at authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
 
-## Phase 11 — Environment — IMPLEMENTATION COMPLETE / MERGE GATED
+## Phase 11 — Environment — COMPLETE
 Phase 11 was developed as one continuous milestone on `dev/phase11-environment-milestone`, created from exactly authoritative `master` commit `ac2753f81c9c6be53abe89b102e1f9911a595944`.
 
 Completed milestone breadth:
@@ -82,16 +82,31 @@ Completed milestone breadth:
 - fully disposable Phase 7 Play environment runtimes with authored Build restoration, no leaked Play nodes, and existing gameplay-event routing;
 - Phase 8 Visual Scripting Environment nodes for reading state, setting time/weather, and clearing runtime weather overrides;
 - native Environment authoring behind the canonical Water dock entry, preserving the existing shell while providing time/weather/fog/wind/biome/water controls with keyboard/mouse and gamepad paths;
-- six dedicated Phase 11 contract suites covering persistence/reopen/corruption, universal Undo/Redo, deterministic evaluation, weather/biome/wind/water coupling, Visual Scripting/Play isolation, real workspace input paths, and representative large-world scale/streaming;
-- explicit inherited Phase 6–10 contract regression gate, current Godot Smoke, strict Godot log gates, and three rendered Phase 11 evidence captures for authored editing, disposable night/weather Play, and authoritative Build restoration.
+- six dedicated Phase 11 contract suites, inherited Phase 6–10 regression coverage, Godot Smoke, strict logs, and rendered evidence.
 
-Phase 11 implementation is complete on the milestone branch but remains completion-PR gated. Do not merge its completion PR without explicit user authorization. Phase 12 remains blocked until the Phase 11 completion PR is explicitly merged into authoritative `master` and the resulting `master` SHA is verified.
+Phase 11 was merged by PR #16 at authoritative `master` commit `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
 
-## Phase 12 — AI creation
-- Provider interface.
-- Catalog/project query tools.
-- Suggest/Preview/Execute.
-- Transactional execution and history.
+## Phase 12 — AI Creation — IMPLEMENTATION COMPLETE / COMPLETION PR PENDING
+Phase 12 was developed as one continuous milestone on `dev/phase12-ai-creation-milestone`, created from exactly authoritative `master` commit `d7245cad68b512fc5cbf9b897bce506ecbb9837d`.
+
+Completed milestone breadth:
+- schema-v1 AI request, proposal, action, provider-settings, and execution-history contracts with stable local identities, bounded prompts/context/action counts, and strict untrusted-output validation;
+- user-scoped provider settings under `user://polyfork/ai/providers.json`, with local-only/cloud-consent privacy policy and no credential values persisted into projects or AI history;
+- real OpenAI-compatible HTTP provider support for loopback/local or HTTPS cloud endpoints, environment-variable credential lookup, cancellation/timeouts, structured content/tool-call parsing, malformed/remote-error handling, and explicit local/cloud disclosure;
+- bounded read-only project tools over the real Phase 4 Asset Library and authored project state, including entities, gameplay, terrain/biomes, Visual Scripting, procedural data, Environment state, stable IDs, and sanitized license metadata;
+- provider proposals normalized locally so providers cannot select persisted IDs, with sequential proposal-local aliases for newly placed entities and strict live reference/missing-asset checks;
+- Suggest mode with bounded read-only provider/tool rounds and zero authored mutation;
+- Preview mode with deterministic impact summaries/source-asset lineage and zero authored mutation;
+- Execute mode compiled through existing world/gameplay/Visual Scripting/procedural/Environment snapshot commands inside one outer universal transaction, providing all-or-nothing rollback and exactly one Undo/Redo step;
+- crash-safe project-managed `ai/history.json` execution history with applied/undone status, exact source Asset Library IDs, save/reopen/corruption checks, and no credentials;
+- representative cross-system AI actions for existing-asset/proxy placement and transforms, dependency-aware gameplay composition, validated Visual Scripting graph creation, procedural foliage authoring, and Environment authoring without duplicate subsystem state;
+- native AI workspace behind the existing AI dock entry with provider configuration, local/cloud disclosure, Suggest/Preview/Execute, Preview-before-Execute, cancellation/status, keyboard/mouse, and Y/X/A gamepad paths;
+- Build-only provider authoring enforcement so AI requests/Execute cannot mutate authored state during Play;
+- removal of the unused tracked `.polyforkAPI` token file from the active branch and explicit `.gitignore` protection for local Polyfork token files; historical credential material must still be rotated/revoked separately;
+- seven dedicated Phase 12 contract suites covering foundation/privacy/provider parsing, atomic rollback, crash-safe history, cross-system Execute/Undo/Redo, real workspace/gamepad, bounded provider orchestration, and a 256-entity/64-action scale boundary;
+- inherited Phase 6–11 regression coverage, Godot Smoke, strict-log gates, and rendered Phase 12 visual evidence for validated Preview, atomic Execute, and complete Undo restoration.
+
+Phase 12 is completion-PR gated. Open one completion PR targeting authoritative `master`; do not merge it without explicit user authorization. Phase 13 remains blocked until the Phase 12 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Phase 13 — Export pipeline
 - Strip editor-only systems.
