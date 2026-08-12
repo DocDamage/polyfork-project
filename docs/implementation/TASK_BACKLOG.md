@@ -23,21 +23,15 @@ Phases 0 through 14 are complete and merged on authoritative `master`. Phase 15 
 - [x] Phase 15 — Multiplayer Foundations and Collaboration Roadmap — PR #20 OPEN
 
 ## Phase 15 — COMPLETE / PR #20 OPEN
-Milestone branch:
+Milestone branch: `dev/phase15-multiplayer-collaboration-milestone`
 
-`dev/phase15-multiplayer-collaboration-milestone`
+Authoritative base: `14085eb703b72d930f39121d3da18362d43cc77d`
 
-Authoritative base:
+Verified implementation head before documentation closeout: `93b67eb5e50ffe5b2b686027d6a400ee9ccff1f0`
 
-`14085eb703b72d930f39121d3da18362d43cc77d`
+Pre-merge documentation refresh began from PR head `72ab4d275fc5dbfeb69b35ab1679fee8588616b6`, which was 60 ahead / 0 behind `master`. The live head after this documentation commit must be re-fetched before merge.
 
-Verified implementation head before documentation-only closeout:
-
-`93b67eb5e50ffe5b2b686027d6a400ee9ccff1f0`
-
-Completion PR:
-
-`#20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap`
+Completion PR: `#20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap`
 
 - [x] P15-T01 Network identity/session contracts
 - [x] P15-T02 ENet host/client transport and lifecycle
@@ -49,15 +43,19 @@ Completion PR:
 - [x] P15-T08 Optional export closure and exported two-process Windows verification
 - [x] P15-T09 Collaborative-authoring architecture roadmap
 - [x] P15-T10 Full verification/evidence/docs/completion PR
+- [x] P15-T11 Pre-merge canonical documentation audit/refresh
 
 ## Completion verification
-- Phase 15 Contracts — `31635239746` — PASS — all 8 suites
+Implementation evidence:
+- Phase 15 Contracts — `31635239746` — PASS — all eight suites
 - Phase 15 Inherited Regressions — `31634218734` — PASS
 - Godot Smoke — `31635582701` — PASS
-- Phase 15 Visual Evidence — `31634842058` — PASS; corrected full/compact evidence inspected
-- Phase 15 Windows Multiplayer Export — `31635582699` — PASS; offline package and concurrent exported host/client
+- Phase 15 Visual Evidence — `31634842058` — PASS
+- Phase 15 Windows Multiplayer Export — `31635582699` — PASS
 
-A later matrix run had one infrastructure-only Godot download failure before its identity shard began; its other seven shards passed. The full eight-suite run above is green.
+At prior PR head `72ab4d...`, later pull-request-triggered GitHub Actions failures were setup/download failures before tests. Targeted reruns completed successfully without product-code changes. External Cursor/Graphite/Netlify suites remained queued with zero check runs and kept the aggregate PR state unstable; see `docs/qa/PHASE15_QA.md`.
 
-## Release rule
-PR #20 must **not** be merged without explicit user authorization. Phase 16 is blocked until PR #20 is explicitly merged and the resulting authoritative `master` SHA is verified.
+## Next gate
+- [ ] P15-GATE — fetch the new documentation-refresh PR head, verify branch integrity and current checks, then await explicit user merge authorization.
+
+Phase 16 remains blocked until PR #20 is explicitly merged and the resulting authoritative `master` SHA is verified.

@@ -1,108 +1,106 @@
 # System Architecture
 
 ## Architectural rule
-The editor core operates on generic entities, assets, terrain cells, components, archetypes, prefabs, sockets, attachments, properties, graphs, transactions, resources, and stable IDs. It does not hard-code broad gameplay behavior into the scene editor.
+The editor core operates on generic entities, assets, terrain cells, components, archetypes, prefabs, sockets, attachments, properties, graphs, transactions, resources, runtime modules, and stable IDs. It does not hard-code broad gameplay behavior into the scene editor.
 
-Persistent relationships use stable UUIDs. Scene-tree paths, node names, source filesystem paths, runtime pointers, and array positions are never persistent identity.
+Persistent relationships use stable UUIDs. Scene-tree paths, node names, runtime pointers, transport peer IDs, and array positions are never persistent authored identity.
 
-## Major modules
-1. App Shell
-2. Project/World Manager
-3. Runtime Editor
-4. Command + Transaction/Undo System
-5. Asset Registry / Import / Thumbnail Pipeline
-6. Terrain + World Partition
-7. World Streaming
-8. Entity/Component Authoring
-9. Archetype + Prefab System
-10. Socket + Attachment System
-11. Visual Script Runtime + Editor
-12. Foliage/Scatter
-13. Spline/Road
-14. Environment/Weather
-15. Save/Serialization
-16. Template System
-17. AI Orchestrator
-18. Export Pipeline
-19. Input Abstraction
-20. Diagnostics/Performance
-21. Future Networking/Collaboration
+## Authoritative module map
+1. App Shell / Workspace Layers — `src/app`
+2. Project/World Manager — `src/world`
+3. Runtime Placement Editor — `src/editor`
+4. Command + Transaction/Undo System — `src/commands`
+5. Asset Registry / Import / Thumbnail Pipeline — `src/assets`
+6. Terrain + World Partition / Streaming — `src/terrain`
+7. Entity/Component/Archetype/Prefab/Socket Authoring — `src/gameplay`
+8. Instant Play / Runtime Controllers — `src/runtime`
+9. Template System / Runtime Module Registry — `src/templates`, `templates/manifests`
+10. Visual Script Runtime + Editor — `src/visual_script`
+11. Foliage/Procedural/Spline Systems — `src/foliage`, `src/procedural`, `src/splines`
+12. Environment/Weather/Water Integration — `src/environment`
+13. AI Creation Orchestrator — `src/ai`
+14. Export Pipeline / Standalone Runtime — `src/export`
+15. Scale / Performance Profiles — `src/scale`
+16. Input Abstraction — `src/input` plus semantic runtime input services
+17. Diagnostics / Verification Harnesses — `src/diagnostics`, `tests`
+18. Multiplayer Runtime Foundations — `src/network`
+19. Future Collaborative Authoring — architecture roadmap only; no persistent collaboration runtime is claimed.
 
-## Commands and authored mutation
-All authored mutations flow through reversible commands or transactions. Failed execution/undo/redo does not advance history. Preview-only state does not dirty authored data.
+## Authored mutation boundary
+All authored mutations flow through reversible commands or transactions. Failed execution/undo/redo does not advance history. Preview-only or disposable Play state does not dirty authored data.
 
-Phase 3 entity placement/transforms, Phase 5 terrain sculpt/biome changes, and Phase 6 component/archetype/prefab/socket/attachment edits share the same editor command history. Phase 6 uses snapshot commands for coordinated world-project + gameplay-registry changes so Undo/Redo restores both sides of a composition edit atomically.
+Networking does not create a second authored mutation channel. Phase 15 session/peer lifecycle, remote player state, replicated gameplay state, and match state are transient Play concerns. Future collaborative authoring must integrate with the command/operation model rather than bypass it.
 
-## Runtime entity editor
-`src/editor/editor_session.gd` coordinates project state, command history, selection, placement ghost, snapping, transform editing, and dirty signaling.
+## Build / Play boundary
+Phase 7 established `PlaySession` as the disposable runtime boundary. Later phases extend that same lifecycle rather than replace it:
+- Visual Scripting compiles/executes against the disposable Play copy.
+- Gameplay framework services own runtime interactions/state.
+- Environment runtime applies Play-only simulation.
+- AI authoring remains Build/transaction oriented.
+- Phase 15 `NetworkRuntime` scans/binds the active Play session only when multiplayer capability is enabled.
+- Stopping/replacing Play tears down network services and runtime peers without rewriting authored Build data.
 
-`src/editor/runtime_entity_bridge.gd` validates the complete persisted world-entity set before constructing disposable runtime nodes. In streamed Large worlds it may instantiate only active-cell entities while preserving stable references to unloaded records.
+## Stable identity and runtime identity
+Authored stable IDs remain authoritative across world entities, components, prefabs, sockets, graphs, procedural sources, environment records, assets, templates, and project registries.
 
-Placement and cross-cell movement use the Phase 5 cell resolver. Transform + owning `cell_id` changes are authored together.
+Phase 15 adds separate runtime identity:
+- transport peer ID;
+- session/network player ID;
+- locally meaningful runtime ownership bindings.
 
-Raw Phase 3 duplication intentionally clears copied `component_instance_ids`; gameplay-bound identities are never aliased by a generic entity copy. Temporarily absent world owners do not cause gameplay registries to be silently destroyed, allowing delete/undo and streaming to recover stable authored records.
+These identities are disposable and may never replace authored stable IDs. `network_identity_registry.gd` maps runtime ownership to authored references only for the lifetime of a Play session.
 
-## Universal Asset Library
-Phase 4 remains owned by `src/assets`. External registered source folders are strictly read-only. Derived imports, metadata, licensing, favorites, collections, duplicate metadata, and thumbnails remain under project-managed `asset_library/` storage.
+## Multiplayer transport and authority
+`network_session_contract.gd` owns protocol/version/message envelopes and role/config validation.
 
-Phase 6 prefabs are authored project content and never mutate Phase 4 source folders.
+`enet_session_adapter.gd` owns Godot `ENetMultiplayerPeer` Offline/Host/Client lifecycle, compatibility handshake, reliable/unreliable packet boundaries, peer join/leave, disconnect/reconnect cleanup, and clean shutdown.
 
-## Terrain + partition architecture
-Phase 5 remains owned primarily by `src/terrain`.
+`network_runtime_service.gd` is the Phase 15 autoload coordinator. It binds networking to the existing active Play session and does not replace `PlaySession` architecture.
 
-`terrain_repository.gd` owns per-cell terrain persistence; `terrain_world_state.gd` owns in-memory authored terrain; `terrain_runtime.gd` owns disposable loaded chunks; `terrain_controller.gd` coordinates shared command history, cell resolution, streaming, and incremental autosave.
+Host authority is the default Phase 15 gameplay boundary:
+- player movement/presence is replicated through existing controller foundations;
+- generic gameplay actions are validated before host-side application;
+- health/damage/heal and interaction/door outcomes converge from host-authoritative results;
+- match membership/team/score/objective state is host-authoritative;
+- clients do not hold runtime persistence authority.
 
-Small/Medium/Large partition topology remains deterministic. Large-world streaming never rewrites stable entity, parent, prefab, component, socket, attachment, or owning-cell identity merely because a referenced runtime node is unloaded.
+## Match/template integration
+`multiplayer_template_contract.gd` normalizes the opt-in multiplayer capability with bounded player counts, mode, spawn strategy/spacing, teams, score mode, and rejoin policy.
 
-## Phase 6 gameplay composition architecture
-Phase 6 is owned primarily by `src/gameplay`.
+The existing Template System remains the project-start contract. Multiplayer-enabled templates add `phase15.multiplayer` runtime capability without becoming editor forks. Offline templates normalize to disabled multiplayer and retain ordinary single-player behavior.
 
-### Contracts and repository
-`gameplay_contracts.gd` defines schema-v1 validation for component definitions, component instances, archetypes, prefabs, prefab instances, sockets, and attachments. It validates stable IDs, typed property schemas, ranges/enums, transforms, and supported socket categories.
+## Visual Scripting integration
+Phase 15 does not create a second graph engine. Multiplayer uses the existing gameplay event/action boundary:
+- namespaced actions such as `multiplayer.score.add` and `multiplayer.objective.set` flow through existing gameplay-event routing;
+- session/peer lifecycle is surfaced as gameplay events;
+- host-only mutation is enforced by the match/network services.
 
-`gameplay_repository.gd` owns `<project>/gameplay` JSON registries and uses the existing crash-safe JSON writer. JSON arrays are explicitly reconstructed into typed `Array[Dictionary]` state on reopen so registry identity cannot silently collapse at the persistence boundary.
+New graph event types should only be introduced when the graph runtime actually supports them; documentation must not claim fake join/leave graph entry nodes.
 
-`gameplay_state.gd` is the canonical in-memory gameplay composition state. It resolves definitions, dependency plans, conflicts, archetypes, prefabs, sockets, attachments, and prefab instances using stable IDs.
+## Export architecture
+Phase 13 owns deterministic runtime dependency closure and standalone packaging. Phase 14 adds performance-profile packaging. Phase 15 extends that closure conditionally:
+- offline projects use the normal standalone runtime root and omit Phase 15 network runtime;
+- multiplayer-enabled projects add the required network runtime root/dependencies;
+- generated `runtime_data/multiplayer_profile.json` carries normalized capability metadata;
+- standalone bootstrap dynamically loads networking only when capability and requested role require it.
 
-Gameplay-internal reference validation remains strict. World-owner availability is treated separately so records can remain recoverable when an entity is temporarily deleted, undone, or streamed out.
+This keeps multiplayer optional and prevents networking from contaminating ordinary offline exports.
 
-### Components and archetypes
-`builtin_component_library.gd` provides the 21 required initial component definitions with stable definition IDs, editor categories, typed defaults, dependencies, conflicts, and future runtime-hook metadata.
+## Multiplayer workspace UX
+`multiplayer_workspace_layer.gd` provides the contextual Offline / Host & Play / Join & Play surface. It owns player name, address, port, capability summary, peer/session status, and keyboard/gamepad focus/hints. Full/compact layout must stay within the viewport and preserve the canonical dark playful visual language.
 
-`builtin_archetype_library.gd` provides the initial nine data-driven archetype presets. Archetype application retains the target entity UUID, preserves unrelated components, applies deterministic dependency closure, and rejects unresolved conflicts.
+## Collaboration boundary
+`docs/architecture/PHASE15_COLLABORATIVE_AUTHORING_ROADMAP.md` defines the future durable collaboration protocol. It requires durable author/session/operation identity, permissions, operation ordering, command-log compatibility, conflicts, asset revisions, presence, reconnect/rebase, audit/history, and service security.
 
-`gameplay_service.gd` exposes add/remove/configure component and archetype operations. It stages changes, validates them, commits them through shared command history, persists the affected registries, refreshes runtime presentation, and marks project state dirty.
+Gameplay packet replication must never become the persistent document protocol by accident.
 
-### Prefabs and inheritance
-`prefab_authoring_service.gd` snapshots a real world-entity hierarchy, its configured components, assets, transforms, and sockets into project-managed prefab data.
+## Crash safety and persistence
+`PlayWorldSafeJsonWriter` and phase-specific repositories remain the common fail-closed persistence pattern for authored JSON. Runtime networking state is not persisted as authored identity. Generated export metadata is packaging output and is recreated from normalized project capability.
 
-Prefab instantiation allocates fresh world entity UUIDs, fresh component-instance UUIDs, fresh entity-owned socket UUIDs, and a stable prefab-instance record while retaining the prefab reference. Repeated instantiation never reuses world identity.
+## Performance / verification boundary
+Phase 14 Low/Balanced/High profiles provide deterministic performance policy. Phase 15 adds bounded Small/Medium/Large network-state regression coverage and real two-process Windows export verification.
 
-`prefab_resolver.gd` resolves base/derived inheritance deterministically. Derived prefabs store their own stable ID plus authored differences. Explicit instance overrides win over inherited values. Missing bases, invalid node/socket references, and inheritance cycles fail safely.
+CI scale tests are regression proxies, not hardware FPS benchmarks. Setup/download failures that prevent a test from running must be reported as infrastructure failures rather than product passes or product failures.
 
-### Sockets and attachments
-`sockets` are named, typed stable-ID records with local transforms. Supported built-in categories include Grip, Seat, Mount, DoorHandle, Light, LootSpawn, Wheel, Muzzle, Camera, and InteractionPoint, with Custom extension support.
-
-`socket_attachment_service.gd` authors socket add/edit/remove and attachment/detach operations through shared command history. Attachments persist parent entity ID + parent socket ID + child entity ID + optional child socket ID + local offset data—never scene paths.
-
-`runtime_attachment_resolver.gd` creates transient runtime anchor nodes from stable attachment data. Missing/unloaded runtime participants are reported as unresolved rather than corrupting persistent identity; resolution can recover when entities become available again.
-
-### Gameplay workspace
-`gameplay_workspace_layer.gd` and `gameplay_tool_panel.gd` extend the existing bottom Gameplay dock with a compact contextual composition surface. The panel exposes archetype application, component addition, prefab save/place, socket creation, and two-object attachment while preserving the existing inspector, Terrain tool, Asset Library, and Phase 3 tool wheel.
-
-Keyboard/mouse controls remain native focusable Godot controls. Gamepad X adds the selected component, Y applies the selected archetype, A activates focused native controls, and Escape closes the contextual Gameplay layer before leaving the workspace.
-
-## Crash safety
-`PlayWorldSafeJsonWriter` remains the common atomic JSON primitive: temporary write, flush/close, parse, semantic validation, then promotion.
-
-Phase 6 gameplay registry writes fail closed on corrupt JSON, reject unsupported future schema versions, and preserve prior canonical content when promotion fails. No source Asset Library directory is used for generated prefab/component content.
-
-## Performance and verification boundary
-Phase 6 has a dedicated six-suite diagnostic matrix covering components, prefabs, sockets/attachments, persistence failures, scale, and the real workspace. The representative scale workload validates hundreds of component instances plus derived prefab resolution under a generous CI regression budget.
-
-This is a regression proxy, not a hardware FPS benchmark. Release-scale hardware performance validation remains separate.
-
-Rendered Phase 6 evidence captures the real canonical workspace with component/archetype composition, a named socket, managed prefab state, repeated instance identity, and attachment controls.
-
-## Later-phase boundaries
-Phase 6 establishes composition data and editor foundations. It does not implement the broad gameplay semantics reserved for later phases, Visual Script behavior, foliage/scatter, roads/splines, full environment/weather, AI orchestration, or export behavior stripping.
+## Current phase boundary
+Phases 0–14 are merged on authoritative `master`. Phase 15 implementation is complete on its milestone branch and PR #20 remains the merge gate. Production matchmaking, relay/NAT traversal, account/auth infrastructure, voice chat, anti-cheat platform integration, rollback netcode, dedicated-server fleet orchestration, and real-time collaborative editor mutation remain outside Phase 15's implemented scope.
