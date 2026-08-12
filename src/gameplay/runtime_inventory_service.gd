@@ -21,7 +21,7 @@ func clear() -> void:
 
 
 func get_inventory(container_entity_id: String) -> Dictionary:
-    var ensure := _ensure_container(container_entity_id)
+    var ensure: Dictionary = _ensure_container(container_entity_id)
     if not ensure.get("ok", false):
         return ensure
     return {
@@ -36,7 +36,7 @@ func get_inventory(container_entity_id: String) -> Dictionary:
 func add_item(container_entity_id: String, item_entity_id: String, quantity: int) -> Dictionary:
     if quantity <= 0:
         return _failure("Inventory add quantity must be positive.")
-    var ensure := _ensure_container(container_entity_id)
+    var ensure: Dictionary = _ensure_container(container_entity_id)
     if not ensure.get("ok", false):
         return ensure
     if not _runtime.has_entity(item_entity_id):
@@ -63,7 +63,7 @@ func add_item(container_entity_id: String, item_entity_id: String, quantity: int
 func remove_item(container_entity_id: String, item_entity_id: String, quantity: int) -> Dictionary:
     if quantity <= 0:
         return _failure("Inventory remove quantity must be positive.")
-    var ensure := _ensure_container(container_entity_id)
+    var ensure: Dictionary = _ensure_container(container_entity_id)
     if not ensure.get("ok", false):
         return ensure
     if bool(ensure.get("locked", false)):
@@ -91,16 +91,16 @@ func remove_item(container_entity_id: String, item_entity_id: String, quantity: 
 func transfer_item(from_container_id: String, to_container_id: String, item_entity_id: String, quantity: int) -> Dictionary:
     if from_container_id == to_container_id:
         return _failure("Inventory transfer requires different containers.")
-    var from_before := get_inventory(from_container_id)
+    var from_before: Dictionary = get_inventory(from_container_id)
     if not from_before.get("ok", false):
         return from_before
-    var to_before := get_inventory(to_container_id)
+    var to_before: Dictionary = get_inventory(to_container_id)
     if not to_before.get("ok", false):
         return to_before
-    var remove_result := remove_item(from_container_id, item_entity_id, quantity)
+    var remove_result: Dictionary = remove_item(from_container_id, item_entity_id, quantity)
     if not remove_result.get("ok", false):
         return remove_result
-    var add_result := add_item(to_container_id, item_entity_id, quantity)
+    var add_result: Dictionary = add_item(to_container_id, item_entity_id, quantity)
     if add_result.get("ok", false):
         _runtime.emit_event("inventory.transferred", from_container_id, to_container_id, {"item_entity_id": item_entity_id, "quantity": quantity})
         return {"ok": true, "errors": [], "from": remove_result, "to": add_result}
@@ -112,11 +112,11 @@ func transfer_item(from_container_id: String, to_container_id: String, item_enti
 func collect_pickup(container_entity_id: String, pickup_entity_id: String) -> Dictionary:
     if _consumed_pickups.has(pickup_entity_id):
         return _failure("Pickup has already been consumed in this Play session.")
-    var pickup := _runtime.get_component_values(pickup_entity_id, "pickup")
+    var pickup: Dictionary = _runtime.get_component_values(pickup_entity_id, "pickup")
     if pickup.is_empty():
         return _failure("Target entity is not a pickup.")
     var quantity := int(pickup.get("quantity", 1))
-    var add_result := add_item(container_entity_id, pickup_entity_id, quantity)
+    var add_result: Dictionary = add_item(container_entity_id, pickup_entity_id, quantity)
     if not add_result.get("ok", false):
         return add_result
     _consumed_pickups[pickup_entity_id] = true
@@ -144,7 +144,7 @@ func _ensure_container(entity_id: String) -> Dictionary:
         return _failure("Inventory service is not bound.")
     if not _runtime.has_entity(entity_id):
         return _failure("Inventory container entity reference does not resolve.")
-    var values := _runtime.get_component_values(entity_id, "inventory_container")
+    var values: Dictionary = _runtime.get_component_values(entity_id, "inventory_container")
     if values.is_empty():
         return _failure("Entity does not have an Inventory Container component.")
     if not _inventories.has(entity_id):
