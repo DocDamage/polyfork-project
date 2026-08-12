@@ -17,10 +17,7 @@ static func run_checks() -> Array[String]:
     var registry = TemplateRegistry.new()
     var load_result: Dictionary = registry.load_builtin()
     if not load_result.get("ok", false): return ["Built-in template registry must load: %s" % load_result.get("errors", [])]
-    var summaries: Array[Dictionary] = registry.summaries()
-    var ids: Array[String] = []
-    for summary in summaries: ids.append(str(summary.get("template_id", "")))
-    ids.sort()
+    var ids: Array[String] = registry.template_ids()
     var expected: Array = EXPECTED_IDS.duplicate(); expected.sort()
     if ids != expected: errors.append("Template registry must expose exactly the seven documented template IDs.")
     var player_id: String = BuiltinArchetypes.id_for("player")
