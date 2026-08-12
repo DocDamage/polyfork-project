@@ -13,12 +13,14 @@ const Adapter = preload("res://src/network/enet_session_adapter.gd")
 const PlayerReplication = preload("res://src/network/player_replication_service.gd")
 const GameplayReplication = preload("res://src/network/gameplay_replication_service.gd")
 const MatchState = preload("res://src/network/network_match_state.gd")
+const MatchReplication = preload("res://src/network/match_replication_service.gd")
 
 var _desired_config: Dictionary = Contract.default_config()
 var _play_session: Node
 var _adapter: Node
 var _player_replication: Node
 var _gameplay_replication: Node
+var _match_replication: Node
 var _match_state = MatchState.new()
 var _last_status_key := ""
 var _scan_elapsed := 0.0
@@ -128,6 +130,7 @@ func current_multiplayer_capability() -> Dictionary:
     return TemplateContract.normalize(runtime.get("multiplayer", null))
 
 func get_match_snapshot() -> Dictionary:
+    if _match_replication != null and _match_replication.has_method("get_snapshot"): return _match_replication.get_snapshot()
     return _match_state.snapshot()
 
 func request_gameplay_action(action: String, payload: Dictionary) -> Dictionary:
@@ -216,6 +219,15 @@ func _bind_runtime_services() -> void:
         if not gameplay_result.get("ok", false):
             _record_error(_strings(gameplay_result.get("errors", [])))
             return
+    if gameplay != null:
+        _match_replication = MatchReplication.new()
+        _match_replication.name = "MatchReplication"
+        add_child(_match_replication)
+        _match_replication.replication_error.connect(_record_error)
+        var match_replication_result: Dictionary = _match_replication.bind_runtime(_adapter, _match_state, gameplay)
+        if not match_replication_result.get("ok", false):
+            _record_error(_strings(match_replication_result.get("errors", [])))
+            return
     _replication_bound = true
     _emit_status_if_changed(true)
 
@@ -260,6 +272,11 @@ func _detach_runtime(reason: String) -> void:
 
 func _teardown_network(reason: String) -> void:
     _replication_bound = false
+    if _match_replication != null:
+        _match_replication.clear()
+        remove_child(_match_replication)
+        _match_replication.free()
+        _match_replication = null
     if _gameplay_replication != null:
         _gameplay_replication.clear()
         remove_child(_gameplay_replication)
