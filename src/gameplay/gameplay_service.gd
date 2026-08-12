@@ -68,9 +68,10 @@ func remove_component(entity_id: String, instance_id: String) -> Dictionary:
     var target: Dictionary = _state.get_instance(instance_id)
     if target.is_empty() or str(target.get("owner_entity_id", "")) != entity_id: return _failure("Component instance does not belong to the target entity.")
     var target_definition := str(target.get("definition_id", ""))
+    var no_existing: Array[String] = []
     for record in _state.instances_for_entity(entity_id):
         if str(record.get("instance_id", "")) == instance_id: continue
-        var plan: Dictionary = _state.dependency_plan(str(record.get("definition_id", "")), [])
+        var plan: Dictionary = _state.dependency_plan(str(record.get("definition_id", "")), no_existing)
         if plan.get("ok", false) and plan.get("definition_ids", []).has(target_definition): return _failure("Component is required by another component and cannot be removed independently.")
     var stage = _clone_state(); var project_after := _project_snapshot()
     var removed: Dictionary = stage.remove_instance(instance_id)
