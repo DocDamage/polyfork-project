@@ -6,7 +6,8 @@
 - Authoritative `master`: `14085eb703b72d930f39121d3da18362d43cc77d`.
 - This is the verified signed merge commit for PR #19.
 - Phases 0 through 14 are complete and merged.
-- Phase 15 — Multiplayer Foundations and Collaboration Roadmap is active on `dev/phase15-multiplayer-collaboration-milestone`, created from exactly authoritative Phase 14 `master`.
+- Phase 15 — Multiplayer Foundations and Collaboration Roadmap is **implementation complete / PR ready** on `dev/phase15-multiplayer-collaboration-milestone`.
+- Phase 15 is not merged yet. Phase 16 remains blocked.
 
 ## Phase 0 — Repository and contracts — COMPLETE
 Project skeleton, coding rules, docs, CI, task IDs, test harness, canonical UI reference, stable IDs, command interface, persistence versioning, and module boundaries.
@@ -30,89 +31,84 @@ Terrain sculpting, partition cells, dirty-cell persistence, deterministic stream
 Versioned gameplay composition, archetypes, prefab inheritance/overrides, sockets/attachments, gameplay workspace, persistence/scale verification. Merged by PR #11.
 
 ## Phase 7 — Instant Play and templates — COMPLETE
-Disposable Build → Play → Build lifecycle, semantic gameplay input, third-person/FPS foundations, seven starter templates, runtime-module resolution, persistence/performance/visual verification. Merged by PR #12.
+Disposable Build → Play → Build lifecycle, semantic gameplay input, third-person/FPS foundations, starter templates, runtime-module resolution, persistence/performance/visual verification. Merged by PR #12.
 
 ## Phase 8 — Visual scripting — COMPLETE
-Schema-v1 graph persistence, command-backed authoring, deterministic compiler/interpreter, macros/functions, GraphEdit workspace, debugger/breakpoints/trace, and Phase 7 PlaySession execution. Merged by PR #13.
+Schema-v1 graph persistence, command-backed authoring, deterministic compiler/interpreter, macros/functions, GraphEdit workspace, debugger/breakpoints/trace, and PlaySession execution. Merged by PR #13.
 
 ## Phase 9 — Foliage / Procedural / Splines — COMPLETE
-Persistent nondestructive procedural sources, MultiMesh foliage, deterministic scatter/paint/erase, terrain/biome/streaming integration, stable-ID road/path/fence splines, authoring UX, and rendered evidence. Merged by PR #14.
+Persistent nondestructive procedural sources, MultiMesh foliage, deterministic scatter/paint/erase, terrain/biome/streaming integration, stable-ID splines, authoring UX, and rendered evidence. Merged by PR #14.
 
 ## Phase 10 — Gameplay Framework Breadth — COMPLETE
-Reusable runtime gameplay state, inventory/containers, doors, health, NPC AI, dialogue, quests, vehicles, explicit runtime save-state snapshots, Visual Scripting gameplay actions/events, Gameplay workspace, scale/regression/visual verification. Merged by PR #15.
+Reusable runtime gameplay state, inventory/containers, doors, health, NPC AI, dialogue, quests, vehicles, runtime save snapshots, Visual Scripting gameplay actions/events, Gameplay workspace, and strict verification. Merged by PR #15.
 
 ## Phase 11 — Environment — COMPLETE
-Schema-v1 environment persistence, time/weather, real Godot environment rendering, wind, biome overrides, water hooks, disposable Play runtime, Visual Scripting Environment nodes, Environment workspace, regression/visual verification. Merged by PR #16.
+Schema-v1 environment persistence, time/weather, rendering, wind, biome overrides, water hooks, disposable Play runtime, Visual Scripting Environment nodes, Environment workspace, and verification. Merged by PR #16.
 
 ## Phase 12 — AI Creation — COMPLETE
-Merged by PR #17. Delivered local/cloud OpenAI-compatible providers, explicit privacy/cloud consent, bounded read-only project/Asset Library queries, Suggest, zero-mutation Preview, Preview-before-Execute, local persistent IDs, proposal validation, missing-asset rejection, atomic cross-system Execute, rollback, one universal Undo/Redo entry, crash-safe AI history, cross-system authoring actions, native keyboard/mouse/gamepad AI workspace, and strict evidence/regressions.
+Local/cloud OpenAI-compatible providers, privacy/cloud consent, bounded read-only queries, Suggest, zero-mutation Preview, Preview-before-Execute, proposal validation, local persistent IDs, atomic Execute/rollback, universal Undo/Redo integration, history, native input UX, and strict evidence. Merged by PR #17.
 
 Historical `.polyforkAPI` credential material remains exposed in Git history and must be rotated/revoked separately.
 
 ## Phase 13 — Export Pipeline — COMPLETE
-Merged by PR #18 at `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`.
+Deterministic export/build manifests, runtime dependency closure, editor stripping/runtime-data preservation, Asset Library dependency resolution, licensing/attribution, Windows standalone export, repeat-export replacement, clean-package launch, scale verification, exported semantic-input checks, and canonical Export UX. Merged by PR #18.
 
-Delivered deterministic export/build manifests, runtime dependency closure, editor stripping/runtime-data preservation, Asset Library dependency resolution, licensing/attribution reports, Windows standalone export, repeat-export replacement, clean-package launch, Small/Medium/Large verification, exported keyboard/mouse/gamepad checks, canonical Build → Export UX, and strict inherited/runtime/rendered evidence while reusing the Phase 7 `PlaySession`.
+## Phase 14 — Scale and Polish — COMPLETE / MERGED
+Merged by PR #19 at signed authoritative `master` `14085eb703b72d930f39121d3da18362d43cc77d`.
 
-## Phase 14 — Scale and Polish — COMPLETE — MERGED
-Merged by PR #19. Resulting verified signed authoritative `master`:
+Delivered deterministic Low/Balanced/High policy, Small/Medium/Large/Stress benchmarks, streaming/procedural hardening, accessibility/focus/input polish, adaptive full/compact layouts, Settings, preserved canonical visual language, performance-aware Play/export behavior, and strict contracts/stress/regression/rendered/Windows evidence.
 
-`14085eb703b72d930f39121d3da18362d43cc77d`
-
-Architecture invariant retained: Phase 14 optimized and polished existing systems without introducing a replacement editor/runtime architecture or allowing quality policy to mutate authored project semantics.
-
-Delivered:
-- Low/Balanced/High deterministic performance profiles and explicit budgets;
-- Small/Medium/Large/Stress benchmark fixtures and scale reports;
-- terrain unchanged-target streaming fast path;
-- incremental/no-op procedural streaming hardening;
-- foliage visibility/shadow quality policy without authored scatter mutation;
-- performance-aware Play streaming and Environment cadence with accumulated simulation delta;
-- persistent user-only performance, UI-scale, reduced-motion, and density preferences;
-- real Settings UI;
-- application-wide focusability/minimum-target accessibility policy and visible focus styling;
-- keyboard/gamepad input-context detection and consistent hints;
-- adaptive full/compact Home, Settings, and workspace behavior;
-- preserved dark playful Nintendo/Apple-inspired visual language;
-- performance-aware Export integration;
-- validated preset propagation through editor Play, procedural rendering policy, Windows export, standalone loading, and the existing Phase 7 `PlaySession`;
-- dedicated contracts, scale stress, inherited regressions, Godot Smoke, rendered evidence, and Windows profiled export/launch verification.
-
-Verified implementation head before documentation-only closeout: `b15439461cfae5d41d5951b5af808d20f2bb5f1b`.
-
-## Phase 15 — Multiplayer Foundations and Collaboration Roadmap — ACTIVE
+## Phase 15 — Multiplayer Foundations and Collaboration Roadmap — COMPLETE / PR READY
 Milestone branch:
 
 `dev/phase15-multiplayer-collaboration-milestone`
 
-Created from exactly:
+Created from exactly authoritative Phase 14 `master`:
 
 `14085eb703b72d930f39121d3da18362d43cc77d`
 
-Detailed implementation plan:
+Verified implementation head before documentation-only closeout:
+
+`93b67eb5e50ffe5b2b686027d6a400ee9ccff1f0`
+
+Detailed plan:
 
 `docs/implementation/PHASE15_MULTIPLAYER_COLLABORATION_PLAN.md`
 
-### Phase 15 goals
-- runtime-only network/session identity compatible with authored stable IDs;
-- host-authoritative offline/host/client PlaySession modes;
-- project-owned Godot 4.7.1 networking adapter with ENet host/join prototype path;
-- two-peer co-op player spawn, ownership, presence, and movement replication through existing template/controller runtime;
-- bounded host-authoritative replication for generic Phase 10 gameplay state;
-- multiplayer capability declarations, player-count/team/spawn/session/score-objective hooks, and bounded Visual Scripting multiplayer events/actions;
-- accessible Offline/Host/Join UX integrated into the existing Build → Play flow;
-- robust join/leave/rejoin, host termination, save authority, identity validation, and teardown behavior;
-- multiplayer-aware Phase 13/14 export closure plus Windows two-process host/client verification;
-- a concrete future collaborative-authoring roadmap covering identity/permissions, operation/conflict model, asset sync, presence, history, security, reconnect, and hosted-service boundaries.
+Collaboration roadmap:
 
-### Phase 15 scope guard
-Phase 15 does not require production matchmaking, cloud relay/account services, NAT traversal infrastructure, voice chat, anti-cheat platform integration, rollback netcode, dedicated-server fleet orchestration, or real-time collaborative editor mutation.
+`docs/architecture/PHASE15_COLLABORATIVE_AUTHORING_ROADMAP.md`
 
-### Internal checkpoints
-P15-T01 through P15-T10 are defined in the Phase 15 plan and backlog. Work continuously on the milestone branch; do not create task-by-task PRs.
+### Delivered
+- runtime-only versioned network/session identity layered over authored stable IDs;
+- Offline/Host/Client session modes and project-owned Godot 4.7.1 ENet transport adapter;
+- compatibility handshake, explicit failure paths, peer lifecycle, disconnect/reconnect cleanup, and no authored mutation from networking lifecycle;
+- multiplayer-aware existing first/third-person controller spawning, local-input ownership, remote presence and movement replication;
+- bounded host-authoritative Phase 10 damage/heal and interaction/door replication with spoof/direct-client-authority rejection;
+- multiplayer template capability declarations, deterministic player limits, teams, spawn offsets, match score/objective state, and normalized capability persistence;
+- bounded Visual Scripting integration through the existing gameplay event bus using namespaced multiplayer score/objective actions and session/peer events;
+- canonical adaptive Multiplayer panel with Offline/Host/Join, address/port/player identity, peer/session status, keyboard/gamepad focus and input hints;
+- host-only runtime save authority and repeated start/stop/rejoin/host-termination hardening;
+- optional multiplayer export dependency closure: offline packages exclude networking, multiplayer packages include only required runtime dependencies and capability metadata;
+- standalone environment-driven Host/Client startup for exported builds without changing normal offline export behavior;
+- real two-process exported Windows host/client verification including local input enabled, remote input disabled, keyboard/mouse + gamepad semantic bindings, and match membership convergence;
+- Small/Medium/Large bounded network-state verification plus inherited Phase 6–14 regressions;
+- explicit future collaborative-authoring design covering durable identities/permissions, command-log integration, conflicts, asset revisions, presence, reconnect, audit/security, and hosted service boundaries while rejecting the false assumption that gameplay replication equals collaborative editing.
 
-### Verification requirement
-At completion, Phase 15 must pass dedicated identity/session, transport/lifecycle, replication/authority, templates/Visual Scripting, UX/accessibility/export contracts; deterministic two-peer runtime tests; join/leave/rejoin and host-failure paths; inherited Phase 6–14 regressions; Godot Smoke; rendered evidence; and Windows exported two-process host/client verification.
+### Completion verification
+- Phase 15 Contracts — `31635239746` — PASS — all 8 suites
+- Phase 15 Inherited Regressions — `31634218734` — PASS
+- Godot Smoke — `31635582701` — PASS on final implementation head
+- Phase 15 Visual Evidence — `31634842058` — PASS; full and corrected compact UI evidence inspected
+- Phase 15 Windows Multiplayer Export — `31635582699` — PASS; multiplayer/offline package checks plus concurrent exported host/client
+
+A later contract run had an infrastructure-only Godot download failure in one shard before tests; the complete eight-suite run above is green and later final-head Smoke/Windows evidence is green.
+
+### Phase 15 scope boundary retained
+No production matchmaking, cloud relay/account system, NAT traversal service, voice chat, anti-cheat platform, rollback netcode, dedicated-server fleet, or real-time collaborative editor mutation is claimed.
+
+## Phase 16 — BLOCKED
+Do not begin Phase 16 until the Phase 15 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Release rule
-Work a phase continuously on its milestone branch. Intermediate commits and CI runs are expected; task-by-task PRs are not. At a milestone boundary, finish verification and documentation, then open one completion PR. Do not merge a completion PR without explicit user authorization, and do not start the next phase until the current completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+At milestone boundaries, finish verification and documentation, then open one completion PR. Do not merge a completion PR without explicit user authorization.

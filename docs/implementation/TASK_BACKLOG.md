@@ -2,8 +2,8 @@
 
 Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are milestone gates, not task gates, unless a handoff explicitly says otherwise.
 
-## Completed phases 0–14
-All Phase 0 through Phase 14 milestones are complete and merged on authoritative `master`.
+## Completed phases 0–15
+Phases 0 through 14 are complete and merged on authoritative `master`. Phase 15 implementation is complete on its milestone branch and is ready for its single completion PR; it is **not merged yet**.
 
 - [x] Phase 0 — Repository and contracts
 - [x] Phase 1 — App shell and canonical UI foundation
@@ -20,45 +20,47 @@ All Phase 0 through Phase 14 milestones are complete and merged on authoritative
 - [x] Phase 12 — AI Creation — PR #17
 - [x] Phase 13 — Export Pipeline — PR #18
 - [x] Phase 14 — Scale and Polish — PR #19 at `14085eb703b72d930f39121d3da18362d43cc77d`
+- [x] Phase 15 — Multiplayer Foundations and Collaboration Roadmap — completion PR pending
 
-Phase 14 verified implementation head before documentation-only closeout:
-
-`b15439461cfae5d41d5951b5af808d20f2bb5f1b`
-
-Phase 14 completion verification:
-- Phase 14 Contracts — run `31626516078` — PASS
-- Phase 14 Scale Stress — run `31626516104` — PASS
-- Phase 14 Inherited Regressions — run `31626516105` — PASS
-- Godot Smoke — run `31626516120` — PASS
-- Phase 14 Visual Evidence — run `31626516053` — PASS
-- Phase 14 Windows Export — run `31626516187` — PASS
-
-## Phase 15 — Multiplayer Foundations and Collaboration Roadmap — ACTIVE
+## Phase 15 — COMPLETE / PR READY
 Milestone branch:
 
 `dev/phase15-multiplayer-collaboration-milestone`
 
-Base:
+Authoritative base:
 
 `14085eb703b72d930f39121d3da18362d43cc77d`
+
+Verified implementation head before documentation-only closeout:
+
+`93b67eb5e50ffe5b2b686027d6a400ee9ccff1f0`
 
 Detailed plan:
 
 `docs/implementation/PHASE15_MULTIPLAYER_COLLABORATION_PLAN.md`
 
-- [ ] P15-T01 Define runtime-only network identity/session/ownership/capability handshake contracts with offline fallback and authored stable-ID preservation
-- [ ] P15-T02 Implement project-owned ENet host/join transport adapter, clean PlaySession lifecycle, explicit failure handling, and complete teardown
-- [ ] P15-T03 Add multiplayer-aware player spawn/ownership and remote movement/presence replication through existing template/controller paths
-- [ ] P15-T04 Add bounded host-authoritative Phase 10 gameplay replication with validated client requests and convergent state
-- [ ] P15-T05 Add multiplayer template capability, team/spawn/session/score-objective hooks, plus bounded Visual Scripting multiplayer events/actions
-- [ ] P15-T06 Integrate Offline/Host/Join Play UX with session status, keyboard-only/gamepad coverage, compact layout, and Phase 14 focus/glyph conventions
-- [ ] P15-T07 Harden host-only runtime save authority, join/leave/rejoin, host termination, duplicate identity rejection, and repeated-session cleanup
-- [ ] P15-T08 Integrate multiplayer into Phase 13/14 export closure and verify two exported Windows processes can host/join with keyboard/mouse and gamepad semantics intact
-- [ ] P15-T09 Deliver the collaborative-authoring roadmap covering identity/permissions, command/conflict model, asset sync, presence, history, security, reconnect, and service boundaries
-- [ ] P15-T10 Run full Phase 15 verification, inherited Phase 6–14 regressions, Godot Smoke, rendered evidence, Windows multiplayer export verification, close docs, and open one completion PR
+- [x] P15-T01 Runtime-only network identity/session/ownership/capability handshake contracts with offline fallback and authored stable-ID preservation
+- [x] P15-T02 Project-owned ENet host/join transport adapter, clean Play lifecycle, explicit failure handling, and teardown
+- [x] P15-T03 Multiplayer player spawning/ownership and remote movement/presence replication through existing controllers
+- [x] P15-T04 Bounded host-authoritative Phase 10 gameplay replication with validated client requests and convergent state
+- [x] P15-T05 Multiplayer template capability, team/spawn/session/score-objective hooks, and bounded Visual Scripting multiplayer events/actions
+- [x] P15-T06 Accessible Offline/Host/Join Play UX with keyboard/gamepad focus and compact-layout behavior
+- [x] P15-T07 Host-only runtime save authority, join/leave/rejoin, host termination, duplicate/incompatible identity rejection, and repeated-session cleanup
+- [x] P15-T08 Multiplayer-aware Phase 13/14 export closure plus real two-process Windows host/client verification
+- [x] P15-T09 Collaborative-authoring architecture roadmap with explicit separation from gameplay replication
+- [x] P15-T10 Full Phase 15 verification, inherited Phase 6–14 regressions, Godot Smoke, rendered evidence, Windows multiplayer export verification, and documentation closeout
+
+## Phase 15 completion verification
+- Phase 15 Contracts — run `31635239746` — PASS — all eight suites
+- Phase 15 Inherited Regressions — run `31634218734` — PASS
+- Godot Smoke — run `31635582701` — PASS on final implementation head
+- Phase 15 Visual Evidence — run `31634842058` — PASS; corrected full/compact Host/Join UI inspected
+- Phase 15 Windows Multiplayer Export — run `31635582699` — PASS; offline package plus concurrent exported host/client verified
+
+A later contract matrix run `31635582748` had one runner fail while downloading Godot before tests; the other seven shards passed. The complete eight-suite contract run above is green, and final-head Godot Smoke and Windows two-process export are green.
 
 ## Phase 15 scope guard
-Phase 15 implements bounded host-authoritative multiplayer foundations and a real co-op prototype. It does not require production matchmaking, cloud relay/account infrastructure, NAT traversal service, voice chat, anti-cheat platform integration, rollback netcode, dedicated-server fleet orchestration, or real-time collaborative editor mutation.
+Phase 15 implements bounded host-authoritative multiplayer foundations and a real co-op prototype. It does not claim production matchmaking, cloud relay/account infrastructure, NAT traversal service, voice chat, anti-cheat platform integration, rollback netcode, dedicated-server fleet orchestration, or real-time collaborative editor mutation.
 
 ## Release rule
-Work Phase 15 continuously on its milestone branch. Intermediate commits and CI runs are expected. Do not stop for task-by-task PRs. Open one completion PR only after P15-T01 through P15-T10 and the full verification matrix are complete. Do not merge that PR without explicit user authorization.
+Open one Phase 15 completion PR targeting authoritative `master`. Do **not** merge it without explicit user authorization. Do not begin Phase 16 until that PR is explicitly merged and the resulting authoritative `master` SHA is verified.

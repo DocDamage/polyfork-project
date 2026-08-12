@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 15 HANDOFF
+# POLYFORK PROJECT — PHASE 15 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -13,21 +13,15 @@ Current authoritative `master`:
 
 `14085eb703b72d930f39121d3da18362d43cc77d`
 
-This is the verified signed merge commit for **PR #19 — Phase 14 — Scale and Polish**. PR #19 is confirmed merged.
+This is the verified signed merge commit for **PR #19 — Phase 14 — Scale and Polish**.
 
 The repository default branch `main` remains obsolete starter code. **Never develop from `main`.**
 
 ## MERGED PROJECT STATE
 Phases **0 through 14 are complete and merged** into authoritative `master`.
 
-Phase 14 delivered deterministic performance presets/budgets, Small/Medium/Large/Stress verification, streaming/procedural hardening, accessibility completion, keyboard/gamepad polish, adaptive layouts, canonical visual parity, performance-aware Play/export behavior, strict regressions, Godot Smoke, rendered evidence, and Windows clean-package verification.
-
-Verified Phase 14 implementation head before documentation-only closeout:
-
-`b15439461cfae5d41d5951b5af808d20f2bb5f1b`
-
-## ACTIVE PHASE 15 BRANCH
-Phase 15 — Multiplayer Foundations and Collaboration Roadmap is authorized and active.
+## PHASE 15 STATE
+Phase 15 — Multiplayer Foundations and Collaboration Roadmap is **implementation complete and ready for its single completion PR**.
 
 Milestone branch:
 
@@ -37,83 +31,62 @@ It was created from exactly authoritative Phase 14 `master`:
 
 `14085eb703b72d930f39121d3da18362d43cc77d`
 
-No Phase 15 implementation code has been written yet at handoff establishment.
+Verified implementation head before documentation-only closeout:
 
-## PHASE 15 PLAN
-Detailed plan:
+`93b67eb5e50ffe5b2b686027d6a400ee9ccff1f0`
 
-`docs/implementation/PHASE15_MULTIPLAYER_COLLABORATION_PLAN.md`
+Pre-closeout comparison against `master`:
+- status: ahead
+- ahead: 58 commits
+- behind: 0
+- merge base: `14085eb703b72d930f39121d3da18362d43cc77d`
 
-Internal checkpoints:
+## PHASE 15 DELIVERED
+- versioned runtime-only network/session identity without authored stable-ID rewrites;
+- Offline / Host / Client roles and ENet host/join transport;
+- deterministic compatibility handshake and peer lifecycle;
+- multiplayer spawning and remote movement/presence through existing Phase 7 controllers;
+- local-vs-remote input ownership;
+- host-authoritative generic Phase 10 damage/heal and door/interaction replication;
+- validated client action requests and spoof/direct-authority rejection;
+- template multiplayer capability, player limits, teams, spawn strategy, match score/objective state;
+- bounded Visual Scripting multiplayer actions/events through the existing gameplay event bus;
+- accessible adaptive Host/Join Multiplayer workspace surface;
+- host-only runtime save authority and reconnect/host-disconnect/repeated-session cleanup;
+- optional Phase 13/14 export dependency closure so offline exports do not carry multiplayer runtime code;
+- multiplayer capability metadata in enabled standalone packages;
+- real concurrent exported Windows host/client startup and convergence verification;
+- Small/Medium/Large network-state coverage;
+- inherited Phase 6–14 regression gate;
+- corrected full/compact rendered UI evidence;
+- future collaborative-authoring architecture roadmap explicitly separated from gameplay networking.
 
-**P15-T01 through P15-T10**
+## VERIFIED COMPLETION GATES
+- Phase 15 Contracts — run `31635239746` — PASS — all eight suites
+- Phase 15 Inherited Regressions — run `31634218734` — PASS
+- Godot Smoke — run `31635582701` — PASS
+- Phase 15 Visual Evidence — run `31634842058` — PASS; final compact panel inspected and accepted
+- Phase 15 Windows Multiplayer Export — run `31635582699` — PASS; package build + exported concurrent host/client
 
-Use them as continuous implementation checkpoints. Do not stop for task-by-task PRs.
+Latest contract run `31635582748` had one infrastructure-only Godot download failure before the identity test shard began; its other seven shards passed. The full eight-suite run `31635239746` is green, and final-head Godot Smoke and Windows exported runtime verification are green.
 
-## NEXT AUTHORIZED MILESTONE
-**Phase 15 — Multiplayer Foundations and Collaboration Roadmap**
+## COLLABORATION ROADMAP
+`docs/architecture/PHASE15_COLLABORATIVE_AUTHORING_ROADMAP.md`
 
-The milestone must cover at minimum:
-- runtime-only network/session identity compatible with authored persistent stable IDs;
-- Offline / Host / Client session roles and explicit connection lifecycle;
-- project-owned Godot 4.7.1 networking adapter using ENet for the bounded local/LAN/loopback prototype path;
-- host-authoritative gameplay state and validated client action requests;
-- two-peer co-op player spawning, ownership, presence, movement, join/leave, and clean teardown through the existing Phase 7 PlaySession/template/controller paths;
-- bounded generic Phase 10 gameplay replication, prioritizing reusable systems rather than one-off mechanics;
-- multiplayer capability declarations, player-count limits, spawn/team/session metadata, and simple score/objective hooks;
-- bounded Visual Scripting multiplayer events/actions where they fit the existing graph architecture cleanly;
-- accessible Offline/Host/Join Play UX with keyboard-only and gamepad navigation, compact/adaptive behavior, and Phase 14 focus/glyph consistency;
-- host-only runtime save authority, disconnect/rejoin hardening, duplicate/incompatible identity rejection, and complete Play → Build cleanup;
-- Phase 13/14 export integration for multiplayer-capable packages;
-- deterministic two-process exported Windows host/client verification;
-- inherited Phase 6–14 regression coverage;
-- Godot Smoke;
-- rendered multiplayer UI/runtime evidence;
-- a concrete collaborative-authoring roadmap covering identity/permissions, command/conflict model, asset sync, presence, history, security/privacy, offline/reconnect, hosted service requirements, and reuse boundaries with runtime networking;
-- documentation closeout and one Phase 15 completion PR.
+This roadmap is design-complete and implementation-deferred. It explicitly requires durable operation/history-aware collaboration rather than pretending transient gameplay replication is collaborative editing.
 
-## ARCHITECTURE RULES
-- Do not replace the existing editor/runtime architecture.
-- Do not rewrite authored stable IDs into network IDs. Session/network identity must be layered on top and disposable.
-- Offline single-player must remain first-class and unchanged when multiplayer is disabled.
-- Existing Phase 10 gameplay state remains the gameplay source of truth; networking adapts/replicates it rather than creating parallel gameplay systems.
-- Existing Phase 7 semantic gameplay input remains the player-input abstraction.
-- The host is authoritative for replicated gameplay state and runtime save authority in this milestone.
-- Multiplayer lifecycle alone must never mutate authored project data.
-- Real-time collaborative editor mutation is not implemented in Phase 15; only its future architecture/roadmap is required.
+## COMPLETION PR RULE
+Open **one** Phase 15 completion PR targeting authoritative `master`.
 
-## OUT OF SCOPE FOR PHASE 15
-Do not expand this milestone into:
-- production matchmaking;
-- cloud relay/account infrastructure;
-- NAT traversal service;
-- voice chat;
-- anti-cheat platform integration;
-- rollback netcode;
-- dedicated-server fleet orchestration;
-- full real-time collaborative editor implementation.
+**Do not merge it without explicit user authorization.**
 
-## DEVELOPMENT RULE
-Work continuously on:
+After merge authorization and merge:
+1. verify the resulting signed/authoritative `master` SHA;
+2. update handoff/master/backlog for the merged state;
+3. only then authorize Phase 16.
 
-`dev/phase15-multiplayer-collaboration-milestone`
-
-Intermediate commits and CI runs are expected.
-
-Do **not** stop for task-by-task pull requests.
-
-At Phase 15 completion:
-1. finish P15-T01 through P15-T10;
-2. run the full Phase 15 verification matrix;
-3. run inherited Phase 6–14 regression gates;
-4. run Godot Smoke;
-5. capture rendered UI/runtime evidence;
-6. verify exported Windows two-process host/client behavior;
-7. close the implementation plan, backlog, master plan, and current handoff;
-8. open **one** Phase 15 completion PR targeting authoritative `master`;
-9. **do not merge it without explicit user authorization**.
-
-Do not begin Phase 16 until the Phase 15 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
+## PHASE 16
+**BLOCKED.** Do not begin Phase 16 before the Phase 15 completion PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## SECURITY REMINDER
-The historical `.polyforkAPI` credential material remains present in Git history and must still be treated as exposed. Rotate/revoke it separately.
+Historical `.polyforkAPI` credential material remains present in Git history and must still be treated as exposed. Rotate/revoke it separately.

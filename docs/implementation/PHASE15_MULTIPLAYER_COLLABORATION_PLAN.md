@@ -1,7 +1,7 @@
 # Phase 15 — Multiplayer Foundations and Collaboration Roadmap
 
 ## Status
-AUTHORIZED / ACTIVE
+COMPLETE / PR READY
 
 Authoritative base:
 
@@ -11,234 +11,111 @@ Milestone branch:
 
 `dev/phase15-multiplayer-collaboration-milestone`
 
-Phase 15 begins only after the verified signed merge of PR #19 — Phase 14 — Scale and Polish.
+Verified implementation head before documentation-only closeout:
 
-## Milestone intent
-Phase 15 adds bounded multiplayer foundations to the existing Polyfork runtime and export architecture without replacing the Phase 7 `PlaySession`, Phase 10 gameplay state, Phase 13 export pipeline, or Phase 14 scale/polish work.
+`93b67eb5e50ffe5b2b686027d6a400ee9ccff1f0`
 
-The milestone must deliver a usable host/join co-op prototype, deterministic network identity and replication contracts, multiplayer-aware template/runtime hooks, export verification, and a concrete future collaboration roadmap.
+## Milestone result
+Phase 15 added bounded host-authoritative multiplayer foundations to the existing Polyfork runtime and export architecture without replacing the Phase 7 `PlaySession`, Phase 10 gameplay state, Phase 13 export pipeline, or Phase 14 scale/polish architecture.
 
-This is not a production online-services milestone.
+Offline single-player remains first-class. Multiplayer session/network IDs remain runtime-only and layered over authored stable IDs. Real-time collaborative editor mutation remains explicitly deferred to a future collaboration protocol.
 
-## Architecture invariants
-- Authored persistent stable IDs remain the source of truth for project content. Network/session identity must be layered on top and must not rewrite authored IDs.
-- Offline single-player remains first-class and must keep existing behavior when multiplayer is disabled.
-- Multiplayer session state is runtime/disposable state and must not leak into authored project serialization unless a future schema explicitly requires it.
-- The initial runtime model is host-authoritative. Clients may request actions; the host validates and commits authoritative gameplay state.
-- Existing Phase 10 gameplay systems remain the gameplay source of truth. Networking adapts/replicates them rather than creating parallel gameplay implementations.
-- Existing Phase 7 semantic gameplay input remains the local input abstraction for each local player endpoint.
-- Existing Phase 13 export dependency closure must determine whether multiplayer runtime files are included. Editor-only networking diagnostics must not leak into standalone packages.
-- Phase 14 performance presets may alter network/render/update cadence only where semantics remain unchanged.
-- Real-time collaborative editor mutation is out of implementation scope for Phase 15. Phase 15 must produce a future collaboration design/roadmap instead.
-- No production matchmaking, account system, cloud relay, NAT traversal service, voice chat, anti-cheat platform, rollback netcode, or dedicated-server fleet is required in Phase 15.
+## Architecture invariants retained
+- Authored persistent stable IDs remain the source of truth; network/session identity does not rewrite them.
+- Offline Play remains unchanged when multiplayer is disabled.
+- Multiplayer state is disposable Play-session state.
+- Host authority validates and commits replicated gameplay state.
+- Phase 10 runtime gameplay services remain the gameplay source of truth.
+- Phase 7 semantic gameplay input remains the local-player input abstraction.
+- Multiplayer export dependencies are optional and derived from declared project capability.
+- Editor-only networking UI/diagnostics are excluded from standalone dependency closure.
+- Collaborative authoring is a separate durable operation/history problem, not gameplay replication.
 
-## Networking baseline
-Use Godot 4.7.1 multiplayer primitives through a project-owned adapter/service boundary. The default prototype transport should be ENet for local/LAN/loopback validation while keeping transport selection isolated from gameplay code.
+## Completed checkpoints
+- [x] P15-T01 — Network identity and session contracts
+- [x] P15-T02 — Host/client ENet transport adapter and lifecycle
+- [x] P15-T03 — Multiplayer player spawning and movement/presence replication
+- [x] P15-T04 — Host-authoritative generic gameplay replication
+- [x] P15-T05 — Multiplayer template, match, competitive, and bounded Visual Scripting hooks
+- [x] P15-T06 — Accessible adaptive Offline/Host/Join Play UX
+- [x] P15-T07 — Runtime save authority, reconnect, host termination, and failure hardening
+- [x] P15-T08 — Optional export/package integration and real two-process Windows verification
+- [x] P15-T09 — Collaborative-authoring architecture roadmap
+- [x] P15-T10 — Full verification, inherited regressions, rendered evidence, documentation closeout, and completion-PR readiness
 
-Required concepts:
-- session role: offline / host / client;
-- session ID;
-- peer ID;
-- player/network identity mapped to persistent authored/runtime entities without replacing their stable IDs;
-- connection state and explicit join/leave lifecycle;
-- authoritative ownership metadata;
-- bounded replicated state snapshots/deltas;
-- RPC/action-request validation boundary;
-- host-only runtime save authority;
-- deterministic disconnect cleanup.
+## Delivered networking baseline
+- roles: offline / host / client;
+- versioned protocol/runtime-contract handshake;
+- session and peer IDs;
+- runtime peer↔authored-entity ownership mapping without stable-ID mutation;
+- ENet LAN/loopback host/client transport behind project-owned adapter;
+- reliable/unreliable packet boundary;
+- explicit peer join/leave/disconnect cleanup;
+- host termination/reconnect/repeated-session hardening;
+- host-only runtime save authority.
 
-## Co-op prototype scope
-The prototype must prove two-peer gameplay through the existing Play runtime:
-- host creates a multiplayer Play session;
-- client joins by explicit address/port in development/test flows;
-- both peers spawn controllable player avatars through existing template/runtime paths;
-- local input controls only the local player;
-- player movement/presence replicates;
-- at least a bounded subset of Phase 10 gameplay interaction state replicates through host authority;
-- join, leave, disconnect, and reconnect/rejoin behavior is defined and tested;
-- host termination cleanly ends the session;
-- no client may directly write authoritative project/save data.
+## Delivered co-op/runtime prototype
+- existing first/third-person controllers can represent local and remote multiplayer players;
+- local player consumes semantic input; remote players do not;
+- player transform/presence state replicates;
+- health/damage/heal and door/interaction state use host-authoritative requests/results;
+- spoofed client ownership/action claims fail closed;
+- runtime match membership converges;
+- Play teardown leaves no authored networking mutation.
 
-The initial interaction replication set should favor high-value generic systems rather than one-off gameplay: health/damage, door/open state, simple inventory/container transfer, and one quest/objective or score-like state where practical.
+## Delivered template/match/Visual Scripting hooks
+- opt-in multiplayer capability declarations;
+- bounded min/max player validation;
+- deterministic team assignment and spawn offsets;
+- score/objective match state;
+- `multiplayer.score.add` and `multiplayer.objective.set` host-authoritative actions through the existing `gameplay.emit_event` graph path;
+- `multiplayer.session.ready`, `multiplayer.peer.joined`, and `multiplayer.peer.left` runtime events on the existing gameplay event bus;
+- legacy/offline templates remain valid.
 
-## Competitive/template hooks
-Phase 15 must add reusable hooks, not a full competitive game framework:
-- session/match metadata;
-- team or side assignment contract;
-- multiplayer spawn-point selection hooks;
-- simple score/objective state contract;
-- template/runtime capability declaration for multiplayer support;
-- deterministic player-count limits and validation;
-- Visual Scripting-facing multiplayer events/actions where the existing graph model can support them cleanly.
+## Delivered UX
+- canonical top-bar Multiplayer surface;
+- Offline / Host & Play / Join & Play;
+- host address/port/player fields;
+- session status and peer count;
+- explicit error status;
+- keyboard-only and gamepad-aware focus/input hints;
+- Phase 14 minimum-target/focus policy reuse;
+- corrected full/compact right-anchored panel behavior.
 
-Starter templates that do not declare multiplayer support must continue to run unchanged.
+## Delivered export integration
+- offline export source closure excludes Phase 15 network runtime;
+- multiplayer-capable export closure adds only required network runtime roots/dependencies;
+- multiplayer capability metadata is packaged for enabled builds;
+- standalone bootstrap dynamically loads networking through Godot's export-aware resource loader;
+- environment-driven Host/Client launch is available for standalone validation without changing default offline behavior;
+- Windows verification creates multiplayer and offline packages, verifies repeat-export stale-file removal, launches offline standalone, then launches exported host/client concurrently;
+- exported host/client verifies peer convergence, local input enabled, remote input disabled, keyboard/mouse and gamepad semantic bindings, and match membership.
 
-## Editor/runtime UX
-Add a compact multiplayer surface integrated with the existing Build → Play flow rather than a new application shell.
+## Collaboration roadmap
+`docs/architecture/PHASE15_COLLABORATIVE_AUTHORING_ROADMAP.md`
 
-Required UX:
-- Offline / Host / Join mode selection;
-- host port and join address/port fields for development/LAN use;
-- explicit session status and peer count;
-- clear errors for bind failure, connection failure, incompatible session/runtime contract, and host disconnect;
-- keyboard-only and gamepad-accessible navigation consistent with Phase 14 focus/input standards;
-- compact/adaptive behavior consistent with the canonical dark playful Nintendo/Apple-inspired UI.
+The roadmap covers durable author/session/operation identity, permissions, universal command-log compatibility, conflict classes and resolution, asset revisions, presence, optimistic operations, offline/reconnect/rebase, append-only history/audit, security/privacy, hosted-service requirements, and clear reuse/non-reuse boundaries with Phase 15 gameplay networking.
 
-Do not expose raw low-level networking controls by default when a simple host/join path is sufficient.
+It does **not** claim collaborative editing is implemented.
 
-## Persistence and authority
-- Authored project save remains editor-owned.
-- Runtime multiplayer save/state snapshots are host-authoritative.
-- Client requests that would mutate gameplay state must be validated by the host before commit.
-- Disconnecting a client must not corrupt runtime state or authored data.
-- Network identity/state must be reset between disposable Play sessions.
-- Re-entering Build mode must leave no active multiplayer peer or leaked network callback behind.
+## Verification
+- Phase 15 Contracts — run `31635239746` — PASS — identity, loopback, replication, templates, lifecycle, match, export, scale
+- Phase 15 Inherited Regressions — run `31634218734` — PASS — Phase 6 through Phase 14 plus Phase 14 scale stress
+- Godot Smoke — run `31635582701` — PASS on final implementation head
+- Phase 15 Visual Evidence — run `31634842058` — PASS; corrected compact panel visually inspected
+- Phase 15 Windows Multiplayer Export — run `31635582699` — PASS; offline package plus real exported concurrent host/client
 
-## Export integration
-Phase 15 multiplayer-capable exports must reuse Phase 13 packaging and Phase 14 preset policy.
+A later contract matrix run had one infrastructure-only Godot download failure before its test shard began; the complete eight-suite contract run above is green.
 
-Verification must cover:
-- multiplayer runtime dependency closure;
-- multiplayer-disabled exports do not unnecessarily include editor-only/network-debug material;
-- multiplayer-enabled Windows packages launch cleanly;
-- two exported processes can establish a loopback/LAN-style host/client session in CI or an equivalent deterministic harness;
-- keyboard/mouse and gamepad semantic input remain valid in exported multiplayer runtime;
-- repeat export retains deterministic stale-file replacement.
+## Scope guard retained
+Phase 15 does not claim production matchmaking, cloud relay/account infrastructure, NAT traversal service, voice chat, anti-cheat platform integration, rollback netcode, dedicated-server fleet orchestration, or real-time collaborative editor mutation.
 
-## Collaboration roadmap deliverable
-Create a concrete design document for future collaborative authoring that covers:
-- author identity and permissions;
-- document/project operation IDs;
-- command-log compatibility with the existing universal command/Undo/Redo model;
-- conflict model and resolution policy;
-- asset availability/version synchronization;
-- presence/cursor/selection concepts;
-- optimistic vs authoritative authoring operations;
-- offline/reconnect behavior;
-- audit/history implications;
-- security/privacy boundaries;
-- hosted relay/service requirements;
-- what can reuse Phase 15 runtime networking and what must remain a separate collaboration protocol.
+## Completion rule
+Open one completion PR targeting authoritative `master`.
 
-This roadmap must explicitly avoid pretending that gameplay replication alone solves collaborative editing.
+Do **not** merge it without explicit user authorization.
 
-## Internal checkpoints
-
-### P15-T01 — Network identity and session contracts
-Define runtime-only network/session identity, peer roles, ownership, capability/version handshake, connection lifecycle, and offline fallback.
-
-Acceptance:
-- authored stable IDs are unchanged;
-- network identity is disposable/session-scoped;
-- invalid/incompatible joins fail deterministically;
-- offline behavior remains unchanged.
-
-### P15-T02 — Host/client transport adapter and lifecycle
-Implement the project-owned Godot multiplayer adapter with ENet host/join, clean shutdown, disconnect cleanup, and PlaySession integration.
-
-Acceptance:
-- loopback host/client connects;
-- Play → Build tears networking down completely;
-- host failure/bind/join errors are explicit;
-- no gameplay system reaches directly into transport implementation details.
-
-### P15-T03 — Multiplayer player spawning and movement replication
-Add multiplayer-aware spawn/ownership plumbing through existing playable template/controller paths.
-
-Acceptance:
-- host and client each control only their local avatar;
-- remote presence/movement replicates;
-- stable authored/runtime identity remains intact;
-- join/leave removes or restores peer-owned runtime entities cleanly.
-
-### P15-T04 — Host-authoritative gameplay replication
-Replicate a bounded generic Phase 10 interaction set through validated client requests and host commits.
-
-Acceptance:
-- at minimum health/damage and one interaction-state system are host-authoritative;
-- client-side direct authoritative mutation is rejected;
-- state converges after normal replicated actions;
-- disconnects do not corrupt runtime state.
-
-### P15-T05 — Multiplayer template and competitive hooks
-Add capability declarations, spawn/team/session metadata, simple score/objective hooks, and clean Visual Scripting exposure where appropriate.
-
-Acceptance:
-- multiplayer-capable templates can opt in;
-- legacy templates behave unchanged;
-- player-count/team/spawn validation is deterministic;
-- graph nodes/events remain bounded and testable.
-
-### P15-T06 — Multiplayer Play UX and accessibility
-Integrate Offline/Host/Join controls and session status into the existing Build → Play experience.
-
-Acceptance:
-- keyboard-only and gamepad flows work;
-- Phase 14 focus/target/glyph conventions are preserved;
-- compact layout remains usable;
-- connection errors are actionable and non-destructive.
-
-### P15-T07 — Runtime authority, save, reconnect, and failure hardening
-Harden host-only runtime save authority, join/leave/rejoin state, host termination, duplicate identity rejection, and Play-session cleanup.
-
-Acceptance:
-- clients cannot authoritatively save project/runtime state;
-- repeated start/stop sessions do not leak peers;
-- failure/reconnect cases are deterministic;
-- no authored project mutation occurs from networking lifecycle alone.
-
-### P15-T08 — Export/package integration and two-process verification
-Extend Phase 13/14 export verification for multiplayer-capable packages.
-
-Acceptance:
-- exact runtime dependency closure includes required multiplayer files;
-- multiplayer-enabled exported host/client processes connect and exercise the prototype;
-- keyboard/mouse and gamepad exported runtime checks remain green;
-- repeat-export stale-file replacement remains green.
-
-### P15-T09 — Collaboration roadmap and boundary documentation
-Produce the future collaborative-authoring architecture roadmap and explicitly separate it from gameplay networking.
-
-Acceptance:
-- identity, permissions, command/conflict model, asset sync, presence, history, security, offline/reconnect, and service requirements are specified;
-- reuse boundaries with Phase 15 runtime networking are explicit;
-- no fake collaborative-editing implementation is claimed.
-
-### P15-T10 — Full Phase 15 verification and one completion PR
-Run Phase 15 contracts, two-peer runtime tests, inherited Phase 6–14 regressions, Godot Smoke, rendered multiplayer UI/runtime evidence, Windows multiplayer export verification, documentation closeout, and open one completion PR to authoritative `master`.
-
-Acceptance:
-- all Phase 15 gates are green or any accepted exception is explicitly documented;
-- backlog/master plan/current handoff are closed accurately;
-- one completion PR is opened;
-- the PR is not merged without explicit user authorization;
-- Phase 16 does not begin before that merge is verified.
-
-## Verification matrix
-Required at milestone completion:
-- Phase 15 contract suites: identity/session, transport/lifecycle, replication/authority, templates/visual scripting, UX/accessibility/export;
-- deterministic two-peer headless/loopback runtime verification;
-- join/leave/rejoin and host-termination failure-path verification;
-- Small/Medium/Large multiplayer-capable fixture coverage where scale-sensitive;
-- inherited Phase 6–14 regression gate;
-- Godot Smoke;
-- rendered Host/Join/session-status evidence in full and compact layouts;
-- Windows exported two-process host/client verification;
-- keyboard/mouse and gamepad exported input verification;
-- documentation and collaboration-roadmap review.
-
-## Development rule
-Work continuously on `dev/phase15-multiplayer-collaboration-milestone`.
-
-Intermediate commits and CI runs are expected. Do not stop for task-by-task PRs.
-
-At Phase 15 completion:
-1. finish P15-T01 through P15-T10;
-2. run the full Phase 15 verification matrix and inherited gates;
-3. capture required evidence;
-4. close implementation/backlog/handoff documentation;
-5. open one Phase 15 completion PR targeting authoritative `master`;
-6. do not merge it without explicit user authorization.
+Do not begin Phase 16 until the Phase 15 PR is explicitly merged and the resulting authoritative `master` SHA is verified.
 
 ## Security reminder
 Historical `.polyforkAPI` credential material remains in Git history and must still be treated as exposed and rotated/revoked separately.
