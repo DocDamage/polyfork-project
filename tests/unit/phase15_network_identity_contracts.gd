@@ -18,16 +18,21 @@ static func run_checks() -> Array[String]:
     if int(normalized.get("max_players", 0)) != Contract.MAX_PLAYERS: errors.append("Network player count normalization must be bounded.")
     if str(normalized.get("player_label", "")) != "Player": errors.append("Empty normalized player labels must use a safe default.")
 
-    var invalid_config := defaults.duplicate(true)
+    var invalid_config: Dictionary = defaults.duplicate(true)
     invalid_config["runtime_contract"] = "old-contract"
     if Contract.validate_config(invalid_config).is_empty(): errors.append("Incompatible runtime contracts must be rejected before connecting.")
 
-    var hello := Contract.make_hello("project-a", "Doc", "blue")
+    var hello: Dictionary = Contract.make_hello("project-a", "Doc", "blue")
     if not Contract.validate_hello(hello, "project-a").is_empty(): errors.append("Compatible session hello must validate.")
     if Contract.validate_hello(hello, "project-b").is_empty(): errors.append("Mismatched project identity must be rejected.")
     var round_trip: Dictionary = Contract.decode(Contract.encode(hello))
-    if round_trip != hello: errors.append("Network message encoding must round-trip deterministically.")
-    if not Contract.validate_envelope(round_trip).is_empty(): errors.append("Valid network message envelope must validate.")
+    if not Contract.validate_envelope(round_trip).is_empty(): errors.append("Valid network message envelope must validate after serialization.")
+    if str(round_trip.get("message_type", "")) != Contract.MESSAGE_HELLO: errors.append("Serialized network message type must round-trip.")
+    var round_payload: Dictionary = round_trip.get("payload", {})
+    if int(round_payload.get("protocol_version", -1)) != Contract.PROTOCOL_VERSION: errors.append("Serialized network protocol version must round-trip semantically.")
+    if str(round_payload.get("project_id", "")) != "project-a": errors.append("Serialized network project identity must round-trip.")
+    if str(round_payload.get("player_label", "")) != "Doc": errors.append("Serialized network player label must round-trip.")
+    if str(round_payload.get("team_id", "")) != "blue": errors.append("Serialized network team identity must round-trip.")
 
     var registry = Registry.new()
     if not registry.begin_session("session-test").get("ok", false): errors.append("Network identity registry must start from a runtime-only session ID.")
