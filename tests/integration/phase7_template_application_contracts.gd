@@ -57,6 +57,8 @@ static func _materialize_template(registry, template_id: String) -> Array[String
     var before_count: int = project.entity_records.size(); var second: Dictionary = application.materialize_starters(project, manifest, session, gameplay, func(_position: Vector3) -> String: return cell_id)
     if not second.get("ok", false) or bool(second.get("changed", true)): errors.append("Repeated template materialization must be a safe no-op.")
     if project.entity_records.size() != before_count: errors.append("Repeated template materialization must not duplicate runtime starter nodes.")
+    var runtime_json: String = JSON.stringify(project.runtime_config)
+    var entities_json: String = JSON.stringify(project.entity_records)
     var save_result: Dictionary = repository.save_project(project)
     if not save_result.get("ok", false): errors.append("Materialized template project must save: %s" % save_result.get("errors", []))
     else:
@@ -64,8 +66,8 @@ static func _materialize_template(registry, template_id: String) -> Array[String
         if not reopen.get("ok", false): errors.append("Materialized template project must reopen: %s" % reopen.get("errors", []))
         else:
             var reopened = reopen["project"]
-            if reopened.runtime_config != project.runtime_config: errors.append("Template runtime configuration must persist across reopen.")
-            if reopened.entity_records != project.entity_records: errors.append("Template starter entity identity must persist across reopen.")
+            if JSON.stringify(reopened.runtime_config) != runtime_json: errors.append("Template runtime configuration values must persist across reopen.")
+            if JSON.stringify(reopened.entity_records) != entities_json: errors.append("Template starter entity values and identity must persist across reopen.")
     session.free()
     return errors
 
