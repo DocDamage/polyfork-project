@@ -32,7 +32,7 @@ var _quest_runtime = RuntimeQuestService.new()
 var _vehicle_runtime = RuntimeVehicleService.new()
 var _save_state_runtime = RuntimeSaveStateService.new()
 var _visual_runtime = VisualGraphRuntime.new()
-var _environment_runtime = EnvironmentRuntime.new()
+var _environment_runtime
 var _visual_graph_provider := Callable()
 var _gameplay_state_provider := Callable()
 var _environment_state_provider := Callable()
@@ -50,9 +50,6 @@ var _spawn_entity_id := ""
 
 func _init() -> void:
     name = "PlaySession"
-    add_child(_environment_runtime)
-    _environment_runtime.set_rendering_enabled(false)
-    _environment_runtime.environment_event.connect(_on_environment_event)
 
 func configure_streaming(callback: Callable) -> void: _streaming_callback = callback
 func configure_visual_graph_provider(provider: Callable) -> void: _visual_graph_provider = provider
@@ -142,7 +139,7 @@ func enter_play(editor_session) -> Dictionary:
         "spawn_entity_id": _spawn_entity_id,
         "visual_graphs": _last_visual_result.get("executed_graphs", 0),
         "environment_active": _environment_active,
-        "weather_profile_id": _environment_runtime.get_active_weather_profile_id() if _environment_active else "",
+        "weather_profile_id": _environment_runtime.get_active_weather_profile_id() if _environment_active and _environment_runtime != null else "",
     }
 
 func exit_play() -> Dictionary:
@@ -233,7 +230,7 @@ func _update_streaming_focus() -> void:
     if result is Dictionary and not result.get("ok", false): push_warning("Play streaming focus update failed: %s" % str(result.get("errors", [])))
 
 func _advance_environment(delta: float) -> void:
-    if not _environment_active: return
+    if not _environment_active or _environment_runtime == null: return
     var focus_position := Vector3.ZERO
     if is_instance_valid(_player): focus_position = _player.global_position
     var result: Dictionary = _environment_runtime.advance(delta, focus_position)
@@ -266,14 +263,18 @@ func _bind_gameplay_services(project_data: Dictionary) -> Dictionary:
     return {"ok": true, "errors": []}
 
 func _initialize_environment_runtime() -> Dictionary:
-    _environment_active = false
-    _environment_runtime.clear()
+    _clear_environment_runtime()
     if not _environment_state_provider.is_valid(): return {"ok": true, "errors": [], "active": false}
     var environment_value: Variant = _environment_state_provider.call()
     if not environment_value is Dictionary: return _failure("Environment state provider returned an invalid value.")
     var environment_bundle: Dictionary = environment_value
     var document_value: Variant = environment_bundle.get("document", {})
     if not document_value is Dictionary or document_value.is_empty(): return _failure("Environment state provider did not return an authored environment document.")
+    var runtime = EnvironmentRuntime.new()
+    add_child(runtime)
+    _environment_runtime = runtime
+    _environment_runtime.set_rendering_enabled(false)
+    _environment_runtime.environment_event.connect(_on_environment_event)
     var document: Dictionary = document_value.duplicate(true)
     var result: Dictionary = _environment_runtime.initialize(document, environment_bundle.get("terrain_state"), environment_bundle.get("procedural_runtime"), true)
     if not result.get("ok", false): return result
@@ -282,10 +283,17 @@ func _initialize_environment_runtime() -> Dictionary:
     return {"ok": true, "errors": [], "active": true, "weather_profile_id": _environment_runtime.get_active_weather_profile_id()}
 
 func _build_visual_gameplay_context() -> Dictionary:
+    var environment_set_time := Callable()
+    var environment_set_weather := Callable()
+    var environment_clear_weather := Callable()
+    if _environment_runtime != null:
+        environment_set_time = Callable(_environment_runtime, "set_time_of_day")
+        environment_set_weather = Callable(_environment_runtime, "set_weather_profile")
+        environment_clear_weather = Callable(_environment_runtime, "clear_weather_override")
     return {
-        "environment_set_time": Callable(_environment_runtime, "set_time_of_day"),
-        "environment_set_weather": Callable(_environment_runtime, "set_weather_profile"),
-        "environment_clear_weather": Callable(_environment_runtime, "clear_weather_override"),
+        "environment_set_time": environment_set_time,
+        "environment_set_weather": environment_set_weather,
+        "environment_clear_weather": environment_clear_weather,
         "environment_get_state": Callable(self, "_visual_get_environment_state"),
         "gameplay_set_component_value": Callable(_gameplay_runtime, "set_component_value"),
         "gameplay_emit_event": Callable(_gameplay_runtime, "emit_event"),
@@ -301,7 +309,7 @@ func _build_visual_gameplay_context() -> Dictionary:
     }
 
 func _visual_get_environment_state() -> Dictionary:
-    if not _environment_active: return _failure("Visual environment runtime is unavailable.")
+    if not _environment_active or _environment_runtime == null: return _failure("Visual environment runtime is unavailable.")
     return {"ok": true, "errors": [], "value": _environment_runtime.get_evaluated_state()}
 
 func _visual_get_component_value(entity_id: String, component_key: String, property_name: String) -> Dictionary:
@@ -316,8 +324,13 @@ func _on_environment_event(event_name: String, payload: Dictionary) -> void:
     if not result.get("ok", false): push_warning("Environment gameplay event routing failed: %s" % str(result.get("errors", [])))
 
 func _clear_environment_runtime() -> void:
-    _environment_runtime.clear()
     _environment_active = false
+    if _environment_runtime == null: return
+    if is_instance_valid(_environment_runtime):
+        _environment_runtime.clear()
+        if _environment_runtime.get_parent() == self: remove_child(_environment_runtime)
+        _environment_runtime.free()
+    _environment_runtime = null
 
 func _clear_runtime_services() -> void:
     _save_state_runtime.clear(); _vehicle_runtime.clear(); _dialogue_runtime.clear(); _quest_runtime.clear(); _npc_runtime.clear(); _interaction_runtime.clear(); _inventory_runtime.clear(); _health_runtime.clear()
