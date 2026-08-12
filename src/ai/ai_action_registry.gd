@@ -31,8 +31,8 @@ func action_catalog() -> Array[Dictionary]:
         {"type": "entity.place_proxy", "description": "Place a proxy object without an asset.", "required": ["display_name", "position"], "optional": ["rotation_degrees", "scale"]},
         {"type": "entity.transform", "description": "Set transform fields on an existing authored entity.", "required": ["entity_id"], "optional": ["position", "rotation_degrees", "scale"]},
         {"type": "gameplay.add_component", "description": "Add an existing gameplay component definition to an existing entity.", "required": ["entity_id", "definition_id"], "optional": ["values"]},
-        {"type": "visual.create_graph", "description": "Create a new Visual Scripting graph using supplied nodes/connections or an empty event graph.", "required": ["display_name"], "optional": ["kind", "nodes", "connections", "variables"]},
-        {"type": "procedural.create_foliage_set", "description": "Create a foliage set using an existing Asset Library asset or a built-in primitive.", "required": ["display_name"], "optional": ["asset_id", "primitive"]},
+        {"type": "visual.create_graph", "description": "Create a new Visual Scripting event or macro graph. Node/connection references are temporary proposal refs; persisted stable IDs are generated locally.", "required": ["display_name"], "optional": ["kind", "nodes", "connections", "variables"]},
+        {"type": "procedural.create_foliage_set", "description": "Create a foliage set using an existing Asset Library asset or a supported built-in primitive.", "required": ["display_name"], "optional": ["asset_id", "primitive"]},
         {"type": "environment.configure", "description": "Configure authored time/day/fog/wind/default weather fields through the existing Environment system.", "required": ["patch"], "optional": []},
     ]
 
@@ -44,7 +44,7 @@ func normalize_provider_proposal(request_id: String, raw: Dictionary) -> Diction
         for value in raw_actions:
             if not value is Dictionary: continue
             var action: Dictionary = value.duplicate(true)
-            if not StableId.is_valid(str(action.get("action_id", ""))): action["action_id"] = StableId.generate()
+            action["action_id"] = StableId.generate()
             action["type"] = str(action.get("type", "")).strip_edges()
             if not action.get("arguments", {}) is Dictionary: action["arguments"] = {}
             action["reason"] = str(action.get("reason", "")).strip_edges()
@@ -106,7 +106,7 @@ func validate_action(action: Dictionary) -> Array[String]:
         "visual.create_graph":
             if str(args.get("display_name", "")).strip_edges().is_empty(): errors.append("AI visual graph creation requires display_name.")
             var kind: String = str(args.get("kind", "event"))
-            if not ["event", "function", "macro"].has(kind): errors.append("AI visual graph kind must be event, function, or macro.")
+            if not ["event", "macro"].has(kind): errors.append("AI visual graph kind must be event or macro.")
             for key in ["nodes", "connections", "variables"]:
                 if args.has(key) and not args.get(key) is Array: errors.append("AI visual graph %s must be an array." % key)
         "procedural.create_foliage_set":
@@ -119,7 +119,7 @@ func validate_action(action: Dictionary) -> Array[String]:
                 var asset: Dictionary = _query_service.asset_get(asset_id)
                 if asset.is_empty() or bool(asset.get("missing", false)) or not bool(asset.get("analysis", {}).get("ok", false)):
                     errors.append("AI foliage creation references an unavailable asset_id: %s" % asset_id)
-            if has_primitive and not ["grass", "post", "cube"].has(str(args.get("primitive", ""))): errors.append("Unsupported built-in foliage primitive.")
+            if has_primitive and not ["grass", "shrub", "tree", "post"].has(str(args.get("primitive", ""))): errors.append("Unsupported built-in foliage primitive.")
         "environment.configure":
             var patch_value: Variant = args.get("patch", {})
             if not patch_value is Dictionary or patch_value.is_empty(): errors.append("AI environment configure requires a non-empty patch.")
