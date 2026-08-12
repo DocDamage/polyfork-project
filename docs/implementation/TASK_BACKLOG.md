@@ -3,7 +3,7 @@
 Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are milestone gates, not task gates, unless a handoff explicitly says otherwise.
 
 ## Completed phases 0–15
-Phases 0 through 14 are complete and merged on authoritative `master`. Phase 15 implementation is complete and its completion PR is open; it is **not merged yet**.
+Phases 0 through 15 are complete and merged on authoritative `master`.
 
 - [x] Phase 0 — Repository and contracts
 - [x] Phase 1 — App shell and canonical UI foundation
@@ -19,19 +19,19 @@ Phases 0 through 14 are complete and merged on authoritative `master`. Phase 15 
 - [x] Phase 11 — Environment — PR #16
 - [x] Phase 12 — AI Creation — PR #17
 - [x] Phase 13 — Export Pipeline — PR #18
-- [x] Phase 14 — Scale and Polish — PR #19 at `14085eb703b72d930f39121d3da18362d43cc77d`
-- [x] Phase 15 — Multiplayer Foundations and Collaboration Roadmap — PR #20 OPEN
+- [x] Phase 14 — Scale and Polish — PR #19
+- [x] Phase 15 — Multiplayer Foundations and Collaboration Roadmap — PR #20
 
-## Phase 15 — COMPLETE / PR #20 OPEN
+Authoritative `master`: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
+
+## Phase 15 — COMPLETE / MERGED
 Milestone branch: `dev/phase15-multiplayer-collaboration-milestone`
 
-Authoritative base: `14085eb703b72d930f39121d3da18362d43cc77d`
+Merged completion PR: `#20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap`
 
-Verified implementation head before documentation closeout: `93b67eb5e50ffe5b2b686027d6a400ee9ccff1f0`
+Merged at: `2026-08-12T21:16:19Z`
 
-Pre-merge documentation refresh began from PR head `72ab4d275fc5dbfeb69b35ab1679fee8588616b6`, which was 60 ahead / 0 behind `master`. The live head after this documentation commit must be re-fetched before merge.
-
-Completion PR: `#20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap`
+Phase 15 branch head included in the merge: `5f981a75f7c77ae1d144d1abb30831c57f7abfba`
 
 - [x] P15-T01 Network identity/session contracts
 - [x] P15-T02 ENet host/client transport and lifecycle
@@ -44,18 +44,30 @@ Completion PR: `#20 — Phase 15 — Multiplayer Foundations and Collaboration R
 - [x] P15-T09 Collaborative-authoring architecture roadmap
 - [x] P15-T10 Full verification/evidence/docs/completion PR
 - [x] P15-T11 Pre-merge canonical documentation audit/refresh
+- [x] P15-GATE PR #20 merge verification and authoritative `master` reconciliation
 
-## Completion verification
-Implementation evidence:
+### Phase 15 completion verification
 - Phase 15 Contracts — `31635239746` — PASS — all eight suites
 - Phase 15 Inherited Regressions — `31634218734` — PASS
 - Godot Smoke — `31635582701` — PASS
 - Phase 15 Visual Evidence — `31634842058` — PASS
 - Phase 15 Windows Multiplayer Export — `31635582699` — PASS
 
-At prior PR head `72ab4d...`, later pull-request-triggered GitHub Actions failures were setup/download failures before tests. Targeted reruns completed successfully without product-code changes. External Cursor/Graphite/Netlify suites remained queued with zero check runs and kept the aggregate PR state unstable; see `docs/qa/PHASE15_QA.md`.
+Later pre-merge GitHub Actions setup/download failures were retried and repository-owned executable checks completed successfully without product-code changes. Third-party Cursor/Graphite/Netlify suite state is tracked separately from Polyfork-owned verification.
 
-## Next gate
-- [ ] P15-GATE — fetch the new documentation-refresh PR head, verify branch integrity and current checks, then await explicit user merge authorization.
+## Phase 16 — UNBLOCKED / SCOPE DISCOVERY
+Milestone branch: `dev/phase16-milestone`
 
-Phase 16 remains blocked until PR #20 is explicitly merged and the resulting authoritative `master` SHA is verified.
+Authoritative base: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
+
+The Phase 16 implementation scope is intentionally not assigned until the remaining authoritative requirements and deferred limitations have been audited.
+
+- [x] P16-T00 Verify PR #20 merge and authoritative `master`; reconcile stale post-merge status documentation
+- [ ] P16-T01 Audit Product Requirements, Decisions, Charter, Risks, Security, System Architecture, implementation/backlog/QA/system documentation, and deferred limitations
+- [ ] P16-T02 Select the highest-value coherent remaining milestone and define explicit scope/non-goals/architecture/acceptance gates
+- [ ] P16-T03+ Implement the complete defined milestone continuously; detailed checkpoints are added only after scope is evidence-backed
+- [ ] P16-QA Run milestone contracts, inherited regressions, visual evidence, and Windows/export evidence where applicable
+- [ ] P16-DOC Close canonical documentation and prepare the Phase 16 handoff
+- [ ] P16-GATE Open one completion PR targeting authoritative `master`
+
+Historical `.polyforkAPI` credential material remains exposed in Git history and requires separate external rotation/revocation. Do not print, copy, restore, or reuse it.
