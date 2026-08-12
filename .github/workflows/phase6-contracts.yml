@@ -1,0 +1,68 @@
+name: Phase 6 Contracts
+
+on:
+  push:
+    branches:
+      - "dev/phase6-components-prefabs-milestone"
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phase6-contracts:
+    name: phase6-${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [components, prefabs, sockets, persistence, scale, workspace]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+          ./Godot_v4.7.1-stable_linux.x86_64 --version
+
+      - name: Run Phase 6 ${{ matrix.suite }} contracts
+        shell: bash
+        env:
+          PHASE6_SUITE: ${{ matrix.suite }}
+        run: |
+          set -uo pipefail
+          set +e
+          ./Godot_v4.7.1-stable_linux.x86_64 \
+            --headless \
+            --path . \
+            --script res://tests/phase6_suite_runner.gd 2>&1 | tee phase6-${{ matrix.suite }}.log
+          godot_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$godot_status" -ne 0 ]; then
+            exit "$godot_status"
+          fi
+          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' phase6-${{ matrix.suite }}.log; then
+            echo "Godot emitted script/engine errors during Phase 6 ${{ matrix.suite }} verification."
+            exit 1
+          fi
+          grep -F "PASS: Phase 6 ${{ matrix.suite }} contract suite completed." phase6-${{ matrix.suite }}.log
+
+      - name: Upload Phase 6 contract log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase6-${{ matrix.suite }}-log
+          path: phase6-${{ matrix.suite }}.log
+          if-no-files-found: error
+          retention-days: 14
