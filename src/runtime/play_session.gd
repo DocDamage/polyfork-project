@@ -360,8 +360,6 @@ func _bind_gameplay_services(project_data: Dictionary) -> Dictionary:
     var vehicle_result: Dictionary = _vehicle_runtime.bind_runtime(_gameplay_runtime, _runtime_state)
     if not vehicle_result.get("ok", false):
         return vehicle_result
-    if _project_directory.is_empty():
-        return _failure("Play session project directory is not configured.")
     var save_result: Dictionary = _save_state_runtime.bind_runtime(
         _project_directory,
         str(project_data.get("project_id", "")),
