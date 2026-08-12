@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [foundation, inventory, health, npc, dialogue, quest, vehicle]
+        suite: [foundation, inventory, health, npc, dialogue, quest, vehicle, save_state]
     name: phase10-${{ matrix.suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 8
