@@ -21,13 +21,13 @@ func clear() -> void:
 func apply_damage(target_entity_id: String, amount: float, source_entity_id: String = "") -> Dictionary:
     if amount <= 0.0:
         return _failure("Damage amount must be positive.")
-    var health := _health_values(target_entity_id)
+    var health: Dictionary = _health_values(target_entity_id)
     if health.is_empty():
         return _failure("Damage target does not have a Health component.")
     if not source_entity_id.is_empty() and not _runtime.has_entity(source_entity_id):
         return _failure("Damage source entity reference does not resolve.")
 
-    var damageable := _runtime.get_component_values(target_entity_id, "damageable")
+    var damageable: Dictionary = _runtime.get_component_values(target_entity_id, "damageable")
     if not damageable.is_empty() and bool(damageable.get("invulnerable", false)):
         _runtime.emit_event("health.damage_blocked", source_entity_id, target_entity_id, {"amount": amount, "reason": "invulnerable"})
         return {"ok": true, "errors": [], "applied": 0.0, "current_health": float(health.get("current_health", 0.0)), "blocked": true}
@@ -50,7 +50,7 @@ func apply_damage(target_entity_id: String, amount: float, source_entity_id: Str
 func heal(target_entity_id: String, amount: float, source_entity_id: String = "") -> Dictionary:
     if amount <= 0.0:
         return _failure("Heal amount must be positive.")
-    var health := _health_values(target_entity_id)
+    var health: Dictionary = _health_values(target_entity_id)
     if health.is_empty():
         return _failure("Heal target does not have a Health component.")
     if not source_entity_id.is_empty() and not _runtime.has_entity(source_entity_id):
@@ -69,12 +69,12 @@ func heal(target_entity_id: String, amount: float, source_entity_id: String = ""
 
 
 func set_health(target_entity_id: String, value: float, source_entity_id: String = "") -> Dictionary:
-    var health := _health_values(target_entity_id)
+    var health: Dictionary = _health_values(target_entity_id)
     if health.is_empty():
         return _failure("Health target does not have a Health component.")
     var maximum := float(health.get("max_health", 1.0))
     var next := clampf(value, 0.0, maximum)
-    var result := _runtime.set_component_value(target_entity_id, "health", "current_health", next)
+    var result: Dictionary = _runtime.set_component_value(target_entity_id, "health", "current_health", next)
     if not result.get("ok", false):
         return result
     if next <= 0.0:
@@ -88,12 +88,12 @@ func set_health(target_entity_id: String, value: float, source_entity_id: String
 func is_dead(entity_id: String) -> bool:
     if _dead_entities.has(entity_id):
         return true
-    var health := _health_values(entity_id)
+    var health: Dictionary = _health_values(entity_id)
     return not health.is_empty() and float(health.get("current_health", 0.0)) <= 0.0
 
 
 func get_health(entity_id: String) -> Dictionary:
-    var health := _health_values(entity_id)
+    var health: Dictionary = _health_values(entity_id)
     if health.is_empty():
         return _failure("Entity does not have a Health component.")
     return {"ok": true, "errors": [], "entity_id": entity_id, "values": health, "dead": is_dead(entity_id)}
