@@ -27,7 +27,10 @@ static func _materialize_template(registry, template_id: String) -> Array[String
     var repository = ProjectRepository.new(root)
     var create_result: Dictionary = repository.create_project("Phase 7 %s" % template_id, &"small", template_id)
     if not create_result.get("ok", false): return ["Project creation for %s must succeed: %s" % [template_id, create_result.get("errors", [])]]
-    var project = create_result["project"]; var cell_id: String = StableId.generate(); project.cell_ids = [cell_id]
+    var project = create_result["project"]
+    var cell_id: String = StableId.generate()
+    var owned_cells: Array[String] = [cell_id]
+    project.cell_ids = owned_cells
     var session = EditorSession.new(); var dirty: Array[int] = [0]
     var bind_result: Dictionary = session.bind_project(project, func() -> Dictionary: dirty[0] += 1; return {"ok": true, "errors": []})
     if not bind_result.get("ok", false): session.free(); return ["Editor fixture for %s could not bind." % template_id]
