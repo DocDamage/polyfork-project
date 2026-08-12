@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 8 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 9 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -10,184 +10,173 @@ The real project lives on:
 
 `master`
 
-Authoritative `master` before the Phase 8 merge:
+Authoritative `master` before the Phase 9 merge:
 
-`06df50b6ffb752731d21f1ced88eb2cf1191f542`
+`6ea437f3d5ea1077773ef797e8f5895e84b5a7f1`
 
-This is the verified merge commit for PR #12 — Phase 7 — Instant Play + Templates.
+This is the verified signed merge commit for PR #13 — Phase 8 — Visual Scripting.
 
 The repository default branch `main` remains obsolete starter code.
 
 **Never develop from `main`.**
 
-## Current milestone status
+## Phase 9 completion PR
 
-Phases 0 through 7 are merged on authoritative `master`.
+PR #14:
 
-Phase 8 — Visual Scripting — is implementation-complete and verified on:
+`https://github.com/DocDamage/polyfork-project/pull/14`
 
-`dev/phase8-visual-scripting-milestone`
+Title:
 
-All internal checkpoints P08-T01 through P08-T08 are complete.
+`Phase 9 — Foliage / Procedural / Splines`
 
-Phase 8 completion PR:
+Head branch:
 
-- PR #13 — `https://github.com/DocDamage/polyfork-project/pull/13`
-- Title: `Phase 8 — Visual Scripting`
-- Base: `master`
-- Head: `dev/phase8-visual-scripting-milestone`
-- Status: **DRAFT / OPEN — DO NOT MERGE WITHOUT EXPLICIT USER AUTHORIZATION**
+`dev/phase9-foliage-procedural-splines-milestone`
 
-Verified implementation/visual candidate before documentation closeout:
+Base:
 
-`9136c572a8526409e6f6550d79b4afb73adeae30`
+`master`
 
-Verified documentation-only pre-PR head:
+PR #14 is the **single** Phase 9 completion PR. It is intentionally draft and must not be merged without explicit user authorization.
 
-`5f6ab9c41fd07b8d1c9e12ca2c3e94ff8dabb0e5`
+All P09-T01 through P09-T08 are complete.
 
-This handoff-only PR-number commit is the final pre-merge branch mutation. All workflows on its resulting SHA must be green before PR #13 is considered merge-ready.
+## Verified pre-PR closeout head
 
-## Branch integrity before this handoff-only commit
+`45215cc4ccc4017fbfbac937783f1cd48696afab`
 
-- authoritative `master`: `06df50b6ffb752731d21f1ced88eb2cf1191f542`
-- merge base: `06df50b6ffb752731d21f1ced88eb2cf1191f542`
-- Phase 8 branch: ahead only
-- ahead of `master`: 16 commits
-- behind `master`: 0 commits
+Branch integrity at that head:
 
-No obsolete `main` ancestry was used.
+- merge base: `6ea437f3d5ea1077773ef797e8f5895e84b5a7f1`
+- ahead of authoritative `master`: 33 commits
+- behind authoritative `master`: 0 commits
+- obsolete `main`: not used
 
-## Verified pre-PR runs
+### Phase 9 Contracts
 
-### Phase 8 Contracts
-Run `31569145553` — SUCCESS
+Run `31575884949` — **SUCCESS**
 
 Passing suites:
+
 - foundation
-- authoring
-- compiler
-- runtime
-- macros
-- workspace
-- debugger
-- play
+- foliage
+- splines
+- sources
 - scale
+- workspace
+
+All dedicated Phase 9 suites use Godot `4.7.1.stable.official.a13da4feb` and reject raw `SCRIPT ERROR:` / engine `ERROR:` output.
+
+Representative scale result on this head:
+
+`25 terrain focus transitions, peak 2142 foliage instances, streamed road/fence regeneration in 3191 ms`
+
+CI regression budget: `12000 ms`.
+
+This is a regression proxy, not an FPS claim.
 
 ### Godot Smoke
-Run `31569145551` — SUCCESS
 
-Passing inherited jobs:
-- runtime smoke
-- Phase 1 visual capture
-- Phase 4 Asset Library visual capture
-- Phase 5 Terrain visual capture
+Run `31575884980` — **SUCCESS**
 
-### Phase 8 Visual Evidence
-Run `31569145576` — SUCCESS
+### Phase 9 Visual Evidence
+
+Run `31575884968` — **SUCCESS**
 
 Artifact:
-- ID `9130618921`
-- digest `sha256:7d80d1d41f61ce543c47c2eb40b80d452f80468fecf41dd274cfaeb8426fe0c0`
 
-All dedicated Phase 8 verification runs use Godot `4.7.1.stable.official.a13da4feb` and reject `SCRIPT ERROR:` / engine `ERROR:` output.
+- ID `9133148822`
+- digest `sha256:a3a52f44c844490903f655727fd18ad7083c43750a90a78f672ce04fb93d2c8d`
+- `01-foliage-scatter.png`
+- `02-road-fence.png`
 
-Representative scale result: 120 graphs compiled and executed in 17 ms against a broad 12,000 ms CI regression budget. This is a regression proxy, not an FPS claim.
+The exact pre-PR artifact was downloaded and manually inspected in addition to the automated rendered PASS gate.
 
-## Phase 8 delivered
+## Phase 9 delivered
 
-### Graph contracts and persistence
-- schema-v1 project graph registry
-- crash-safe `visual_scripting/graphs.json`
-- stable graph/node/connection/variable identity
-- mirrored `WorldProject.registries.visual_graph_ids`
-- corrupt/future-schema/duplicate/invalid references fail closed
+### Persistence and identity
 
-### Command-backed graph authoring
-- graph create/delete/configure
-- node create/delete/move/configure
-- connection/disconnection
-- graph variables
-- persistence rollback on failed writes
-- shared universal Undo/Redo and project dirty-state path
+- schema-v1 `procedural_registry`
+- crash-safe `procedural/procedural.json`
+- stable foliage-set, scatter-layer, paint/erase-stroke, spline, and spline-point IDs
+- mirrored WorldProject procedural registries
+- corruption, future-schema, duplicate, cross-project, and invalid-reference failure paths
 
-### Compiler and bounded runtime
-- deterministic executable plans
-- exec/data port validation
-- data type compatibility
-- input cardinality validation
-- event entry validation
-- data dependency-cycle rejection
-- hard runtime step budget
-- variables, flow, math, logic, entity position, and debug trace
+### Foliage and scatter
 
-### Macros/functions
-- Macro Entry / Macro Return
-- typed macro interfaces
-- dynamic Call Macro ports
-- nested execution and output propagation
-- missing-target rejection
-- compile-time dependency-cycle rejection
-- independent runtime recursion guard
+- built-in grass/shrub/tree/post sources with readable materials and correct terrain grounding
+- real Phase 4 Asset Library source resolution via stable asset IDs
+- real Phase 6 inherited-prefab resolution via stable prefab IDs
+- read-only external source folders
+- real `MultiMeshInstance3D` foliage batches per scatter layer × active terrain cell
+- deterministic seed/density/spacing/biome/height/slope/scale/yaw/normal rules
+- nondestructive paint and erase strokes
+- command-backed universal Undo/Redo
+- dirty/autosave and crash-safe persistence integration
+- terrain-refresh and Phase 5 streaming regeneration
 
-### Logic workspace
-- bottom dock exposes `Logic`
-- native Godot `GraphEdit` / `GraphNode`
-- searchable node palette
-- event/macro creation
-- native connect/disconnect/delete/move
-- JSON property editing
-- gamepad X/Y authoring shortcuts
-- reliable Back/Cancel and contextual-tool switching
-- shared existing app theme and workspace rather than a parallel editor fork
+### Splines
 
-### Debugger
-- Validate
-- Run
-- Breakpoint
-- Resume
-- stable node selection
-- paused/completed/error state
-- live debug trace/status
-- resume continues existing interpreter state rather than restarting
+- stable-ID road/path/fence source records and control points
+- command-backed create/delete/add/move/delete-point/configure operations
+- open/closed path data, width, sample spacing, and terrain conformance
+- real road/path `ArrayMesh` ribbon triangles
+- real fence `MultiMeshInstance3D` segment batches
+- active-cell streamed appearance/unloading
 
-### Real Play integration
-- active project's graph service is the Phase 7 PlaySession graph provider
-- project registry compiles at Play entry
-- enabled event graphs execute in deterministic graph-ID order
-- stable entity operations target only disposable Play runtime state
-- graph failure rejects Play startup and follows the existing rollback path
-- authored Build project data remains unchanged
-- real Main-scene integration test verifies graph execution count and clean return to Build
+### Procedural workspace
 
-### Template graph references
-- template graph references must be stable project graph UUIDs
-- missing and malformed references fail closed
-- no scene paths or hidden template-specific editor forks
+- existing Foliage and Roads dock entries
+- shared bottom-wide Procedural contextual panel
+- terrain-conforming world cursor
+- foliage/scatter selection and creation
+- Paint / Erase
+- radius / density controls
+- New Road / New Path / New Fence / Add Point
+- viewport-click authoring
+- arrows / D-pad cursor movement
+- Enter / gamepad A apply
+- gamepad X Paint/Erase toggle
+- contextual-tool switching
+- Back/Cancel behavior
 
-## Rendered evidence inspected
+### QA
 
-`01-visual-scripting-graph.png` shows a real connected Start/Literal/Add/Print event graph in the native Logic workspace.
+- save/reopen
+- Undo/Redo
+- deterministic regeneration
+- missing-reference failures
+- real external Asset Library source
+- inherited prefab source
+- terrain refresh coupling
+- large-world streaming
+- representative scale/performance
+- real Main-scene/gamepad workspace paths
+- strict raw-log rejection
+- inherited Godot smoke
+- rendered foliage/road/fence evidence with manual inspection
 
-`02-debugger-paused.png` shows the same graph paused at a real `debug.print` breakpoint with Breakpoint active, Resume enabled, stable-node status, and the debugger toolbar visible.
+## Documentation
 
-The captures were manually inspected in addition to the automated rendered PASS gate.
+Phase 9 closeout documentation:
 
-## Documentation closeout
-
-Updated for actual Phase 8 implementation:
 - `docs/implementation/TASK_BACKLOG.md`
 - `docs/implementation/MASTER_IMPLEMENTATION_PLAN.md`
-- `docs/systems/VISUAL_SCRIPTING.md`
-- `docs/qa/PHASE8_QA.md`
+- `docs/systems/PROCEDURAL_FOLIAGE_SPLINES.md`
+- `docs/qa/PHASE9_QA.md`
 - this handoff
 
-## Next action
+## Current gate
 
-1. verify the final handoff-only PR head remains green across Phase 8, baseline, and all PR-triggered inherited gates;
-2. review PR #13 and its checks;
+This PR-number handoff update is the final Phase 9 branch mutation before merge review.
+
+Required now:
+
+1. verify all PR-triggered Phase 9 and inherited workflows on the final PR head;
+2. confirm PR #14 remains mergeable and targets authoritative `master`;
 3. merge only after explicit user authorization.
 
-After PR #13 is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 9 milestone branch.
+After PR #14 is explicitly merged, verify the resulting authoritative `master` SHA before creating a Phase 10 milestone branch.
 
-**Do not begin Phase 9 before PR #13 is explicitly merged.**
+**Do not begin Phase 10 before PR #14 is explicitly merged.**
