@@ -42,7 +42,7 @@ func bind_project(project, project_directory: String, editor_session, dirty_call
     if _runtime != null:
         if terrain_state == null:
             return _failure("Procedural runtime binding requires terrain state.")
-        var terrain_runtime = _runtime.get_meta("terrain_runtime") if _runtime.has_meta("terrain_runtime") else null
+        var terrain_runtime: Variant = _runtime.get_meta("terrain_runtime") if _runtime.has_meta("terrain_runtime") else null
         if terrain_runtime != null:
             var bind_runtime: Dictionary = _runtime.bind_state(_state, terrain_state, terrain_runtime, _source_resolver)
             if not bind_runtime.get("ok", false):
@@ -66,8 +66,7 @@ func get_splines() -> Array[Dictionary]: return [] if _state == null else _state
 
 
 func create_foliage_set(display_name: String, source: Dictionary, options: Dictionary = {}) -> Dictionary:
-    if not _is_bound():
-        return _failure("Procedural service is not bound.")
+    if not _is_bound(): return _failure("Procedural service is not bound.")
     var foliage_id: String = StableId.generate()
     var record: Dictionary = {
         "foliage_set_id": foliage_id,
@@ -80,23 +79,19 @@ func create_foliage_set(display_name: String, source: Dictionary, options: Dicti
         "max_instances_per_cell": int(options.get("max_instances_per_cell", 4000)),
     }
     var record_errors: Array[String] = Contracts.validate_foliage_set(record)
-    if not record_errors.is_empty():
-        return {"ok": false, "errors": record_errors}
+    if not record_errors.is_empty(): return {"ok": false, "errors": record_errors}
     var after: Dictionary = _state.to_document()
     var records: Array = after.get("foliage_sets", []).duplicate(true)
     records.append(record)
     after["foliage_sets"] = records
     var result: Dictionary = _commit(after, "Create foliage set")
-    if result.get("ok", false):
-        result["foliage_set_id"] = foliage_id
+    if result.get("ok", false): result["foliage_set_id"] = foliage_id
     return result
 
 
 func create_scatter_layer(display_name: String, foliage_set_id: String, options: Dictionary = {}) -> Dictionary:
-    if not _is_bound():
-        return _failure("Procedural service is not bound.")
-    if _state.get_foliage_set(foliage_set_id).is_empty():
-        return _failure("Scatter layer requires an existing foliage set.")
+    if not _is_bound(): return _failure("Procedural service is not bound.")
+    if _state.get_foliage_set(foliage_set_id).is_empty(): return _failure("Scatter layer requires an existing foliage set.")
     var scatter_id: String = StableId.generate()
     var record: Dictionary = {
         "scatter_layer_id": scatter_id,
@@ -113,29 +108,23 @@ func create_scatter_layer(display_name: String, foliage_set_id: String, options:
     }
     var foliage_ids: Array = _state.foliage_set_ids()
     var record_errors: Array[String] = Contracts.validate_scatter_layer(record, foliage_ids)
-    if not record_errors.is_empty():
-        return {"ok": false, "errors": record_errors}
+    if not record_errors.is_empty(): return {"ok": false, "errors": record_errors}
     var after: Dictionary = _state.to_document()
     var records: Array = after.get("scatter_layers", []).duplicate(true)
     records.append(record)
     after["scatter_layers"] = records
     var result: Dictionary = _commit(after, "Create scatter layer")
-    if result.get("ok", false):
-        result["scatter_layer_id"] = scatter_id
+    if result.get("ok", false): result["scatter_layer_id"] = scatter_id
     return result
 
 
 func add_scatter_stroke(scatter_layer_id: String, operation: String, center: Vector3, radius_m: float, strength: float = 1.0) -> Dictionary:
-    if not _is_bound():
-        return _failure("Procedural service is not bound.")
-    if _terrain_state == null:
-        return _failure("Scatter painting requires bound terrain state.")
+    if not _is_bound(): return _failure("Procedural service is not bound.")
+    if _terrain_state == null: return _failure("Scatter painting requires bound terrain state.")
     var cell_id: String = _terrain_state.cell_id_at_position(center)
-    if cell_id.is_empty():
-        return _failure("Scatter brush center is outside the authored terrain partition.")
+    if cell_id.is_empty(): return _failure("Scatter brush center is outside the authored terrain partition.")
     var layer: Dictionary = _state.get_scatter_layer(scatter_layer_id)
-    if layer.is_empty():
-        return _failure("Scatter layer does not exist.")
+    if layer.is_empty(): return _failure("Scatter layer does not exist.")
     var stroke_id: String = StableId.generate()
     var stroke: Dictionary = {
         "stroke_id": stroke_id,
@@ -146,14 +135,12 @@ func add_scatter_stroke(scatter_layer_id: String, operation: String, center: Vec
         "strength": strength,
     }
     var stroke_errors: Array[String] = Contracts.validate_stroke(stroke)
-    if not stroke_errors.is_empty():
-        return {"ok": false, "errors": stroke_errors}
+    if not stroke_errors.is_empty(): return {"ok": false, "errors": stroke_errors}
     var after: Dictionary = _state.to_document()
     var layers: Array = after.get("scatter_layers", []).duplicate(true)
     var found: bool = false
     for index in range(layers.size()):
-        if str(layers[index].get("scatter_layer_id", "")) != scatter_layer_id:
-            continue
+        if str(layers[index].get("scatter_layer_id", "")) != scatter_layer_id: continue
         var staged: Dictionary = layers[index].duplicate(true)
         var strokes: Array = staged.get("strokes", []).duplicate(true)
         strokes.append(stroke)
@@ -161,8 +148,7 @@ func add_scatter_stroke(scatter_layer_id: String, operation: String, center: Vec
         layers[index] = staged
         found = true
         break
-    if not found:
-        return _failure("Scatter layer disappeared before stroke staging.")
+    if not found: return _failure("Scatter layer disappeared before stroke staging.")
     after["scatter_layers"] = layers
     var result: Dictionary = _commit(after, "%s scatter" % operation.capitalize())
     if result.get("ok", false):
@@ -172,49 +158,157 @@ func add_scatter_stroke(scatter_layer_id: String, operation: String, center: Vec
 
 
 func configure_scatter_layer(scatter_layer_id: String, patch: Dictionary) -> Dictionary:
-    if not _is_bound():
-        return _failure("Procedural service is not bound.")
+    if not _is_bound(): return _failure("Procedural service is not bound.")
     var allowed: Array[String] = ["display_name", "enabled", "seed", "density_per_100m2", "minimum_spacing_m", "slope_range_deg", "height_range_m", "biome_ids"]
     for key_value in patch.keys():
-        if not allowed.has(str(key_value)):
-            return _failure("Unsupported scatter-layer property: %s" % str(key_value))
+        if not allowed.has(str(key_value)): return _failure("Unsupported scatter-layer property: %s" % str(key_value))
     var after: Dictionary = _state.to_document()
     var layers: Array = after.get("scatter_layers", []).duplicate(true)
     var found: bool = false
     for index in range(layers.size()):
-        if str(layers[index].get("scatter_layer_id", "")) != scatter_layer_id:
-            continue
+        if str(layers[index].get("scatter_layer_id", "")) != scatter_layer_id: continue
         var staged: Dictionary = layers[index].duplicate(true)
-        for key_value in patch.keys():
-            staged[key_value] = patch[key_value]
+        for key_value in patch.keys(): staged[key_value] = patch[key_value]
         layers[index] = staged
         found = true
         break
-    if not found:
-        return _failure("Scatter layer does not exist.")
+    if not found: return _failure("Scatter layer does not exist.")
     after["scatter_layers"] = layers
     var validation: Array[String] = Contracts.validate_document(after)
-    if not validation.is_empty():
-        return {"ok": false, "errors": validation}
+    if not validation.is_empty(): return {"ok": false, "errors": validation}
     return _commit(after, "Configure scatter layer")
+
+
+func create_spline(display_name: String, kind: String, positions: Array[Vector3], options: Dictionary = {}) -> Dictionary:
+    if not _is_bound(): return _failure("Procedural service is not bound.")
+    if positions.size() < 2: return _failure("Spline creation requires at least two control points.")
+    var spline_id: String = StableId.generate()
+    var points: Array[Dictionary] = []
+    for position_value in positions:
+        points.append({"point_id": StableId.generate(), "position": [position_value.x, position_value.y, position_value.z]})
+    var record: Dictionary = {
+        "spline_id": spline_id,
+        "display_name": display_name.strip_edges(),
+        "kind": kind,
+        "closed": bool(options.get("closed", false)),
+        "width_m": float(options.get("width_m", 6.0 if kind == "road" else 2.0)),
+        "sample_spacing_m": float(options.get("sample_spacing_m", 3.0)),
+        "terrain_conform": bool(options.get("terrain_conform", true)),
+        "points": points,
+    }
+    if kind == "fence": record["segment_source"] = options.get("segment_source", {"kind": "primitive", "primitive": "post"}).duplicate(true)
+    var record_errors: Array[String] = Contracts.validate_spline(record)
+    if not record_errors.is_empty(): return {"ok": false, "errors": record_errors}
+    var after: Dictionary = _state.to_document()
+    var splines: Array = after.get("splines", []).duplicate(true)
+    splines.append(record)
+    after["splines"] = splines
+    var result: Dictionary = _commit(after, "Create %s spline" % kind)
+    if result.get("ok", false):
+        result["spline_id"] = spline_id
+        var point_ids: Array[String] = []
+        for point in points: point_ids.append(str(point.get("point_id", "")))
+        result["point_ids"] = point_ids
+    return result
+
+
+func add_spline_point(spline_id: String, position_value: Vector3, insert_index: int = -1) -> Dictionary:
+    var spline: Dictionary = _state.get_spline(spline_id) if _state != null else {}
+    if spline.is_empty(): return _failure("Spline does not exist.")
+    var point_id: String = StableId.generate()
+    var point: Dictionary = {"point_id": point_id, "position": [position_value.x, position_value.y, position_value.z]}
+    var points: Array = spline.get("points", []).duplicate(true)
+    if insert_index < 0 or insert_index >= points.size(): points.append(point)
+    else: points.insert(insert_index, point)
+    spline["points"] = points
+    var result: Dictionary = _replace_spline(spline, "Add spline point")
+    if result.get("ok", false): result["point_id"] = point_id
+    return result
+
+
+func move_spline_point(spline_id: String, point_id: String, position_value: Vector3) -> Dictionary:
+    var spline: Dictionary = _state.get_spline(spline_id) if _state != null else {}
+    if spline.is_empty(): return _failure("Spline does not exist.")
+    var points: Array = spline.get("points", []).duplicate(true)
+    var found: bool = false
+    for index in range(points.size()):
+        if str(points[index].get("point_id", "")) != point_id: continue
+        var point: Dictionary = points[index].duplicate(true)
+        point["position"] = [position_value.x, position_value.y, position_value.z]
+        points[index] = point
+        found = true
+        break
+    if not found: return _failure("Spline point does not exist.")
+    spline["points"] = points
+    return _replace_spline(spline, "Move spline point")
+
+
+func delete_spline_point(spline_id: String, point_id: String) -> Dictionary:
+    var spline: Dictionary = _state.get_spline(spline_id) if _state != null else {}
+    if spline.is_empty(): return _failure("Spline does not exist.")
+    var points: Array = spline.get("points", []).duplicate(true)
+    if points.size() <= 2: return _failure("Spline must retain at least two control points.")
+    var removed: bool = false
+    for index in range(points.size() - 1, -1, -1):
+        if str(points[index].get("point_id", "")) == point_id:
+            points.remove_at(index)
+            removed = true
+            break
+    if not removed: return _failure("Spline point does not exist.")
+    spline["points"] = points
+    return _replace_spline(spline, "Delete spline point")
+
+
+func configure_spline(spline_id: String, patch: Dictionary) -> Dictionary:
+    var spline: Dictionary = _state.get_spline(spline_id) if _state != null else {}
+    if spline.is_empty(): return _failure("Spline does not exist.")
+    var allowed: Array[String] = ["display_name", "closed", "width_m", "sample_spacing_m", "terrain_conform", "segment_source"]
+    for key_value in patch.keys():
+        if not allowed.has(str(key_value)): return _failure("Unsupported spline property: %s" % str(key_value))
+        spline[key_value] = patch[key_value]
+    return _replace_spline(spline, "Configure spline")
+
+
+func delete_spline(spline_id: String) -> Dictionary:
+    if not _is_bound(): return _failure("Procedural service is not bound.")
+    var after: Dictionary = _state.to_document()
+    var splines: Array = after.get("splines", []).duplicate(true)
+    var removed: bool = false
+    for index in range(splines.size() - 1, -1, -1):
+        if str(splines[index].get("spline_id", "")) == spline_id:
+            splines.remove_at(index)
+            removed = true
+            break
+    if not removed: return _failure("Spline does not exist.")
+    after["splines"] = splines
+    return _commit(after, "Delete spline")
+
+
+func _replace_spline(spline: Dictionary, label: String) -> Dictionary:
+    var after: Dictionary = _state.to_document()
+    var splines: Array = after.get("splines", []).duplicate(true)
+    var found: bool = false
+    for index in range(splines.size()):
+        if str(splines[index].get("spline_id", "")) == str(spline.get("spline_id", "")):
+            splines[index] = spline.duplicate(true)
+            found = true
+            break
+    if not found: return _failure("Spline disappeared before staging.")
+    after["splines"] = splines
+    return _commit(after, label)
 
 
 func _commit(after: Dictionary, label: String) -> Dictionary:
     var validation: Array[String] = Contracts.validate_document(after)
-    if not validation.is_empty():
-        return {"ok": false, "errors": validation}
+    if not validation.is_empty(): return {"ok": false, "errors": validation}
     var refresh := Callable()
-    if _runtime != null and _runtime.has_method("refresh_all"):
-        refresh = Callable(_runtime, "refresh_all")
+    if _runtime != null and _runtime.has_method("refresh_all"): refresh = Callable(_runtime, "refresh_all")
     var command = SnapshotCommand.new(_project, _state, _repository, _state.to_document(), after, refresh)
     var history_result: Dictionary = _history.execute_command(command, label)
-    if not history_result.get("ok", false):
-        return _failure(str(history_result.get("error", history_result.get("errors", ["Procedural command failed."]))))
+    if not history_result.get("ok", false): return _failure(str(history_result.get("error", history_result.get("errors", ["Procedural command failed."]))))
     var dirty_result: Variant = _dirty_callback.call()
-    if dirty_result is Dictionary and not dirty_result.get("ok", false):
-        return _failure("Procedural edit succeeded but project dirty-state signaling failed.")
-    if _editor_session.has_signal("project_changed"):
-        _editor_session.emit_signal("project_changed", _project.to_dictionary())
+    if dirty_result is Dictionary and not dirty_result.get("ok", false): return _failure("Procedural edit succeeded but project dirty-state signaling failed.")
+    if _editor_session.has_signal("project_changed"): _editor_session.emit_signal("project_changed", _project.to_dictionary())
     procedural_changed.emit()
     status_changed.emit(label, false)
     return {"ok": true, "errors": [], "project_data": _project.to_dictionary()}
