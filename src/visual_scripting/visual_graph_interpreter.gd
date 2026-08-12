@@ -61,6 +61,56 @@ func continue_execution(ignore_breakpoint_node_id: String = "") -> Dictionary:
                 var position_value: Dictionary = _input_value(node_id, "position"); if not position_value.get("ok", false): _running = false; return position_value
                 var set_result: Dictionary = _set_entity_position(str(entity_value.get("value", "")), position_value.get("value")); if not set_result.get("ok", false): _running = false; return set_result
                 next_ports = ["next"]
+            "gameplay.set_component_value":
+                var component_entity: Dictionary = _input_value(node_id, "entity_id"); if not component_entity.get("ok", false): _running = false; return component_entity
+                var component_value: Dictionary = _input_value(node_id, "value"); if not component_value.get("ok", false): _running = false; return component_value
+                var component_properties: Dictionary = node.get("properties", {})
+                var component_result: Dictionary = _call_context("gameplay_set_component_value", [str(component_entity.get("value", "")), str(component_properties.get("component_key", "")), str(component_properties.get("property_name", "")), component_value.get("value")])
+                if not component_result.get("ok", false): _running = false; return component_result
+                next_ports = ["next"]
+            "gameplay.emit_event":
+                var event_properties: Dictionary = node.get("properties", {})
+                var event_payload: Dictionary = event_properties.get("payload", {}) if event_properties.get("payload", {}) is Dictionary else {}
+                var event_result: Dictionary = _call_context("gameplay_emit_event", [str(event_properties.get("event_key", "")), str(event_properties.get("source_entity_id", "")), str(event_properties.get("target_entity_id", "")), event_payload])
+                if not event_result.get("ok", false): _running = false; return event_result
+                next_ports = ["next"]
+            "gameplay.interact":
+                var actor_value: Dictionary = _input_value(node_id, "actor_entity_id"); if not actor_value.get("ok", false): _running = false; return actor_value
+                var target_value: Dictionary = _input_value(node_id, "target_entity_id"); if not target_value.get("ok", false): _running = false; return target_value
+                var interact_result: Dictionary = _call_context("gameplay_interact", [str(actor_value.get("value", "")), str(target_value.get("value", ""))])
+                if not interact_result.get("ok", false): _running = false; return interact_result
+                next_ports = ["next"]
+            "gameplay.damage", "gameplay.heal":
+                var target_entity: Dictionary = _input_value(node_id, "target_entity_id"); if not target_entity.get("ok", false): _running = false; return target_entity
+                var amount_value: Dictionary = _input_value(node_id, "amount"); if not amount_value.get("ok", false): _running = false; return amount_value
+                var health_properties: Dictionary = node.get("properties", {})
+                var callback_key := "gameplay_damage" if type_key == "gameplay.damage" else "gameplay_heal"
+                var health_result: Dictionary = _call_context(callback_key, [str(target_entity.get("value", "")), float(amount_value.get("value", 0.0)), str(health_properties.get("source_entity_id", ""))])
+                if not health_result.get("ok", false): _running = false; return health_result
+                next_ports = ["next"]
+            "gameplay.start_dialogue":
+                var dialogue_properties: Dictionary = node.get("properties", {})
+                var dialogue_result: Dictionary = _call_context("gameplay_start_dialogue", [str(dialogue_properties.get("dialogue_id", "")), str(dialogue_properties.get("initiator_entity_id", ""))])
+                if not dialogue_result.get("ok", false): _running = false; return dialogue_result
+                next_ports = ["next"]
+            "gameplay.start_quest":
+                var quest_properties: Dictionary = node.get("properties", {})
+                var quest_result: Dictionary = _call_context("gameplay_start_quest", [str(quest_properties.get("quest_id", ""))])
+                if not quest_result.get("ok", false): _running = false; return quest_result
+                next_ports = ["next"]
+            "gameplay.enter_vehicle":
+                var vehicle_value: Dictionary = _input_value(node_id, "vehicle_entity_id"); if not vehicle_value.get("ok", false): _running = false; return vehicle_value
+                var occupant_value: Dictionary = _input_value(node_id, "actor_entity_id"); if not occupant_value.get("ok", false): _running = false; return occupant_value
+                var vehicle_properties: Dictionary = node.get("properties", {})
+                var vehicle_result: Dictionary = _call_context("gameplay_enter_vehicle", [str(vehicle_value.get("value", "")), str(occupant_value.get("value", "")), str(vehicle_properties.get("role", "passenger"))])
+                if not vehicle_result.get("ok", false): _running = false; return vehicle_result
+                next_ports = ["next"]
+            "gameplay.save_slot", "gameplay.load_slot":
+                var save_properties: Dictionary = node.get("properties", {})
+                var save_callback := "gameplay_save_slot" if type_key == "gameplay.save_slot" else "gameplay_load_slot"
+                var save_result: Dictionary = _call_context(save_callback, [str(save_properties.get("slot", "auto"))])
+                if not save_result.get("ok", false): _running = false; return save_result
+                next_ports = ["next"]
             "macro.call":
                 var macro_result: Dictionary = _execute_macro(node_id, node); if not macro_result.get("ok", false): _running = false; return macro_result
                 next_ports = ["next"]
@@ -123,6 +173,12 @@ func _output_value(node_id: String, port: String) -> Dictionary:
             var variable_id := str(node.get("properties", {}).get("variable_id", "")); result = {"ok": true, "errors": [], "value": _variables[variable_id]} if _variables.has(variable_id) else _failure("Variable node references a missing variable.")
         "entity.get_position":
             var entity_value: Dictionary = _input_value(node_id, "entity_id"); result = entity_value if not entity_value.get("ok", false) else _get_entity_position(str(entity_value.get("value", "")))
+        "gameplay.get_component_value":
+            var component_entity: Dictionary = _input_value(node_id, "entity_id")
+            if not component_entity.get("ok", false): result = component_entity
+            else:
+                var properties: Dictionary = node.get("properties", {})
+                result = _call_context("gameplay_get_component_value", [str(component_entity.get("value", "")), str(properties.get("component_key", "")), str(properties.get("property_name", ""))])
         "macro.entry": result = {"ok": true, "errors": [], "value": _macro_inputs[port]} if _macro_inputs.has(port) else _failure("Macro input is missing: %s" % port)
         "macro.call":
             var outputs: Dictionary = _macro_results.get(node_id, {}); result = {"ok": true, "errors": [], "value": outputs[port]} if outputs.has(port) else _failure("Macro output was read before execution or does not exist: %s" % port)
@@ -160,6 +216,13 @@ func _set_entity_position(entity_id: String, position_value: Variant) -> Diction
         return {"ok": bool(result), "errors": [] if bool(result) else ["Runtime entity position callback failed."]}
     var entities: Dictionary = _context.get("entities", {}); if not entities.has(entity_id): return _failure("Set Position references a missing runtime entity.")
     entities[entity_id] = position_value; _context["entities"] = entities; return {"ok": true, "errors": []}
+
+func _call_context(callback_key: String, arguments: Array) -> Dictionary:
+    var callback: Callable = _context.get(callback_key, Callable())
+    if not callback.is_valid(): return _failure("Visual gameplay callback is unavailable: %s" % callback_key)
+    var value: Variant = callback.callv(arguments)
+    if value is Dictionary: return value
+    return {"ok": true, "errors": [], "value": value}
 
 func _snapshot(status: String, paused: bool, completed: bool) -> Dictionary:
     return {"ok": true, "errors": [], "status": status, "paused": paused, "completed": completed, "node_id": _paused_node_id, "steps": _steps, "trace": _trace.duplicate(), "variables": _variables.duplicate(true), "outputs": _macro_outputs.duplicate(true)}
