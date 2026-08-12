@@ -70,8 +70,8 @@ func _print_contact_diagnostics(template_id: String, main: Node, player: Charact
     var terrain_layer = main.call("get_terrain_workspace")
     var controller = terrain_layer.call("get_controller") if terrain_layer != null else null
     var runtime = controller.get_runtime() if controller != null else null
-    var sample := runtime.sample_height(player.global_position) if runtime != null else -9999.0
-    var chunks := runtime.chunk_count() if runtime != null else -1
+    var sample: float = float(runtime.sample_height(player.global_position)) if runtime != null else -9999.0
+    var chunks: int = int(runtime.chunk_count()) if runtime != null else -1
     var query := PhysicsRayQueryParameters3D.create(Vector3(player.global_position.x, 10.0, player.global_position.z), Vector3(player.global_position.x, -10.0, player.global_position.z))
     query.exclude = [player.get_rid()]
     var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
