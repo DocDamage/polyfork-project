@@ -158,8 +158,24 @@ func _check_mode_switch(workspace: Control, errors: Array[String]) -> void:
         errors.append("Play selection must update segmented-control state.")
     if badge == null or badge.text != "PLAY MODE":
         errors.append("Workspace must reflect Play selection in mode status.")
+    if workspace.call("get_mode") != &"play":
+        errors.append("Play selection must activate the real workspace Play mode.")
+    var play_session = workspace.call("get_play_session")
+    if play_session == null or not play_session.call("is_active"):
+        errors.append("Play selection must start an isolated runtime Play session.")
     if build_button.focus_neighbor_bottom.is_empty():
         errors.append("Workspace mode control must link into the dock focus graph.")
+
+    build_button.button_pressed = true
+    build_button.emit_signal("pressed")
+    if not build_button.button_pressed or play_button.button_pressed:
+        errors.append("Returning to Build must restore segmented-control state.")
+    if badge == null or badge.text != "BUILD MODE":
+        errors.append("Returning to Build must restore the Build mode status.")
+    if workspace.call("get_mode") != &"build":
+        errors.append("Returning to Build must restore the real workspace Build mode.")
+    if play_session != null and play_session.call("is_active"):
+        errors.append("Returning to Build must dispose the runtime Play session.")
 
 
 func _check_inspector(workspace: Control, errors: Array[String]) -> void:
