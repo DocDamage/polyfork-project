@@ -18,6 +18,7 @@ var _selected_ids: Array[String] = []
 var _primary_id := ""
 var _streaming_callback := Callable()
 var _previous_camera: Camera3D
+var _spawn_entity_id := ""
 var _spawn_marker: Node3D
 var _spawn_mesh: MeshInstance3D
 var _spawn_mesh_visible := true
@@ -135,28 +136,32 @@ func _apply_spawn_position(config: Dictionary, runtime_config: Dictionary) -> vo
 
 
 func _disable_spawn_marker(spawn_id: String) -> void:
-    if spawn_id.is_empty() or _editor_session == null: return
+    _spawn_entity_id = spawn_id
+    _suppress_spawn_marker()
+
+
+func _suppress_spawn_marker() -> void:
+    if _spawn_entity_id.is_empty() or _editor_session == null: return
     var bridge = _editor_session.get_bridge()
     if bridge == null: return
-    _spawn_marker = bridge.get_entity_node(spawn_id)
-    if not is_instance_valid(_spawn_marker): _spawn_marker = null; return
+    var current: Node3D = bridge.get_entity_node(_spawn_entity_id)
+    if not is_instance_valid(current): return
+    if current != _spawn_marker:
+        _spawn_marker = current
+        _spawn_mesh = _spawn_marker.get_proxy_mesh() if _spawn_marker.has_method("get_proxy_mesh") else null
+        _spawn_mesh_visible = _spawn_mesh.visible if is_instance_valid(_spawn_mesh) else true
+        _spawn_body = _spawn_marker.get_pick_body() if _spawn_marker.has_method("get_pick_body") else null
+        _spawn_collision_layer = _spawn_body.collision_layer if is_instance_valid(_spawn_body) else 0
+        _spawn_collision_mask = _spawn_body.collision_mask if is_instance_valid(_spawn_body) else 0
+        _spawn_collision_shape = _spawn_body.get_node_or_null("CollisionShape3D") as CollisionShape3D if is_instance_valid(_spawn_body) else null
+        _spawn_collision_disabled = _spawn_collision_shape.disabled if is_instance_valid(_spawn_collision_shape) else false
     _spawn_marker.visible = false
-    if _spawn_marker.has_method("get_proxy_mesh"):
-        _spawn_mesh = _spawn_marker.get_proxy_mesh()
-        if is_instance_valid(_spawn_mesh):
-            _spawn_mesh_visible = _spawn_mesh.visible
-            _spawn_mesh.visible = false
-    if _spawn_marker.has_method("get_pick_body"):
-        _spawn_body = _spawn_marker.get_pick_body()
-        if is_instance_valid(_spawn_body):
-            _spawn_collision_layer = _spawn_body.collision_layer
-            _spawn_collision_mask = _spawn_body.collision_mask
-            _spawn_body.collision_layer = 0
-            _spawn_body.collision_mask = 0
-            _spawn_collision_shape = _spawn_body.get_node_or_null("CollisionShape3D") as CollisionShape3D
-            if is_instance_valid(_spawn_collision_shape):
-                _spawn_collision_disabled = _spawn_collision_shape.disabled
-                _spawn_collision_shape.disabled = true
+    if is_instance_valid(_spawn_mesh): _spawn_mesh.visible = false
+    if is_instance_valid(_spawn_body):
+        _spawn_body.collision_layer = 0
+        _spawn_body.collision_mask = 0
+    if is_instance_valid(_spawn_collision_shape) and not _spawn_collision_shape.disabled:
+        _spawn_collision_shape.set_deferred("disabled", true)
 
 
 func _restore_spawn_marker() -> void:
@@ -165,16 +170,20 @@ func _restore_spawn_marker() -> void:
     if is_instance_valid(_spawn_body):
         _spawn_body.collision_layer = _spawn_collision_layer
         _spawn_body.collision_mask = _spawn_collision_mask
-    if is_instance_valid(_spawn_collision_shape): _spawn_collision_shape.disabled = _spawn_collision_disabled
-    _spawn_marker = null; _spawn_mesh = null; _spawn_body = null; _spawn_collision_shape = null
+    if is_instance_valid(_spawn_collision_shape): _spawn_collision_shape.set_deferred("disabled", _spawn_collision_disabled)
+    _spawn_entity_id = ""; _spawn_marker = null; _spawn_mesh = null; _spawn_body = null; _spawn_collision_shape = null
     _spawn_mesh_visible = true; _spawn_collision_disabled = false
     _spawn_collision_layer = 0; _spawn_collision_mask = 0
 
 
 func _update_streaming_focus() -> void:
-    if not _streaming_callback.is_valid() or not is_instance_valid(_player): return
-    var result: Variant = _streaming_callback.call(_player.global_position)
-    if result is Dictionary and not result.get("ok", false): push_warning("Play streaming focus update failed: %s" % str(result.get("errors", [])))
+    if not is_instance_valid(_player):
+        _suppress_spawn_marker()
+        return
+    if _streaming_callback.is_valid():
+        var result: Variant = _streaming_callback.call(_player.global_position)
+        if result is Dictionary and not result.get("ok", false): push_warning("Play streaming focus update failed: %s" % str(result.get("errors", [])))
+    _suppress_spawn_marker()
 
 
 func _rollback_startup() -> void:

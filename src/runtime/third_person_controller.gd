@@ -16,6 +16,7 @@ var _yaw := 0.0
 var _pitch := -0.18
 var _pivot: Node3D
 var _camera: Camera3D
+var _pointer_look_enabled := false
 
 
 func configure(config: Dictionary) -> void:
@@ -34,6 +35,7 @@ func _ready() -> void:
     name = "ThirdPersonPlayer"
     _gravity = float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
     _ensure_body(); _ensure_camera()
+    _pointer_look_enabled = true
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -51,10 +53,14 @@ func _physics_process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED: _apply_look(event.relative.x * mouse_sensitivity, event.relative.y * mouse_sensitivity)
+    if event is InputEventMouseMotion and _pointer_look_enabled: _apply_look(event.relative.x * mouse_sensitivity, event.relative.y * mouse_sensitivity)
 
 
-func release_pointer() -> void: Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+func release_pointer() -> void:
+    _pointer_look_enabled = false
+    Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
 func get_camera() -> Camera3D: return _camera
 
 
