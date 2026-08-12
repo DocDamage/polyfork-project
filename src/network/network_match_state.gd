@@ -26,7 +26,7 @@ func add_player(peer_id: int, team_id: String = "") -> Dictionary:
     if peer_id <= 0: return _failure("Match player peer ID must be positive.")
     if _players.has(peer_id): return _failure("Match player is already registered: %d" % peer_id)
     if _players.size() >= int(_config.get("max_players", 1)): return _failure("Match is at its declared player limit.")
-    var resolved_team := team_id.strip_edges()
+    var resolved_team: String = team_id.strip_edges()
     var teams: Array = _config.get("teams", [])
     if resolved_team.is_empty() and not teams.is_empty(): resolved_team = _least_populated_team(teams)
     if not resolved_team.is_empty() and not teams.has(resolved_team): return _failure("Match team is not declared by the template: %s" % resolved_team)
@@ -52,9 +52,9 @@ func set_team(peer_id: int, team_id: String) -> Dictionary:
 
 func add_score(subject_id: String, amount: int) -> Dictionary:
     if amount == 0: return _failure("Score change must be non-zero.")
-    var score_mode := str(_config.get("score_mode", "none"))
+    var score_mode: String = str(_config.get("score_mode", "none"))
     if score_mode == "none": return _failure("This multiplayer template does not use score state.")
-    var key := subject_id.strip_edges()
+    var key: String = subject_id.strip_edges()
     if key.is_empty(): return _failure("Score subject ID is required.")
     if score_mode == "team" and not _config.get("teams", []).has(key): return _failure("Team score subject is not declared by the template.")
     if score_mode == "player" and not _players.has(int(key)): return _failure("Player score subject is not registered in the match.")
@@ -63,7 +63,7 @@ func add_score(subject_id: String, amount: int) -> Dictionary:
 
 func set_objective(objective_id: String, value: Variant) -> Dictionary:
     if str(_config.get("score_mode", "none")) != "objective": return _failure("This multiplayer template does not use objective score state.")
-    var key := objective_id.strip_edges()
+    var key: String = objective_id.strip_edges()
     if key.is_empty(): return _failure("Objective ID is required.")
     _objective_state[key] = value
     return {"ok": true, "errors": [], "objective_id": key, "value": value}
@@ -71,14 +71,14 @@ func set_objective(objective_id: String, value: Variant) -> Dictionary:
 func spawn_offset_for_peer(peer_id: int) -> Vector3:
     if not _players.has(peer_id): return Vector3.ZERO
     if str(_config.get("spawn_strategy", "offset")) != "offset": return Vector3.ZERO
-    var order := int(_players[peer_id].get("joined_order", 0))
+    var order: int = int(_players[peer_id].get("joined_order", 0))
     if order <= 0: return Vector3.ZERO
-    var spacing := float(_config.get("spawn_spacing", 2.5))
-    var ring := int(ceil(sqrt(float(order))))
-    var slot := order - ((ring - 1) * (ring - 1))
-    var edge := max(1, ring * 2)
-    var x := float((slot % edge) - ring) * spacing
-    var z := float((slot / edge) - ring) * spacing
+    var spacing: float = float(_config.get("spawn_spacing", 2.5))
+    var ring: int = int(ceil(sqrt(float(order))))
+    var slot: int = order - ((ring - 1) * (ring - 1))
+    var edge: int = maxi(1, ring * 2)
+    var x: float = float((slot % edge) - ring) * spacing
+    var z: float = float((slot / edge) - ring) * spacing
     return Vector3(x, 0.0, z)
 
 func get_player(peer_id: int) -> Dictionary:
@@ -96,14 +96,14 @@ func snapshot() -> Dictionary:
     for value in _players.keys(): ids.append(int(value))
     ids.sort()
     for peer_id in ids: players.append(_players[peer_id].duplicate(true))
-    var scores := _scores.duplicate(true)
+    var scores: Dictionary = _scores.duplicate(true)
     return {"config": _config.duplicate(true), "players": players, "scores": scores, "objectives": _objective_state.duplicate(true)}
 
 func _least_populated_team(teams: Array) -> String:
-    var best := str(teams[0])
+    var best: String = str(teams[0])
     var best_count := 2147483647
     for team_value in teams:
-        var team := str(team_value)
+        var team: String = str(team_value)
         var count := 0
         for player in _players.values():
             if str(player.get("team_id", "")) == team: count += 1
