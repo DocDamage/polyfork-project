@@ -1,0 +1,16 @@
+{
+  "document_type": "playworld_template_manifest",
+  "schema_version": 1,
+  "template_id": "third_person_adventure",
+  "display": {"name": "Third-Person Adventure", "summary": "Playable third-person exploration starter using the Phase 7 controller foundation.", "category": "adventure"},
+  "required_runtime_modules": ["core.world", "core.terrain", "core.semantic_input", "phase6.gameplay", "play.third_person"],
+  "starter_entities": [],
+  "input_mapping": {"profile": "semantic_default"},
+  "default_player_archetype": null,
+  "camera_configuration": {"controller": "third_person", "spawn_position": [0.0, 2.0, 0.0], "jump_enabled": true, "move_speed": 6.0},
+  "example_graph_references": [],
+  "ui_hud_packages": [],
+  "export_settings": {"preset_id": null},
+  "tutorial_steps": [],
+  "planned_modules": []
+}
