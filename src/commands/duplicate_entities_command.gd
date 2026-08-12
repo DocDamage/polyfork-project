@@ -23,18 +23,14 @@ func execute() -> bool:
         _set_error("Duplicate requires an active project and at least one entity.")
         return false
     if not _prepared:
-        if not _prepare_records():
-            return false
+        if not _prepare_records(): return false
         _prepared = true
-
     for record in _created_records:
         if _find_index(str(record.get("entity_id", ""))) >= 0:
             _set_error("Duplicate target ID already exists in the project.")
             return false
-
     var original := _copy_records(_project.entity_records)
-    for record in _created_records:
-        _project.entity_records.append(record.duplicate(true))
+    for record in _created_records: _project.entity_records.append(record.duplicate(true))
     var errors: Array[String] = _project.validate()
     if not errors.is_empty():
         _project.entity_records = original
@@ -61,8 +57,8 @@ func undo() -> bool:
     return true
 
 
-func created_ids() -> Array[String]:
-    return _created_ids.duplicate()
+func created_ids() -> Array[String]: return _created_ids.duplicate()
+func source_ids() -> Array[String]: return _source_ids.duplicate()
 
 
 func _prepare_records() -> bool:
@@ -73,43 +69,35 @@ func _prepare_records() -> bool:
             _set_error("Duplicate source is not present in the project.")
             return false
         source_records[entity_id] = _project.entity_records[index].duplicate(true)
-
     var id_map: Dictionary = {}
-    for entity_id in _source_ids:
-        id_map[entity_id] = StableId.generate()
-
-    _created_records.clear()
-    _created_ids.clear()
+    for entity_id in _source_ids: id_map[entity_id] = StableId.generate()
+    _created_records.clear(); _created_ids.clear()
     for source_id in _source_ids:
         var record: Dictionary = source_records[source_id].duplicate(true)
         var new_id: String = id_map[source_id]
         record["entity_id"] = new_id
         record["display_name"] = "%s Copy" % str(record.get("display_name", "Entity"))
+        # Gameplay component instances are owner-bound records. A raw world duplicate must
+        # never share those IDs with its source. Phase 6 prefab instantiation is the path
+        # that clones configured gameplay composition with fresh instance identities.
+        record["component_instance_ids"] = []
         var parent = record.get("parent_entity_id")
-        if parent != null and id_map.has(str(parent)):
-            record["parent_entity_id"] = id_map[str(parent)]
+        if parent != null and id_map.has(str(parent)): record["parent_entity_id"] = id_map[str(parent)]
         var transform_data: Dictionary = record.get("transform", {}).duplicate(true)
         var position: Array = transform_data.get("position", [0.0, 0.0, 0.0])
-        transform_data["position"] = [
-            float(position[0]) + _offset.x,
-            float(position[1]) + _offset.y,
-            float(position[2]) + _offset.z
-        ]
+        transform_data["position"] = [float(position[0]) + _offset.x, float(position[1]) + _offset.y, float(position[2]) + _offset.z]
         record["transform"] = transform_data
-        _created_records.append(record)
-        _created_ids.append(new_id)
+        _created_records.append(record); _created_ids.append(new_id)
     return true
 
 
 func _find_index(entity_id: String) -> int:
     for index in range(_project.entity_records.size()):
-        if str(_project.entity_records[index].get("entity_id", "")) == entity_id:
-            return index
+        if str(_project.entity_records[index].get("entity_id", "")) == entity_id: return index
     return -1
 
 
 func _copy_records(records: Array) -> Array[Dictionary]:
     var result: Array[Dictionary] = []
-    for record in records:
-        result.append(record.duplicate(true))
+    for record in records: result.append(record.duplicate(true))
     return result
