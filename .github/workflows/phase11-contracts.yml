@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [foundation, coupling]
+        suite: [foundation, coupling, play_visual]
     name: phase11-${{ matrix.suite }}
     runs-on: ubuntu-24.04
     timeout-minutes: 8
