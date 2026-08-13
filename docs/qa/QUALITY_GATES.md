@@ -20,14 +20,16 @@ A task is not complete because code compiles or one test passes.
 14. Manual review of final green packaged screenshots.
 15. For stable Windows productization: clean portable and installed first run, exact RC→stable upgrade, repair/reinstall, uninstall user-data preservation, alternate/read-only application location, diagnostics/support scan, and creator→game export/launch.
 
-## Phase 18 stable-release gate
+## Phase 18 stable-release gate — SATISFIED
 
-Phase 18 completion requires `.github/workflows/phase18-stable-release.yml` on the exact completion head to pass:
+Phase 18 completion required `.github/workflows/phase18-stable-release.yml` on the exact corrective source to pass:
 
 - `source-regressions`;
 - `windows-stable-release`.
 
-The Windows job must prove:
+Workflow `31699466148` passed both jobs, and PR #24 integrated the verified corrective source as signed `master@49a5b55748244097d952ab9c095dd00ed0ec9f06`.
+
+The Windows job proved:
 
 - stable `0.1.0` package identity;
 - deterministic portable ZIP rebuild;
@@ -43,7 +45,9 @@ The Windows job must prove:
 - stable About/Settings/Support visual capture;
 - portable/installer/support-bundle credential/private-material scans.
 
-After CI passes, the final stable screenshots must be downloaded and inspected for clipping, overlap, unreadable text, broken focus, spacing drift, generic dark-slate regression, incorrect version text, missing assets/icons, and compact-layout failure.
+The final stable screenshots were downloaded and inspected for clipping, overlap, unreadable text, broken focus, spacing drift, generic dark-slate regression, incorrect version text, missing assets/icons, compact-layout failure, and screenshot substitution. The corrected About/version screenshot visibly proves PlayWorld Studio `0.1.0`, stable, Windows x64, Godot 4.7.1, and source identity.
+
+Exact evidence is recorded in `docs/qa/PHASE18_QA.md` and merged PR #24.
 
 ## CI interpretation
 
@@ -66,6 +70,12 @@ After CI passes, the final stable screenshots must be downloaded and inspected f
 - Treating screenshot existence as visual approval.
 - Deleting authored user data during application uninstall unless the user explicitly requests it.
 
+## Repository integration gate
+
+`master` is protected by active repository rules. Normal changes must be developed on a branch and integrated through a pull request.
+
 ## Definition of done
 
-Implementation, tests, runtime evidence, release artifacts, documentation, and handoff status must agree. Phase 18 additionally requires PR #23 to carry the exact final run/artifact/checksum/visual-review evidence and remain unmerged until explicit authorization.
+Implementation, tests, runtime evidence, release artifacts, documentation, and handoff status must agree. Phase 18 satisfies this definition through PR #24, workflow `31699466148`, final artifacts and checksums, lifecycle evidence, and manual review recorded in `docs/qa/PHASE18_QA.md`.
+
+No Phase 19 work is authorized until a new user-approved handoff defines the next milestone.

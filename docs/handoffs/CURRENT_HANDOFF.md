@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 18 POST-MERGE CORRECTION HANDOFF
+# POLYFORK PROJECT — PHASE 18 COMPLETION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -8,66 +8,91 @@ Use the GitHub connector for repository work.
 
 Repository default and authoritative integrated branch: `master`.
 
-Current authoritative `master`:
+Authoritative `master`:
 
-`9ed7abd28144f9757244f33aa33176e7074aca86`
+`49a5b55748244097d952ab9c095dd00ed0ec9f06`
 
-This is the verified signed merge of **PR #23 — Phase 18 — Stable Release and Windows Productization**.
+This is the verified signed merge commit for:
 
-PR #23 was merged prematurely before its required manual visual closeout was valid. Do not reset, force-push, or rewrite `master`; repair forward from this commit.
+**PR #24 — Phase 18 — Post-merge closeout correction**
 
-Phases **0 through 17 are complete and accepted**. Phase 18 implementation is integrated, but Phase 18 final acceptance remains open.
+PR #24 completed the forward repair after PR #23 was merged prematurely. Repository history was preserved; no reset, force-push, or history rewrite was used.
 
-Historical `main` is obsolete starter code and must not be used.
+Phases **0 through 18 are complete and accepted**.
 
-## Corrective branch
+Historical `main` is obsolete starter code. The retained `archive/obsolete-main-phase14` branch is historical only and must not be used as a development base.
 
-`fix/phase18-post-merge-closeout`
+`master` is protected by active repository rules. Future changes must be developed from current `master` on a dedicated branch and integrated through a pull request.
 
-The corrective branch targets current `master`. Its pull request must remain open and unmerged until explicit user authorization.
+## Phase 18 final source state
 
-## Why correction is required
+- Original Phase 18 implementation PR: #23
+- Corrective completion PR: #24
+- Corrective branch head: `5ee4e96318d34d466ec0b7fb477db8bf32941139`
+- Verified PR merge candidate: `f859086a7ec874fe39cf1b83019925f544a92a10`
+- Final signed integrated merge: `49a5b55748244097d952ab9c095dd00ed0ec9f06`
+- Branch-head tree and tested merge-candidate tree: `9aa7ccb39e533b20936c7ce43d639abf057277c5`
 
-The original Phase 18 workflow run was green, but downloaded artifact inspection found that:
+The exact corrective source was tested against the then-current `master`, and the same source tree was integrated by PR #24.
 
-`09-about-version-1280x720.png`
+## Final Phase 18 verification
 
-showed Home instead of the required About/version surface.
+Workflow `31699466148` completed successfully:
 
-The old gate verified screenshot existence and a broad completion marker, but it did not prove that the real About action produced a visible, topmost, full-size overlay with exact stable identity text.
+- `source-regressions` — PASS
+- `windows-stable-release` — PASS
 
-The stale About path also passed an untyped empty collection into an overlay API declared as `Array[Dictionary]`, so the corrective path now uses an explicitly typed collection and visible identity card.
+Repository-owned inherited checks also passed, including Godot Smoke, Phase 6–16 contracts and visual gates, inherited regressions, Phase 13/14/16 Windows export, Phase 14 scale stress, and Phase 15 exported multiplayer host/client verification.
 
-## Corrective implementation
+## Final artifacts
 
-The corrective branch:
+Stable release artifact:
 
-- keeps the existing release and support security scans unchanged;
-- makes the Home overlay explicitly topmost and input-blocking;
-- exposes bounded overlay presentation state for test assertions;
-- renders a visible PlayWorld Studio `0.1.0` About identity card;
-- activates the real About button during packaged visual QA;
-- verifies exact title, version, channel, platform, Godot version, and source identity;
-- verifies the overlay covers Home and required labels are renderable before screenshot capture;
-- retains the complete portable, installer, upgrade, uninstall, export, controller, accessibility, scale, multiplayer, and support-bundle pipeline.
+- Artifact ID: `9180943528`
+- Name: `phase18-stable-release`
+- Digest: `sha256:fc5dc19a7ba37a8a02c7fdce579a3a2bb6cb0e70fb5e90661cf28d4ec76f480a`
 
-## Remaining Phase 18 completion boundary
+Source regression artifact:
 
-Do not claim Phase 18 finally accepted until all of these are true on the exact corrective head:
+- Artifact ID: `9180674153`
+- Digest: `sha256:6522a03e145b91464066f3c5a6c1925bda9f9e95b21238a50a50450d697e32aa`
 
-1. `.github/workflows/phase18-stable-release.yml` `source-regressions` passes.
-2. `windows-stable-release` passes.
-3. Stable ZIP, setup executable, checksum files, and release manifest are verified.
-4. The final `phase18-stable-release` artifact is downloaded.
-5. All eleven required screenshots are visually inspected.
-6. `09-about-version-1280x720.png` visibly shows the About/version surface and stable `0.1.0` identity.
-7. The corrective PR body records exact run IDs, artifact ID/digest, portable/setup SHA-256, upgrade/uninstall/export/security/controller/visual evidence, and known limitations.
-8. The corrective PR remains **unmerged** until explicit user authorization.
+Portable release:
 
-## Authorization boundary
+- `PlayWorld-Studio-0.1.0-Windows-x64.zip`
+- SHA-256: `f635811f0c9738ba622b91f0a5c890c24ab491ff63ed4f85cdcb12e8ca7a160a`
 
-No Phase 19 work is authorized. Do not begin Phase 19 until the corrective Phase 18 PR is explicitly merged and a new handoff authorizes the next milestone.
+Installer:
 
-## Security boundary
+- `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`
+- SHA-256: `9f639274e4bb7df3e492a8ab9720c7c0b6c6ca12c7f644f8dd1cba4c68ba6a02`
 
-Historical API credential material in Git history remains exposed. Never print, recover, test, reuse, or distribute it. External rotation/revocation remains required unless independently verified outside the repository; do not claim that external action occurred without evidence.
+## Accepted release behavior
+
+Phase 18 acceptance includes:
+
+- stable PlayWorld Studio `0.1.0` identity;
+- deterministic portable ZIP with independent byte-for-byte rebuild proof;
+- portable clean first run, save, reopen, and read-only-style location verification;
+- alternate-location Windows installation;
+- installed first run, reopen, repair, uninstall, reinstall, and preserved user data;
+- exact Phase 17 `0.1.0-rc.1 → 0.1.0` project and preference migration;
+- creator → standalone Windows game export and launch;
+- exported multiplayer host/client ownership and input verification;
+- controller, keyboard/mouse, focus, compact-layout, and accessibility acceptance;
+- package, installer, and support-bundle release scanning;
+- manual inspection of all eleven final packaged screenshots.
+
+The corrected About/version screenshot visibly contains `About PlayWorld Studio`, `0.1.0`, stable channel, Windows x64, Godot 4.7.1, and source identity.
+
+## Current development boundary
+
+There is no active implementation milestone branch.
+
+**No Phase 19 work is authorized.**
+
+Do not begin Phase 19 until the user explicitly defines and authorizes its scope in a new handoff. Any future work must start from current authoritative `master@49a5b55748244097d952ab9c095dd00ed0ec9f06`.
+
+## Repository history note
+
+Previously committed sensitive data remains an external remediation concern. Do not restore or distribute it from repository history.
