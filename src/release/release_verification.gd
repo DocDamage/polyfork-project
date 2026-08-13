@@ -199,7 +199,7 @@ func _prepare_asset_fixture() -> Array[String]:
     if make_error not in [OK, ERR_ALREADY_EXISTS]: return ["Could not create release Asset Library fixture directory."]
     var handle := FileAccess.open(ASSET_ROOT.path_join("release_gate.gltf"), FileAccess.WRITE)
     if handle == null: return ["Could not create release GLTF source fixture."]
-    handle.store_string('{"asset":{"version":"2.0","generator":"Phase17ReleaseGate"},"scenes":[{}],"nodes":[{"name":"ReleaseGate"}]}')
+    handle.store_string('{"asset":{"version":"2.0","generator":"Phase17ReleaseGate"},"scene":0,"scenes":[{"nodes":[0]}],"nodes":[{"name":"ReleaseGate"}]}')
     handle.close()
     return []
 
@@ -241,22 +241,22 @@ func _capture_visual_evidence() -> Array[String]:
         var repository = ProjectRepository.new(str(ProjectSettings.get_setting("playworld/storage/projects_root", "user://projects")))
         var opened: Dictionary = repository.open_project(str(state.get("state", {}).get("project_id", "")))
         var project = opened.get("project")
-        if opened.get("ok", false) and project != null and bool(main.call("_activate_project", project)):
-            main.call("_show_workspace", project.to_dictionary())
-            for _frame in range(4): await get_tree().process_frame
-            if get_viewport().get_texture().get_image().save_png(output_root.path_join("05-workspace-1280x720.png")) != OK: return ["Could not save packaged Workspace visual evidence."]
+        if opened.get("ok", false) and project != null:
+            if bool(main.call("_activate_project", project)):
+                main.call("_show_workspace", project.to_dictionary())
+                for _frame in range(4): await get_tree().process_frame
+                if get_viewport().get_texture().get_image().save_png(output_root.path_join("05-workspace-1280x720.png")) != OK: return ["Could not save packaged Workspace visual evidence."]
     return []
 
 func _argument_value(prefix: String) -> String:
-    for value in OS.get_cmdline_user_args():
-        var text := str(value)
-        if text.begins_with(prefix): return text.trim_prefix(prefix)
+    for arg in OS.get_cmdline_user_args():
+        if arg.begins_with(prefix): return arg.trim_prefix(prefix)
     return ""
 
-static func _pass_marker(mode: String) -> String:
+func _pass_marker(mode: String) -> String:
     match mode:
         "first": return "PASS: Phase 17 packaged creator first-run authoring and creator-to-game export completed."
-        "reopen": return "PASS: Phase 17 packaged creator restart and persisted-state reopen completed."
-        "readonly": return "PASS: Phase 17 packaged creator user-data separation completed."
+        "reopen": return "PASS: Phase 17 packaged creator restart/reopen verification completed."
+        "readonly": return "PASS: Phase 17 packaged creator read-only-style install verification completed."
         "visual": return "PASS: Phase 17 packaged creator visual evidence captured."
-    return "PASS: Phase 17 release verification completed."
+        _: return "PASS: Phase 17 release verification completed."
