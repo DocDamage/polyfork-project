@@ -22,6 +22,7 @@ const ROUTE_ABOUT: StringName = &"about"
 @onready var templates_button: Button = %TemplatesButton
 @onready var asset_library_button: Button = %AssetLibraryButton
 @onready var about_button: Button = %AboutButton
+@onready var support_button: Button = %SupportButton
 @onready var settings_button: Button = %SettingsButton
 @onready var hub: GridContainer = %Hub
 
@@ -39,6 +40,7 @@ func _ready() -> void:
     templates_button.pressed.connect(_request_route.bind(ROUTE_TEMPLATES))
     asset_library_button.pressed.connect(_request_route.bind(ROUTE_ASSET_LIBRARY))
     about_button.pressed.connect(_request_route.bind(ROUTE_ABOUT))
+    support_button.pressed.connect(_open_support)
     settings_button.pressed.connect(_open_settings)
     _settings_screen = SettingsScene.instantiate()
     add_child(_settings_screen)
@@ -73,9 +75,12 @@ func focus_primary() -> void:
     else: create_button.grab_focus()
 
 func _configure_focus_navigation() -> void:
-    about_button.focus_neighbor_right = about_button.get_path_to(settings_button)
+    about_button.focus_neighbor_right = about_button.get_path_to(support_button)
     about_button.focus_neighbor_bottom = about_button.get_path_to(create_button)
-    settings_button.focus_neighbor_left = settings_button.get_path_to(about_button)
+    support_button.focus_neighbor_left = support_button.get_path_to(about_button)
+    support_button.focus_neighbor_right = support_button.get_path_to(settings_button)
+    support_button.focus_neighbor_bottom = support_button.get_path_to(create_button)
+    settings_button.focus_neighbor_left = settings_button.get_path_to(support_button)
     settings_button.focus_neighbor_bottom = settings_button.get_path_to(create_button)
     create_button.focus_neighbor_top = create_button.get_path_to(about_button)
     create_button.focus_neighbor_right = create_button.get_path_to(continue_button)
@@ -89,7 +94,7 @@ func _configure_focus_navigation() -> void:
     templates_button.focus_neighbor_left = templates_button.get_path_to(worlds_button)
     templates_button.focus_neighbor_bottom = templates_button.get_path_to(asset_library_button)
     asset_library_button.focus_neighbor_top = asset_library_button.get_path_to(worlds_button)
-    _set_tab_order([about_button, settings_button, create_button, continue_button, worlds_button, templates_button, asset_library_button])
+    _set_tab_order([about_button, support_button, settings_button, create_button, continue_button, worlds_button, templates_button, asset_library_button])
 
 func _set_tab_order(controls: Array) -> void:
     for index in range(controls.size() - 1):
@@ -106,6 +111,11 @@ func _current_compact_layout() -> bool:
 func _apply_layout(compact: bool) -> void:
     hub.columns = 1 if compact else 2
     create_button.custom_minimum_size.x = 0.0 if compact else 420.0
+
+func _open_support() -> void:
+    var maintenance := get_node_or_null("/root/ReleaseMaintenance")
+    if maintenance != null and maintenance.has_method("show_support_panel"):
+        maintenance.call("show_support_panel")
 
 func _open_settings() -> void:
     _settings_screen.show()
@@ -126,7 +136,7 @@ func _request_route(route: StringName) -> void:
 func _open_about_overlay() -> void:
     _overlay_mode = ROUTE_ABOUT
     var identity: Dictionary = ProductIdentity.summary()
-    _creator_overlay.call("present", "About PlayWorld Studio", "Release candidate %s  •  Windows x64" % str(identity.get("version", "unknown")), [], {
+    _creator_overlay.call("present", "About PlayWorld Studio", "%s  •  stable  •  Windows x64" % str(identity.get("version", "unknown")), [], {
         "status": "Godot %s  •  source %s" % [str(identity.get("godot_version", "")), ProductIdentity.short_commit()],
     })
 

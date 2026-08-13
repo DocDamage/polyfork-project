@@ -78,6 +78,13 @@ layout_mode = 2
 theme_type_variation = &"ToolButton"
 text = "About"
 
+[node name="SupportButton" type="Button" parent="SafeArea/Content/Header/HeaderActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(92, 44)
+layout_mode = 2
+theme_type_variation = &"ToolButton"
+text = "Support"
+
 [node name="SettingsButton" type="Button" parent="SafeArea/Content/Header/HeaderActions"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 44)

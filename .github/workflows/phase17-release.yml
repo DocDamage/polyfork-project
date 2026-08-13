@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   source-regressions:
+    if: github.event_name == 'push' || github.head_ref == 'dev/phase17-milestone'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -80,6 +81,7 @@ jobs:
           retention-days: 14
 
   windows-release:
+    if: github.event_name == 'push' || github.head_ref == 'dev/phase17-milestone'
     runs-on: windows-2025
     timeout-minutes: 120
     steps:

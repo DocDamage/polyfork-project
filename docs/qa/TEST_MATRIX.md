@@ -1,36 +1,38 @@
 # Test Matrix
 
-Final Phase 17 release evidence baseline: workflow `31668662576` — PASS on implementation/evidence head `8f46b4cddd62efc5502033b3a9c0259bb740ec26`; artifact `9169011730`; RC ZIP SHA-256 `0911cc136b3deaf689b7959359ec9c45bee2f10255c7af573c9855ea0bbcdfa3`.
+| Area | Unit/contracts | Integration/runtime | Persistence/recovery | Controller/accessibility | Visual | Export/package/install |
+|---|---|---|---|---|---|---|
+| App shell/Home | ✓ | packaged creator | stable user settings | A→`ui_accept`, D-pad/focus | Home full + compact, About, Settings, Support | portable + installed |
+| World save | ✓ | create/open/save | atomic save, checkpoint recovery, restart/reopen, RC→stable | UI paths retained | recovery UX | user data outside install |
+| Placement/editor | ✓ | packaged authoring | authored IDs/transforms persist | inherited acceptance | Build workspace | creator package |
+| Asset Library | ✓ | real shared GLTF fixture | shared catalog/source paths persist | Home/library navigation | Asset Library | dependency closure |
+| Terrain/streaming | ✓ | inherited Phase 5/14 | ✓ | ✓ | inherited | Small/Medium/Large Windows export |
+| Components/prefabs | ✓ | inherited | ✓ | ✓ | inherited | ✓ |
+| Instant Play/templates | ✓ | inherited playable smoke | template/biome persist | Build↔Play | Play capture | packaged creator |
+| Visual Scripting | ✓ | inherited | ✓ | ✓ | inherited | authored-game runtime |
+| Procedural/foliage/splines | ✓ | inherited | ✓ | ✓ | inherited | ✓ |
+| Gameplay framework | ✓ | inherited | ✓ | ✓ | inherited | ✓ |
+| Environment | ✓ | inherited | ✓ | ✓ | inherited | ✓ |
+| AI Creation | ✓ | inherited privacy/transaction contracts | configuration safety | UI-relevant controls | inherited | explicit provider/config failure |
+| Authored-game export | ✓ | packaged creator exports and launches game | project remains intact | Export surface | Export capture | bundled Godot/templates/runtime closure |
+| Multiplayer Play | ✓ | exported host/client connection | authored state isolation | inherited input ownership | inherited | concurrent Windows host/client |
+| Stable distribution | Phase 18 contracts | portable + installed executable | clean first/reopen, repair, uninstall preserve, RC upgrade | Phase 17 packaged acceptance retained | 11-screen stable evidence set | deterministic ZIP, installer, checksums, scans |
+| Diagnostics/recovery | ✓ | Support & Recovery surface | corrupt-project backup + checkpoint promotion; malformed-pref backup | focusable Home action | Support capture | support bundle secret scan |
 
-| Area | Unit | Integration | Runtime | Persistence | Undo | Gamepad | Performance/Scale | Visual | Export/Package |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| App shell | ✓ | ✓ | ✓ packaged creator |  |  | ✓ semantic UI actions |  | ✓ final packaged evidence | ✓ creator package |
-| World save | ✓ | ✓ | ✓ | ✓ first/reopen/upgrade/read-only | ✓ |  |  |  | ✓ |
-| Placement | ✓ | ✓ | ✓ packaged authoring | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Asset registry | ✓ | ✓ | ✓ real GLTF source | ✓ shared user catalog |  |  | ✓ | ✓ Asset Library | ✓ dependency closure |
-| Terrain/streaming | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ Small/Medium/Large | ✓ | ✓ |
-| Components/prefabs | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Visual graphs | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Foliage/procedural/splines | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Gameplay framework | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Environment | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| AI execution | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ where UI-relevant | ✓ | ✓ | ✓ explicit provider/config failure docs |
-| Authored-game export | ✓ | ✓ | ✓ | ✓ |  | ✓ | ✓ | ✓ Export surface | ✓ packaged creator → Windows game → launch |
-| Creator distribution | ✓ release contracts | ✓ inherited closure | ✓ packaged EXE | ✓ restart/reopen/upgrade/read-only install | n/a | ✓ A→`ui_accept`, D-pad navigation, focus/accessibility | ✓ inherited scale gates | ✓ Home full/compact, Asset Library, New World, workspace, Play, Export visually reviewed | ✓ deterministic ZIP + independent rebuild + SHA-256 + manifest + scan |
-| Scale/polish | ✓ | ✓ | ✓ | ✓ settings restart/malformed file | ✓ where authored | ✓ | ✓ | ✓ | ✓ |
-| Multiplayer Play | ✓ | ✓ | ✓ host/client lifecycle | host-only runtime save authority | n/a for transient packets; authored state isolation required | ✓ multiplayer surface + semantic Play input | ✓ bounded state | ✓ full/compact panel | ✓ concurrent exported host/client |
+## Phase 18 mandatory release assertions
 
-## Phase 17 packaged release assertions
+- Stable identity is `0.1.0`; RC identity appears only as historical/upgrade-source data.
+- Portable ZIP independently rebuilds byte-for-byte from identical inputs.
+- Clean portable first launch performs real create/edit/save/Asset Library/Instant Play/export/launch.
+- Clean installed first launch performs real create/edit/save/export/launch.
+- Exact Phase 17 RC artifact and SHA are verified before upgrade testing.
+- Stable portable and installed executable both preserve the RC-created profile.
+- Repair/reinstall retains user data; uninstall removes application payload while authored data remains.
+- Read-only/alternate application locations do not redirect user data into the install directory.
+- Damaged canonical project metadata is backed up and restored from a valid checkpoint.
+- Malformed preferences fall back to defaults while preserving a recovery backup.
+- Support/diagnostic bundle excludes API keys, `.polyforkAPI`, `.env` secrets, and arbitrary project content.
+- Packaged controller/accessibility marker remains mandatory: `PASS: Phase 17 packaged creator UI, controller, accessibility, and major-screen acceptance completed.`
+- Final stable screenshots must be downloaded and visually inspected; existence alone is not approval.
 
-- `source-regressions` — PASS.
-- `windows-release` — PASS.
-- Packaged UI/controller/accessibility marker present: `PASS: Phase 17 packaged creator UI, controller, accessibility, and major-screen acceptance completed.`
-- Package integrity/credential scan marker present: `PASS: Phase 17 creator package integrity and credential scan completed.`
-- Clean packaged creator first-run creator→game export marker present.
-- Restart/reopen and read-only-style install markers present.
-- Independent replacement ZIP is byte-for-byte identical for identical release inputs.
-- Final evidence screenshots were downloaded and visually inspected rather than accepted by existence alone.
-- Prior synthetic GLTF default-scene warning is absent from final logs.
-- GitHub-hosted Windows visual runs use the expected ANGLE fallback to Microsoft Basic Render Driver; this is runner-specific infrastructure.
-
-Rows are minimum evidence expectations, not maximums. `n/a` does not waive authored-state isolation or cleanup tests.
+Final exact run/artifact evidence is recorded on PR #23 after the completion head passes.

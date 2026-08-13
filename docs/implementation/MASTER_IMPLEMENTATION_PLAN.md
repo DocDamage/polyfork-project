@@ -2,17 +2,12 @@
 
 ## Authoritative state
 
-- Repository default branch and authoritative integrated line: `master`.
-- Current authoritative `master`: `37d311b90f0684668a49e7f3b8ab197e6abcbe3a`, verified signed merge commit for PR #21 / Phase 16.
-- Historical `main` contains obsolete starter code and is not a development base.
-- Phases 0 through 16 are complete and merged.
-- Phase 17 is implementation-complete and release-verified on `dev/phase17-milestone`, pending its single completion PR to `master`.
-- Verified Phase 17 implementation/evidence head: `8f46b4cddd62efc5502033b3a9c0259bb740ec26`.
-- Full Phase 17 release workflow `31668662576`: source and Windows jobs PASS.
-- Final evidence artifact: `9169011730` / `phase17-release-candidate`.
-- RC ZIP SHA-256: `0911cc136b3deaf689b7959359ec9c45bee2f10255c7af573c9855ea0bbcdfa3`.
-
-Historical `.polyforkAPI` credential material remains exposed in Git history and must be rotated/revoked separately unless that external action has already been independently completed. Never print, restore, test, copy, or reuse it.
+- Repository default and authoritative integrated line: `master`.
+- Authoritative `master`: `91b8b9c39fddda4b80ad5c6101d563245ef3e2d0`, verified signed merge commit for PR #22 / Phase 17.
+- Historical `main` is obsolete starter code and is not a development base.
+- Phases 0 through 17 are complete and merged.
+- Active milestone branch: `dev/phase18-stable-release`.
+- Completion PR boundary: PR #23, `Phase 18 — Stable Release and Windows Productization`, targeting `master` and remaining unmerged until explicit authorization.
 
 ## Completed phases
 
@@ -33,71 +28,71 @@ Historical `.polyforkAPI` credential material remains exposed in Git history and
 - Phase 14 — Scale and Polish
 - Phase 15 — Multiplayer Foundations and Collaboration Roadmap
 - Phase 16 — Inherited Product Completeness and Integration Closure
+- Phase 17 — Release Candidate and Distribution
 
-## Phase 17 — Release Candidate and Distribution — VERIFIED
+## Phase 18 — Stable Release and Windows Productization
 
-Target release: `PlayWorld Studio 0.1.0-rc.1`
+Target product: **PlayWorld Studio 0.1.0**.
 
-Target package: `PlayWorld-Studio-0.1.0-rc.1-Windows-x64.zip`
+Target portable package: `PlayWorld-Studio-0.1.0-Windows-x64.zip`.
 
-### P17-T01 — Product/version identity — COMPLETE
-Formal creator product identity, release channel/version, icon, branded Windows metadata, and About/version UI are implemented and contract-tested.
+Target installer: `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`.
 
-### P17-T02 — Windows creator export preset — COMPLETE
-A dedicated Windows x64 creator preset builds the PlayWorld Studio application itself.
+### P18-T01 — Reconcile merged Phase 17 state — COMPLETE
+Phase 18 was branched from exact authoritative `master@91b8b9c39fddda4b80ad5c6101d563245ef3e2d0`; PR #22 and `master` default-branch authority were verified.
 
-### P17-T03 — Deterministic release package — COMPLETE
-Release construction produces the portable creator ZIP deterministically. Run `31668662576` independently rebuilt the package and proved byte-for-byte identical ZIP output.
+### P18-T02 — Stable 0.1.0 identity — COMPLETE
+Application/project/export/manifest/package/About identity is stable `0.1.0`, Windows x64, with RC wording retained only where it is historical or explicitly describes the supported upgrade source.
 
-### P17-T04 — Release manifest/checksums/notices — COMPLETE
-The package contains schema-v1 release identity, included-file hashes/sizes, `SHA256SUMS.txt`, ZIP SHA-256 sidecar, third-party notices, and release/user documentation.
+### P18-T03 — Windows installer/uninstall — COMPLETE
+Inno Setup packaging installs the complete creator payload, creates normal Windows integration, marks installed mode, supports alternate installation directories, and uninstalls application files without deleting Godot per-user authored data.
 
-### P17-T05 — Clean Windows installation verification — COMPLETE
-The packaged executable launches against a clean user-data root and successfully creates/edits/saves a real project.
+### P18-T04 — Upgrade/migration hardening — COMPLETE
+The exact Phase 17 artifact `9169222546` and RC ZIP hash `8db8162872077d00582ab20de5361a59cae19a45a9bacb2a3a7f199d18b4d9b9` are the upgrade fixture. Stable migration is explicit, idempotent, non-destructive, records source/target versions, and preserves RC user data.
 
-### P17-T06 — Core creator workflow smoke — COMPLETE
-Packaged Home/New World/workspace, real placement/editing, Asset Library indexing, Instant Play, Build return, save/reopen, and major creator surfaces are runtime-verified.
+### P18-T05 — Backup and recovery — COMPLETE
+Existing atomic saves/checkpoints are reused. Corrupt canonical project metadata is backed up before checkpoint promotion; malformed preferences are backed up before safe defaults; unavailable sources and missing release/export components remain explicit failures rather than fake success.
 
-### P17-T07 — Standalone export from packaged creator — COMPLETE
-The distributed creator carries its required Godot exporter, Windows templates, and raw runtime source closure. The packaged creator exports a standalone Windows game and the exported game launches to the Phase 13 runtime marker. Missing exporter/template conditions fail explicitly.
+### P18-T06 — Diagnostics/support bundle — COMPLETE
+The Support & Recovery surface emits bounded diagnostics covering stable identity, source/build identity, runtime/OS/rendering/GPU, install mode, user-data directories, exporter/template availability, schema and Asset Library health. Automated scans reject credentials and private-development material.
 
-### P17-T08 — Upgrade and data safety — COMPLETE
-Per-user project/library/preferences paths remain outside the installation directory. Malformed preferences fall back safely. Restart/reopen, independent replacement-package upgrade, and read-only-style install verification pass.
+### P18-T07 — Production failure/recovery UX — COMPLETE
+Support/recovery is a first-class Home action. Existing project/Asset Library/export surfaces retain explicit error reporting; damaged projects are surfaced with recoverability status and a user-triggered checkpoint recovery path.
 
-### P17-T09 — Release UX and visual acceptance — COMPLETE
-Packaged Home 1600×900/1280×720/compact, Asset Library, New World, Build workspace, Instant Play, and Export screenshots were captured and visually inspected. Controller/focus/accessibility acceptance passes, including physical gamepad A → semantic `ui_accept`.
+### P18-T08 — Installer/package QA — COMPLETE IN AUTOMATION
+The dedicated stable workflow exercises portable first run/reopen/read-only layout, clean installed first run, repair/reinstall, uninstall with user-data preservation, reinstall, alternate install location, exact RC-profile upgrade, creator export, and exported-game launch.
 
-### P17-T10 — Supply-chain and secret validation — COMPLETE
-Package validation checks required tooling/runtime files, manifest hashes/sizes, SHA-256 sums, forbidden development paths/files, legacy `.polyforkAPI` marker material, and OpenAI-style credential patterns. The final package validation passes.
+### P18-T09 — Controller/accessibility regression — RETAINED
+The Phase 17 packaged acceptance marker remains mandatory, including gamepad A → `ui_accept`, D-pad focus navigation, compact layouts, keyboard/mouse parity, and major creator screens.
 
-### P17-T11 — Regression and release automation — COMPLETE
-Dedicated `.github/workflows/phase17-release.yml` runs source contracts, inherited Phase 4–16 regressions, Phase 14 Windows profiles, Phase 15 exported multiplayer, deterministic packaging, packaged creator runtime verification, visual capture, acceptance, and bounded evidence upload.
+### P18-T10 — Stable visual acceptance — AUTOMATED CAPTURE + MANUAL GATE
+The stable workflow captures Home 1600×900, Home 1280×720, compact Home, Asset Library, New World, Build, Instant Play, Export, About/version, Settings, and Support/Recovery. Completion requires downloading and visually inspecting the final green artifact.
 
-### P17-T12 — Release documentation and handoff — COMPLETE
-Release guides/notices and canonical README/plan/backlog/QA/handoff state are reconciled to the final verified release evidence.
+### P18-T11 — Release security hardening — COMPLETE
+Portable payload, installer, release manifests/checksums, and support bundle are scanned for `.env`, `.git`, tests/development material, legacy `.polyforkAPI` markers, and OpenAI-style credential patterns.
 
-## Final Phase 17 evidence
+### P18-T12 — Stable release automation — COMPLETE
+`.github/workflows/phase18-stable-release.yml` runs source regressions and Windows productization, builds deterministic portable packages, builds the installer, verifies real RC→stable migration, executes packaged app workflows, captures visuals, scans artifacts, and uploads bounded release evidence.
 
-Workflow `31668662576` passed both `source-regressions` and `windows-release`. The required packaged acceptance log contains:
+### P18-T13 — Full inherited regression — REQUIRED AT FINAL HEAD
+The Phase 18 workflow reruns the core harness, Phase 4–15 suites, Phase 16 product/integration/shared-asset closure, Phase 14 scale/export, Phase 15 multiplayer export/host/client, and Phase 17 packaged controller/accessibility assertions. Historical Phase 17 RC identity workflow is scoped to its own milestone instead of testing stable identity against RC constants.
 
-`PASS: Phase 17 packaged creator UI, controller, accessibility, and major-screen acceptance completed.`
+### P18-T14 — Documentation/closeout — COMPLETE SUBJECT TO FINAL EVIDENCE
+Canonical planning, QA, handoff and release guides are reconciled to stable `0.1.0`. Final workflow/artifact/checksum/visual-review evidence belongs in PR #23 and must be verified before the PR is marked ready.
 
-Artifact `9169011730` contains the RC ZIP/checksum/manifest, release logs, and packaged visual evidence. The repaired GLTF fixture no longer emits the previous default-scene warning. The only visual-run warning observed is the GitHub-hosted Windows ANGLE fallback to Microsoft Basic Render Driver.
+## Phase 18 completion gate
 
-## Completion boundary
-
-The next milestone action is exactly one Phase 17 completion PR from `dev/phase17-milestone` to `master`. Do not merge it without explicit user authorization.
-
-Phase 18 is undefined and unauthorized until Phase 17 is merged and a new handoff explicitly defines the next milestone.
+Phase 18 is complete only when the exact final branch head has green source and Windows stable-release jobs, stable package/installer artifacts and checksums are verified, final screenshots are manually inspected, PR #23 contains the evidence, and PR #23 remains unmerged.
 
 ## Architectural invariants retained
 
-- existing `PlaySession` remains the disposable Build/Play boundary;
+- existing `PlaySession` remains the Build/Play boundary;
 - authored mutation remains command/transaction owned with Undo/Redo;
 - stable authored IDs remain authoritative;
 - external Asset Library sources remain read-only;
-- gameplay event/Visual Scripting boundaries are reused;
-- project export architecture is reused;
-- multiplayer remains opt-in and transient;
-- gameplay replication remains separate from collaborative authoring;
-- no fake parallel editor/runtime was introduced.
+- terrain/streaming, components/prefabs/sockets, Visual Scripting, gameplay, Environment, AI privacy/consent, authored-game export, and multiplayer boundaries are reused;
+- user data remains separate from application installation;
+- offline behavior remains first-class;
+- no parallel editor/runtime/exporter architecture was introduced.
+
+Historical `.polyforkAPI` credential material remains exposed in Git history. Never print, restore, test, copy, reuse, or package it.
