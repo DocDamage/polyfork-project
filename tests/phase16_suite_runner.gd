@@ -1,7 +1,7 @@
 extends SceneTree
 
 const ProductCompleteness = preload("res://tests/unit/phase16_product_completeness_contracts.gd")
-const IntegrationClosure = preload("res://tests/integration/phase16_integration_closure_contracts_v2.gd")
+const IntegrationClosure = preload("res://tests/integration/phase16_integration_closure_contracts.gd")
 
 func _init() -> void: call_deferred("_run")
 
