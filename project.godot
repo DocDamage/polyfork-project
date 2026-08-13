@@ -16,6 +16,7 @@ ExportWorkspace="*res://src/app/workspace/export_workspace_layer.gd"
 NetworkRuntime="*res://src/network/network_runtime_service.gd"
 MultiplayerWorkspace="*res://src/app/workspace/multiplayer_workspace_layer.gd"
 ReleaseVerification="*res://src/release/release_verification.gd"
+ReleaseAcceptance="*res://src/release/release_acceptance.gd"
 
 [display]
 window/size/viewport_width=1600
