@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 18 COMPLETION HANDOFF
+# POLYFORK PROJECT — PHASE 18 POST-MERGE CORRECTION HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -8,71 +8,66 @@ Use the GitHub connector for repository work.
 
 Repository default and authoritative integrated branch: `master`.
 
-Authoritative `master`:
+Current authoritative `master`:
 
-`91b8b9c39fddda4b80ad5c6101d563245ef3e2d0`
+`9ed7abd28144f9757244f33aa33176e7074aca86`
 
-This is the verified signed merge of **PR #22 — Phase 17 — Release Candidate and Distribution**. Phases **0 through 17 are complete and merged**. Historical `main` is obsolete starter code and must not be used.
+This is the verified signed merge of **PR #23 — Phase 18 — Stable Release and Windows Productization**.
 
-## Phase 18
+PR #23 was merged prematurely before its required manual visual closeout was valid. Do not reset, force-push, or rewrite `master`; repair forward from this commit.
 
-Milestone: **Stable Release and Windows Productization**.
+Phases **0 through 17 are complete and accepted**. Phase 18 implementation is integrated, but Phase 18 final acceptance remains open.
 
-Branch: `dev/phase18-stable-release`.
+Historical `main` is obsolete starter code and must not be used.
 
-Target product: `PlayWorld Studio 0.1.0`.
+## Corrective branch
 
-Portable package: `PlayWorld-Studio-0.1.0-Windows-x64.zip`.
+`fix/phase18-post-merge-closeout`
 
-Installer: `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`.
+The corrective branch targets current `master`. Its pull request must remain open and unmerged until explicit user authorization.
 
-Completion PR: **#23 — Phase 18 — Stable Release and Windows Productization**.
+## Why correction is required
 
-PR #23 must remain unmerged until explicit user authorization.
+The original Phase 18 workflow run was green, but downloaded artifact inspection found that:
 
-## Delivered Phase 18 scope
+`09-about-version-1280x720.png`
 
-- stable `0.1.0` identity across runtime, About, Windows metadata, package and release manifest;
-- deterministic portable ZIP with independent rebuild proof;
-- Inno Setup Windows installer/uninstaller and Start Menu integration;
-- installed/portable mode markers and strict install/user-data separation;
-- exact Phase 17 RC artifact/hash upgrade fixture;
-- explicit, idempotent, non-destructive RC→stable migration state and backups;
-- checkpoint-based damaged-project recovery with preservation of corrupt canonical metadata;
-- malformed-preference backup plus safe defaults;
-- first-class Home **Support** action and Support & Recovery UI;
-- bounded diagnostic/support report with secret/private-material scanning;
-- portable clean first/reopen/read-only QA;
-- clean installed first run, repair/reinstall, uninstall preservation, reinstall and installed RC-profile upgrade QA;
-- packaged creator→standalone Windows game export and launch;
-- retained controller/accessibility/focus acceptance including gamepad A→`ui_accept`;
-- inherited scale/export/multiplayer regressions;
-- stable visual evidence capture;
-- stable release security scanning;
-- canonical Phase 18 planning/QA/install/troubleshooting/version/limitations documentation.
+showed Home instead of the required About/version surface.
 
-## Exact RC upgrade fixture
+The old gate verified screenshot existence and a broad completion marker, but it did not prove that the real About action produced a visible, topmost, full-size overlay with exact stable identity text.
 
-Phase 17 artifact ID: `9169222546`.
+The stale About path also passed an untyped empty collection into an overlay API declared as `Array[Dictionary]`, so the corrective path now uses an explicitly typed collection and visible identity card.
 
-RC ZIP SHA-256: `8db8162872077d00582ab20de5361a59cae19a45a9bacb2a3a7f199d18b4d9b9`.
+## Corrective implementation
 
-The stable workflow must verify both values before using the RC package as migration evidence.
+The corrective branch:
 
-## Remaining completion boundary
+- keeps the existing release and support security scans unchanged;
+- makes the Home overlay explicitly topmost and input-blocking;
+- exposes bounded overlay presentation state for test assertions;
+- renders a visible PlayWorld Studio `0.1.0` About identity card;
+- activates the real About button during packaged visual QA;
+- verifies exact title, version, channel, platform, Godot version, and source identity;
+- verifies the overlay covers Home and required labels are renderable before screenshot capture;
+- retains the complete portable, installer, upgrade, uninstall, export, controller, accessibility, scale, multiplayer, and support-bundle pipeline.
 
-Do not claim Phase 18 complete until all of these are true on the exact final branch head:
+## Remaining Phase 18 completion boundary
 
-1. `.github/workflows/phase18-stable-release.yml` `source-regressions` PASS.
-2. `windows-stable-release` PASS.
-3. Stable ZIP, setup executable, checksum files and release manifest verified.
-4. Final `phase18-stable-release` artifact downloaded.
-5. All eleven required stable packaged screenshots visually inspected.
-6. PR #23 body updated with exact run IDs, artifact ID/digest, portable/setup SHA-256, upgrade/uninstall/export/security/visual evidence and known limitations.
-7. PR #23 marked ready for review and left **unmerged**.
+Do not claim Phase 18 finally accepted until all of these are true on the exact corrective head:
 
-No Phase 19 work is authorized. Do not begin Phase 19 until Phase 18 is merged and a new handoff explicitly authorizes it.
+1. `.github/workflows/phase18-stable-release.yml` `source-regressions` passes.
+2. `windows-stable-release` passes.
+3. Stable ZIP, setup executable, checksum files, and release manifest are verified.
+4. The final `phase18-stable-release` artifact is downloaded.
+5. All eleven required screenshots are visually inspected.
+6. `09-about-version-1280x720.png` visibly shows the About/version surface and stable `0.1.0` identity.
+7. The corrective PR body records exact run IDs, artifact ID/digest, portable/setup SHA-256, upgrade/uninstall/export/security/controller/visual evidence, and known limitations.
+8. The corrective PR remains **unmerged** until explicit user authorization.
 
-## Security note
+## Authorization boundary
 
-Historical `.polyforkAPI` credential material in Git history remains exposed. Never print, recover, test, reuse, or distribute it. External rotation/revocation remains required unless independently verified outside the repository; do not claim that external action occurred without evidence.
+No Phase 19 work is authorized. Do not begin Phase 19 until the corrective Phase 18 PR is explicitly merged and a new handoff authorizes the next milestone.
+
+## Security boundary
+
+Historical API credential material in Git history remains exposed. Never print, recover, test, reuse, or distribute it. External rotation/revocation remains required unless independently verified outside the repository; do not claim that external action occurred without evidence.
