@@ -180,6 +180,8 @@ def main() -> int:
         if path.name != "SHA256SUMS.txt": sums.append(f"{sha256(path)}  {path.relative_to(package_dir).as_posix()}")
     (package_dir / "SHA256SUMS.txt").write_text("\n".join(sums) + "\n", encoding="utf-8")
     security_scan(package_dir)
+    for path in iter_files(package_dir):
+        print(f"PACKAGE_FILE_SHA256 {path.relative_to(package_dir).as_posix()} {sha256(path)}")
     zip_path = output_root / f"{package_name}.zip"; deterministic_zip(package_dir, zip_path, args.source_date_epoch)
     checksum_path = output_root / f"{zip_path.name}.sha256"; checksum_path.write_text(f"{sha256(zip_path)}  {zip_path.name}\n", encoding="utf-8")
     print(f"PASS: Phase 17 creator release package built: {zip_path.name}")
