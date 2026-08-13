@@ -12,6 +12,10 @@ permissions:
   contents: read
   actions: read
 
+concurrency:
+  group: phase18-stable-release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   source-regressions:
     runs-on: ubuntu-24.04
@@ -136,9 +140,11 @@ jobs:
           $port = 34918
           $hostLog = Join-Path $env:GITHUB_WORKSPACE 'phase18-host.log'
           $clientLog = Join-Path $env:GITHUB_WORKSPACE 'phase18-client.log'
-          $host = Start-Process -FilePath $exe -ArgumentList '--headless' -PassThru -WindowStyle Hidden -RedirectStandardOutput $hostLog -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'host.err') -Environment @{ POLYFORK_MULTIPLAYER_ROLE='host'; POLYFORK_MULTIPLAYER_PORT="$port"; POLYFORK_MULTIPLAYER_PLAYER='Host'; POLYFORK_MULTIPLAYER_EXPECTED_PEERS='2'; POLYFORK_MULTIPLAYER_SMOKE='1' }
+          $hostEnv = @{ POLYFORK_MULTIPLAYER_ROLE='host'; POLYFORK_MULTIPLAYER_PORT="$port"; POLYFORK_MULTIPLAYER_PLAYER='Host'; POLYFORK_MULTIPLAYER_EXPECTED_PEERS='2'; POLYFORK_MULTIPLAYER_SMOKE='1' }
+          $clientEnv = @{ POLYFORK_MULTIPLAYER_ROLE='client'; POLYFORK_MULTIPLAYER_ADDRESS='127.0.0.1'; POLYFORK_MULTIPLAYER_PORT="$port"; POLYFORK_MULTIPLAYER_PLAYER='Client'; POLYFORK_MULTIPLAYER_EXPECTED_PEERS='2'; POLYFORK_MULTIPLAYER_SMOKE='1' }
+          $host = Start-Process -FilePath $exe -ArgumentList '--headless' -PassThru -WindowStyle Hidden -RedirectStandardOutput $hostLog -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'host.err') -Environment $hostEnv
           Start-Sleep -Seconds 1
-          $client = Start-Process -FilePath $exe -ArgumentList '--headless' -PassThru -WindowStyle Hidden -RedirectStandardOutput $clientLog -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'client.err') -Environment @{ POLYFORK_MULTIPLAYER_ROLE='client'; POLYFORK_MULTIPLAYER_ADDRESS='127.0.0.1'; POLYFORK_MULTIPLAYER_PORT="$port"; POLYFORK_MULTIPLAYER_PLAYER='Client'; POLYFORK_MULTIPLAYER_EXPECTED_PEERS='2'; POLYFORK_MULTIPLAYER_SMOKE='1' }
+          $client = Start-Process -FilePath $exe -ArgumentList '--headless' -PassThru -WindowStyle Hidden -RedirectStandardOutput $clientLog -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'client.err') -Environment $clientEnv
           $deadline = (Get-Date).AddSeconds(45)
           while ((!$host.HasExited -or !$client.HasExited) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $host.Refresh(); $client.Refresh() }
           if (!$host.HasExited) { Stop-Process -Id $host.Id -Force; throw 'Exported host timed out.' }
@@ -195,6 +201,7 @@ jobs:
           $upgrade = Get-Content phase18-real-upgrade.log -Raw
           if ($upgrade -notmatch 'PASS: Phase 18 real 0.1.0-rc.1 to 0.1.0 upgrade preservation completed.') { throw 'Real RC to stable upgrade marker missing.' }
           if ($upgrade -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Real RC to stable upgrade emitted strict errors.' }
+          "PHASE18_RC_APPDATA=$rcAppData" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Run stable portable clean first run, export, restart, and read-only install
         shell: pwsh
         run: |
@@ -231,17 +238,22 @@ jobs:
           $digest = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLowerInvariant()
           "$digest  $env:STABLE_SETUP_NAME" | Set-Content "$setup.sha256" -Encoding ASCII
           "PHASE18_SETUP=$setup" | Out-File -FilePath $env:GITHUB_ENV -Append
-      - name: Verify installer install, repair, uninstall preservation, and reinstall
+      - name: Verify clean installed first run, repair, uninstall preservation, reinstall, and RC-profile upgrade
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $env:APPDATA = $env:PHASE18_APPDATA
           $installRoot = Join-Path $env:RUNNER_TEMP 'PlayWorld-Studio-installed'
+          $installedAppData = Join-Path $env:RUNNER_TEMP 'phase18-installed-clean-appdata'
+          if (Test-Path $installedAppData) { Remove-Item $installedAppData -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $installedAppData | Out-Null
+          $env:APPDATA = $installedAppData
           & "$env:PHASE18_SETUP" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="$installRoot"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $installedExe = Join-Path $installRoot 'PlayWorld Studio.exe'
           if (-not (Test-Path $installedExe)) { throw 'Installer did not install PlayWorld Studio.exe.' }
           if ((Get-Content (Join-Path $installRoot 'install_mode.txt') -Raw).Trim() -ne 'installed') { throw 'Installed-mode marker is missing.' }
+          & $installedExe --headless -- --phase18-release-smoke=first 2>&1 | Tee-Object phase18-installed-first.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & $installedExe --headless -- --phase18-release-smoke=reopen 2>&1 | Tee-Object phase18-installed-reopen.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & "$env:PHASE18_SETUP" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="$installRoot"
@@ -250,7 +262,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $userRoot = Join-Path $env:APPDATA 'Godot\app_userdata\PlayWorld Studio'
           $state = Join-Path $userRoot 'phase18-release-state.json'
-          if (-not (Test-Path $state)) { throw 'Stable user data is missing before uninstall.' }
+          if (-not (Test-Path $state)) { throw 'Installed first-run user data is missing before uninstall.' }
           $uninstaller = Get-ChildItem $installRoot -Filter 'unins*.exe' | Select-Object -First 1
           if (-not $uninstaller) { throw 'Uninstaller was not created.' }
           & $uninstaller.FullName /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
@@ -259,12 +271,17 @@ jobs:
           if (-not (Test-Path $state)) { throw 'Uninstall incorrectly removed user-authored state.' }
           & "$env:PHASE18_SETUP" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="$installRoot"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & (Join-Path $installRoot 'PlayWorld Studio.exe') --headless -- --phase18-release-smoke=reopen 2>&1 | Tee-Object phase18-installed-reinstall.log
+          $installedExe = Join-Path $installRoot 'PlayWorld Studio.exe'
+          & $installedExe --headless -- --phase18-release-smoke=reopen 2>&1 | Tee-Object phase18-installed-reinstall.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          foreach ($file in @('phase18-installed-reopen.log','phase18-installed-repair.log','phase18-installed-reinstall.log')) {
+          $env:APPDATA = $env:PHASE18_RC_APPDATA
+          & $installedExe --headless -- --phase18-release-smoke=upgrade 2>&1 | Tee-Object phase18-installed-rc-upgrade.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($file in @('phase18-installed-first.log','phase18-installed-reopen.log','phase18-installed-repair.log','phase18-installed-reinstall.log','phase18-installed-rc-upgrade.log')) {
             $text = Get-Content $file -Raw
             if ($text -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw "Strict installer lifecycle error in $file" }
           }
+          if ((Get-Content phase18-installed-rc-upgrade.log -Raw) -notmatch 'PASS: Phase 18 real 0.1.0-rc.1 to 0.1.0 upgrade preservation completed.') { throw 'Installed RC-profile upgrade marker missing.' }
       - name: Run packaged UI/controller/accessibility acceptance and stable visual capture
         shell: pwsh
         run: |
