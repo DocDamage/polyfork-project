@@ -28,6 +28,8 @@ def main() -> int:
         root / "PlayWorld Studio.exe",
         root / "tools" / "godot" / "godot.exe",
         root / "tools" / "export_templates" / "4.7.1.stable" / "windows_release_x86_64.exe",
+        root / "tools" / "runtime_source" / "src" / "export" / "runtime" / "StandaloneRuntime.tscn",
+        root / "tools" / "runtime_source" / "src" / "network" / "network_runtime_service.gd",
         manifest_path,
         sums_path,
     ]
@@ -52,13 +54,14 @@ def main() -> int:
     forbidden = ("/tests/", "/.github/", "/downloads/", "/.git/")
     secret = re.compile(rb"(?i)sk-(?:proj-)?[a-z0-9_-]{24,}")
     legacy_marker = b".polyfork" + b"API"
+    scan_suffixes = {".pck", ".json", ".txt", ".md", ".cfg", ".ini", ".gd", ".tscn", ".tres", ".gdshader", ".godot"}
     for path in root.rglob("*"):
         if not path.is_file():
             continue
         rel = "/" + path.relative_to(root).as_posix().lower()
         if any(value in rel for value in forbidden) or path.name.lower() in {".env", ".env.local"}:
             raise SystemExit("Forbidden development file in release package.")
-        if path.suffix.lower() in {".pck", ".json", ".txt", ".md", ".cfg", ".ini"}:
+        if path.suffix.lower() in scan_suffixes:
             data = path.read_bytes()
             if legacy_marker in data or secret.search(data):
                 raise SystemExit("Credential-like material detected in release package.")
