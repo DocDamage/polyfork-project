@@ -17,7 +17,7 @@ func _run() -> void:
     var preset := FileAccess.get_file_as_string("res://export_presets.cfg")
     for required in ["PlayWorld Studio Windows x64", "application/product_name=\"PlayWorld Studio\"", "application/product_version=\"0.1.0-rc.1\"", "binary_format/architecture=\"x86_64\""]:
         if not preset.contains(required): errors.append("Creator export preset is missing release metadata: %s" % required)
-    for excluded in ["tests/*", ".github/*", "downloads/*", "tools/*"]:
+    for excluded in ["tests/*", ".github/*", "downloads/*", "tools/*", "artifacts/*"]:
         if not preset.contains(excluded): errors.append("Creator export preset does not exclude development material: %s" % excluded)
 
     var external_root := ProjectSettings.globalize_path("user://phase17-runtime-source-contract-%d" % Time.get_ticks_usec())
