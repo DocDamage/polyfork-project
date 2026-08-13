@@ -1,76 +1,146 @@
 # Phase 18 QA — Stable Release and Windows Productization
 
-## Current status
+## Final status
 
-PR #23 was merged into `master@9ed7abd28144f9757244f33aa33176e7074aca86` before the required manual visual closeout was valid. Phase 18 implementation is integrated, but final acceptance remains open on `fix/phase18-post-merge-closeout`.
+**PASS — COMPLETE AND ACCEPTED**
 
-The historical green artifact is not final evidence because `09-about-version-1280x720.png` showed Home instead of About/version.
+Phase 18 is integrated on authoritative `master@49a5b55748244097d952ab9c095dd00ed0ec9f06`, the verified signed merge of PR #24.
 
-## Automated workflow
+PR #23 originally integrated the implementation before manual visual closeout was valid. PR #24 corrected the About/version path, reran the complete stable-release pipeline, regenerated the artifacts, completed manual inspection, and repaired documentation forward without rewriting repository history.
 
-`.github/workflows/phase18-stable-release.yml`
+## Exact source and workflow
+
+- Corrective branch head: `5ee4e96318d34d466ec0b7fb477db8bf32941139`
+- Tested PR merge candidate: `f859086a7ec874fe39cf1b83019925f544a92a10`
+- Final signed integrated merge: `49a5b55748244097d952ab9c095dd00ed0ec9f06`
+- Source tree tested and integrated: `9aa7ccb39e533b20936c7ce43d639abf057277c5`
+- Workflow: `31699466148` — SUCCESS
 
 Required jobs:
 
-- `source-regressions`
-- `windows-stable-release`
+- `source-regressions` — PASS
+- `windows-stable-release` — PASS
 
-## Source gate
+All other repository-owned pull-request workflows triggered on the corrective source completed successfully. The historical Phase 17 release workflow was intentionally skipped by its branch filter.
 
-Runs the main harness, Phase 18 contracts, Phase 16 product/integration/shared Asset Library closure, Phase 4–15 suites, Phase 7 playable smoke, and Phase 14 scale stress.
+## Source gate coverage
 
-## Windows gate
+The source gate ran:
 
-Runs Phase 18 contracts plus inherited Phase 14/15/16 Windows export gates; verifies exported multiplayer host/client; builds and independently rebuilds the stable portable ZIP; validates hashes/manifests; downloads exact Phase 17 artifact `9169222546`; verifies RC ZIP SHA `8db8162872077d00582ab20de5361a59cae19a45a9bacb2a3a7f199d18b4d9b9`; performs real RC→stable migration; exercises portable first/reopen/read-only; builds the Inno Setup installer; exercises clean installed first/reopen/repair/uninstall/reinstall and installed RC-profile upgrade; executes packaged UI/controller/accessibility acceptance; captures stable visuals; and scans release/support artifacts.
+- the main Godot test harness;
+- Phase 18 contracts;
+- Phase 16 product, integration, and shared Asset Library closure;
+- inherited Phase 4–15 contract suites;
+- Phase 7 playable controller smoke;
+- Phase 14 scale stress.
 
-## About/version automated assertions
+## Windows gate coverage
 
-Before `09-about-version-1280x720.png` can be saved, packaged QA must:
+The Windows gate verified:
 
-1. activate the real Home About button;
-2. find the `HomeCreatorOverlay` created by that action;
-3. verify the overlay is visible;
-4. verify it is the topmost Home child;
-5. verify it covers the Home surface;
-6. verify the title is exactly `About PlayWorld Studio`;
-7. verify the subtitle is exactly `0.1.0 • stable • Windows x64`;
-8. verify Godot `4.7.1` and source identity are rendered;
-9. verify title, subtitle, and status labels have non-zero renderable bounds.
+- inherited Phase 14/15/16 Windows export behavior;
+- concurrent exported multiplayer host/client connection and input ownership;
+- deterministic stable portable package generation and independent rebuild;
+- package manifests and checksums;
+- exact Phase 17 release-candidate artifact and real RC→stable migration;
+- portable first run, export, reopen, and read-only-style application location;
+- installer creation and stable version metadata;
+- alternate-location installation;
+- installed first run and reopen;
+- repair/reinstall;
+- uninstall application removal with user-data preservation;
+- reinstall and preserved-state reopen;
+- installed RC-profile upgrade;
+- packaged UI, controller, focus, and accessibility acceptance;
+- stable visual capture;
+- portable, installer, and generated support-material validation.
 
-The visual process must exit non-zero when any assertion fails. Screenshot existence alone is not acceptance.
+## Final artifacts and checksums
 
-## Manual visual gate
+Stable release artifact:
 
-Download the final corrective `phase18-stable-release` artifact and inspect:
+- Artifact ID: `9180943528`
+- Name: `phase18-stable-release`
+- Digest: `sha256:fc5dc19a7ba37a8a02c7fdce579a3a2bb6cb0e70fb5e90661cf28d4ec76f480a`
+- Size: 345,330,163 bytes
 
-1. `01-home-1600x900.png`
-2. `02-home-1280x720.png`
-3. `03-home-compact.png`
-4. `04-asset-library-1280x720.png`
-5. `05-new-world-1280x720.png`
-6. `06-workspace-1280x720.png`
-7. `07-instant-play-1280x720.png`
-8. `08-export-1280x720.png`
-9. `09-about-version-1280x720.png`
-10. `10-settings-1280x720.png`
-11. `11-support-recovery-1280x720.png`
+Source regression artifact:
 
-Reject clipping, overlap, unreadable labels, broken focus presentation, inconsistent spacing, incorrect `0.1.0` identity, missing icons/assets, compact-layout failures, generic developer-tool visual drift, or any image that does not show the surface named by its filename.
+- Artifact ID: `9180674153`
+- Digest: `sha256:6522a03e145b91464066f3c5a6c1925bda9f9e95b21238a50a50450d697e32aa`
 
-The About screenshot must visibly show:
+Portable ZIP:
 
-- `About PlayWorld Studio`;
-- PlayWorld Studio `0.1.0`;
-- stable channel;
-- Windows x64;
-- Godot version and source identity.
+- File: `PlayWorld-Studio-0.1.0-Windows-x64.zip`
+- SHA-256: `f635811f0c9738ba622b91f0a5c890c24ab491ff63ed4f85cdcb12e8ca7a160a`
+- Published sidecar matched the downloaded file.
 
-## Security gate
+Installer:
 
-Retain the existing package, installer, support-bundle, and release-material scans. The post-merge visual correction must not remove, bypass, or weaken any private-material or credential-pattern rejection.
+- File: `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`
+- SHA-256: `9f639274e4bb7df3e492a8ab9720c7c0b6c6ca12c7f644f8dd1cba4c68ba6a02`
+- Published sidecar matched the downloaded file.
 
-## Corrective completion record
+## About/version assertions
 
-Exact final workflow ID, artifact ID/digest, portable ZIP SHA-256, installer SHA-256, lifecycle markers, security result, and manual review of all eleven screenshots belong in the corrective PR so they refer to the exact completion head without making repository commits self-referential.
+Before `09-about-version-1280x720.png` is saved, packaged verification now:
 
-The corrective PR remains unmerged until explicit user authorization. Phase 19 remains blocked.
+1. activates the real Home About button;
+2. resolves the actual `HomeCreatorOverlay` created by that action;
+3. verifies the overlay is visible;
+4. verifies it is the topmost Home child;
+5. verifies it covers the Home surface;
+6. verifies the title is exactly `About PlayWorld Studio`;
+7. verifies the stable `0.1.0` Windows x64 identity;
+8. verifies Godot 4.7.1 and source identity are rendered;
+9. verifies title, subtitle, and status labels have non-zero renderable bounds.
+
+Any failed assertion exits the visual process non-zero. Screenshot existence alone is not acceptance.
+
+## Manual visual review
+
+Every final screenshot was opened and visually inspected:
+
+1. `01-home-1600x900.png` — coherent full layout, visible focus, no clipping or overlap.
+2. `02-home-1280x720.png` — coherent normal layout with all primary cards and header actions visible.
+3. `03-home-compact.png` — vertical compact stack remains legible; lower content correctly continues below the viewport.
+4. `04-asset-library-1280x720.png` — shared source, path, Add Folder, and Scan Library controls visible.
+5. `05-new-world-1280x720.png` — world name, size, biome, template, and create action visible without collision.
+6. `06-workspace-1280x720.png` — Build state, transform tools, contextual dock, project identity, and viewport render correctly.
+7. `07-instant-play-1280x720.png` — Play state and disposable runtime character/world render correctly.
+8. `08-export-1280x720.png` — Windows x86_64 export panel and build action render correctly.
+9. `09-about-version-1280x720.png` — corrected and valid; About title, `0.1.0`, stable, Windows x64, Godot 4.7.1, and source identity are visible.
+10. `10-settings-1280x720.png` — performance, scale, reduced motion, density, and effective policy render correctly.
+11. `11-support-recovery-1280x720.png` — stable identity, bounded diagnostics notice, user-data location, support action, and recovery state render correctly.
+
+No blank or substituted surface, major control collision, unreadable primary label, incorrect product identity, or compact-layout failure was found.
+
+## Lifecycle acceptance
+
+Accepted release behavior includes:
+
+- real Phase 17 RC first-run authoring/export;
+- real `0.1.0-rc.1 → 0.1.0` project and preference preservation;
+- clean portable authoring and creator→standalone-game export/launch;
+- portable restart/reopen persistence;
+- read-only-style package location with user data outside the package;
+- alternate-location silent install;
+- installed first run and reopen;
+- repair/reinstall;
+- uninstall removes application files while authored state remains;
+- reinstall reopens the preserved state;
+- installed stable opens the exact RC-authored profile.
+
+## Controller and accessibility acceptance
+
+The inherited packaged acceptance marker passed. Coverage includes real joypad navigation, gamepad A → `ui_accept`, keyboard/mouse parity, persisted compact and reduced-motion preferences, focus assertions, Build/Play navigation, and major-screen coverage.
+
+## Release validation
+
+The primary portable package, independent rebuild, installer, and generated support material all passed the final distribution checks. No release gate was weakened for the corrective closeout.
+
+## Completion
+
+PR #24 contains the detailed completion discussion and is merged. Phase 18 is complete and accepted on authoritative `master`.
+
+No Phase 19 work is authorized until a new user-approved handoff defines the next milestone.
