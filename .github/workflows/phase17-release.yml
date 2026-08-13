@@ -130,13 +130,13 @@ jobs:
           if (-not (Test-Path $exe)) { throw 'Phase 15 multiplayer export executable missing.' }
           $port = 34917
           $env:POLYFORK_MULTIPLAYER_ROLE='host'; $env:POLYFORK_MULTIPLAYER_PORT="$port"; $env:POLYFORK_MULTIPLAYER_PLAYER='Host'; $env:POLYFORK_MULTIPLAYER_EXPECTED_PEERS='2'; $env:POLYFORK_MULTIPLAYER_SMOKE='1'
-          $host = Start-Process -FilePath $exe -ArgumentList '--headless' -RedirectStandardOutput phase17-host.log -RedirectStandardError phase17-host.err -PassThru
+          $hostProcess = Start-Process -FilePath $exe -ArgumentList '--headless' -RedirectStandardOutput phase17-host.log -RedirectStandardError phase17-host.err -PassThru
           Start-Sleep -Seconds 1
           $env:POLYFORK_MULTIPLAYER_ROLE='client'; $env:POLYFORK_MULTIPLAYER_ADDRESS='127.0.0.1'; $env:POLYFORK_MULTIPLAYER_PLAYER='Client'
-          $client = Start-Process -FilePath $exe -ArgumentList '--headless' -RedirectStandardOutput phase17-client.log -RedirectStandardError phase17-client.err -PassThru
-          if (-not $host.WaitForExit(45000)) { Stop-Process $host -Force; throw 'Exported host timed out.' }
-          if (-not $client.WaitForExit(45000)) { Stop-Process $client -Force; throw 'Exported client timed out.' }
-          if ($host.ExitCode -ne 0 -or $client.ExitCode -ne 0) { throw 'Exported multiplayer process failed.' }
+          $clientProcess = Start-Process -FilePath $exe -ArgumentList '--headless' -RedirectStandardOutput phase17-client.log -RedirectStandardError phase17-client.err -PassThru
+          if (-not $hostProcess.WaitForExit(45000)) { Stop-Process $hostProcess -Force; throw 'Exported host timed out.' }
+          if (-not $clientProcess.WaitForExit(45000)) { Stop-Process $clientProcess -Force; throw 'Exported client timed out.' }
+          if ($hostProcess.ExitCode -ne 0 -or $clientProcess.ExitCode -ne 0) { throw 'Exported multiplayer process failed.' }
           if ((Get-Content phase17-host.log -Raw) -notmatch 'PASS: Phase 15 standalone multiplayer host connected') { throw 'Host completion marker missing.' }
           if ((Get-Content phase17-client.log -Raw) -notmatch 'PASS: Phase 15 standalone multiplayer client connected') { throw 'Client completion marker missing.' }
       - name: Build deterministic PlayWorld Studio release package
