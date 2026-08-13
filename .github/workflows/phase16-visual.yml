@@ -34,6 +34,7 @@ jobs:
           set -uo pipefail; set +e
           timeout --signal=TERM --kill-after=10s 300s \
             xvfb-run -a ./Godot_v4.7.1-stable_linux.x86_64 --path . \
+            --rendering-method gl_compatibility --audio-driver Dummy --disable-vsync \
             --script res://tests/runtime/capture_phase16.gd 2>&1 | tee phase16-visual.log
           status=${PIPESTATUS[0]}; set -e
           if [ "$status" -ne 0 ]; then exit "$status"; fi
