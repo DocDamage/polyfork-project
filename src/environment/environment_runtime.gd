@@ -7,11 +7,15 @@ signal environment_event(event_name: String, payload: Dictionary)
 const Contracts = preload("res://src/environment/environment_contracts.gd")
 const Evaluator = preload("res://src/environment/environment_evaluator.gd")
 const RenderBridge = preload("res://src/environment/environment_render_bridge.gd")
+const WaterProviders = preload("res://src/environment/water_provider_registry.gd")
 
 var _document: Dictionary = {}
 var _terrain_state
 var _procedural_runtime
 var _render_bridge
+var _water_registry = WaterProviders.new()
+var _water_root: Node3D
+var _water_signature := ""
 var _play_mode := false
 var _time_hours := 10.0
 var _explicit_weather_id := ""
@@ -27,6 +31,9 @@ func _init() -> void:
     name = "EnvironmentRuntime"
     _render_bridge = RenderBridge.new()
     add_child(_render_bridge)
+    _water_root = Node3D.new()
+    _water_root.name = "WaterProviders"
+    add_child(_water_root)
 
 func initialize(document: Dictionary, terrain_state = null, procedural_runtime = null, play_mode: bool = false) -> Dictionary:
     var errors: Array[String] = Contracts.validate_document(document)
@@ -43,6 +50,8 @@ func initialize(document: Dictionary, terrain_state = null, procedural_runtime =
     _transition_elapsed = 0.0
     _transition_duration = 0.0
     _last_warning = ""
+    _water_signature = ""
+    _clear_water_nodes()
     return _evaluate(Vector3.ZERO, 0.0, true)
 
 func refresh_authored(document: Dictionary) -> Dictionary:
@@ -51,6 +60,7 @@ func refresh_authored(document: Dictionary) -> Dictionary:
     _document = document.duplicate(true)
     if not _play_mode: _time_hours = float(_document.get("authored_state", {}).get("time_of_day_hours", 10.0))
     if not _explicit_weather_id.is_empty() and _get_profile(_explicit_weather_id).is_empty(): _explicit_weather_id = ""
+    _water_signature = ""
     return _evaluate(_last_focus, 0.0, true)
 
 func advance(delta: float, focus_position: Vector3 = Vector3.ZERO) -> Dictionary:
@@ -89,6 +99,12 @@ func is_rendering_enabled() -> bool: return _render_bridge.is_rendering_enabled(
 func get_evaluated_state() -> Dictionary: return _evaluated.duplicate(true)
 func get_wind_state() -> Dictionary: return _evaluated.get("wind", {}).duplicate(true)
 func get_water_state() -> Dictionary: return {"water_modifiers": _evaluated.get("water_modifiers", {}).duplicate(true), "water_hooks": _evaluated.get("water_hooks", []).duplicate(true)}
+func get_water_runtime_snapshot() -> Dictionary:
+    var providers: Array[Dictionary] = []
+    for child in _water_root.get_children():
+        if child is Node3D:
+            providers.append({"water_hook_id": str(child.get_meta("water_hook_id", "")), "provider_key": str(child.get_meta("water_provider_key", "")), "name": child.name})
+    return {"count": providers.size(), "providers": providers, "signature": _water_signature}
 func get_time_of_day() -> float: return _time_hours
 func get_active_weather_profile_id() -> String: return _active_profile_id
 func get_last_warning() -> String: return _last_warning
@@ -107,6 +123,8 @@ func clear() -> void:
     _transition_elapsed = 0.0
     _transition_duration = 0.0
     _last_warning = ""
+    _water_signature = ""
+    _clear_water_nodes()
     _render_bridge.set_rendering_enabled(false)
 
 func _evaluate(focus_position: Vector3, delta: float, force_immediate: bool, force_transition: bool = false) -> Dictionary:
@@ -144,10 +162,12 @@ func _evaluate(focus_position: Vector3, delta: float, force_immediate: bool, for
         _evaluated = target
     var render_result: Dictionary = _render_bridge.apply_state(_evaluated)
     if not render_result.get("ok", false): return render_result
+    var water_result: Dictionary = _reconcile_water(_evaluated.get("water_hooks", []), _evaluated.get("water_modifiers", {}))
+    if not water_result.get("ok", false): return water_result
     var wind_result: Dictionary = _push_wind()
     if not wind_result.get("ok", false): return wind_result
     environment_changed.emit(_evaluated.duplicate(true))
-    return {"ok": true, "errors": [], "state": _evaluated.duplicate(true), "warning": _last_warning}
+    return {"ok": true, "errors": [], "state": _evaluated.duplicate(true), "warning": _last_warning, "water_provider_count": int(water_result.get("count", 0))}
 
 func _resolve_profile_context(position_value: Vector3) -> Dictionary:
     _last_warning = ""
@@ -195,6 +215,43 @@ func _resolve_profile_context(position_value: Vector3) -> Dictionary:
         _last_warning = "Environment profile reference did not resolve; using authored default."
     if profile.is_empty(): return _failure("Environment authored default weather profile is missing.")
     return {"ok": true, "errors": [], "profile": profile, "biome_override": biome_override, "cell_id": cell_id, "biome_id": biome_id, "weather_source": source, "water_hooks": water_hooks}
+
+func _reconcile_water(hooks_value: Variant, modifiers_value: Variant) -> Dictionary:
+    var hooks: Array = hooks_value if hooks_value is Array else []
+    var modifiers: Dictionary = modifiers_value if modifiers_value is Dictionary else {}
+    var signature: String = JSON.stringify({"hooks": hooks, "modifiers": modifiers})
+    if signature == _water_signature: return {"ok": true, "errors": [], "count": _water_root.get_child_count(), "reused": true}
+    var staged: Array[Node3D] = []
+    for hook_value in hooks:
+        if not hook_value is Dictionary:
+            _free_nodes(staged)
+            return _failure("Environment water runtime received an invalid hook record.")
+        var result: Dictionary = _water_registry.instantiate_hook(hook_value)
+        if not result.get("ok", false):
+            _free_nodes(staged)
+            return result
+        var node := result.get("node") as Node3D
+        if node == null:
+            _free_nodes(staged)
+            return _failure("Water provider returned no Node3D instance.")
+        var modifier_result: Dictionary = _water_registry.apply_modifiers(node, modifiers)
+        if not modifier_result.get("ok", false):
+            node.free(); _free_nodes(staged); return modifier_result
+        staged.append(node)
+    _clear_water_nodes()
+    for node in staged: _water_root.add_child(node)
+    _water_signature = signature
+    return {"ok": true, "errors": [], "count": staged.size(), "reused": false}
+
+func _clear_water_nodes() -> void:
+    if _water_root == null: return
+    for child in _water_root.get_children():
+        _water_root.remove_child(child)
+        child.free()
+
+func _free_nodes(nodes: Array[Node3D]) -> void:
+    for node in nodes:
+        if node != null: node.free()
 
 func _push_wind() -> Dictionary:
     if _procedural_runtime == null or not _procedural_runtime.has_method("set_environment_wind"): return {"ok": true, "errors": [], "consumed": false}

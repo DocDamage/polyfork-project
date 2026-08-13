@@ -45,7 +45,7 @@ func _run() -> void:
     var storm_id := str(storm.get("weather_profile_id", ""))
     var config: Dictionary = service.configure_authored_state({"time_of_day_hours": 17.5, "default_weather_profile_id": storm_id, "fog_enabled": true, "wind_enabled": true})
     if not config.get("ok", false): _fail("Phase 11 capture could not configure authored environment state."); return
-    var water: Dictionary = service.create_water_hook("Ocean Surface", "environment.water.demo", {"wave_scale": 1.4, "reflection_strength": 0.8}, ["ocean", "demo"])
+    var water: Dictionary = service.create_water_hook("Ocean Surface", "basic_plane", {"size": 80.0, "height": 0.0, "roughness": 0.18}, ["ocean", "demo"])
     if not water.get("ok", false): _fail("Phase 11 capture could not author a representative water hook."); return
     var terrain = app.call("get_terrain_workspace").call("get_controller")
     var biome_ids: Array[String] = terrain.get_state().biome_ids()

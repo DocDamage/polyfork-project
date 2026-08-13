@@ -2,69 +2,95 @@
 
 ## Authoritative state
 - The real project lives on `master`; repository default branch `main` is obsolete starter code and must not be used for development.
-- Authoritative `master` before Phase 15 merge: `14085eb703b72d930f39121d3da18362d43cc77d`, the verified signed merge commit for PR #19.
-- Phases 0 through 14 are complete and merged.
-- Phase 15 — Multiplayer Foundations and Collaboration Roadmap is **implementation complete** on `dev/phase15-multiplayer-collaboration-milestone`.
-- Completion PR **#20 is OPEN / NOT MERGED**.
-- The branch head immediately before this pre-merge documentation refresh was `72ab4d275fc5dbfeb69b35ab1679fee8588616b6`, 60 commits ahead / 0 behind authoritative `master`, with merge base exactly authoritative `master`.
-- This documentation refresh intentionally moves the PR head again. The live PR head and all required checks must be fetched again immediately before merge; do not treat `72ab4d...` as the final merge SHA.
-- Phase 16 remains blocked until PR #20 is explicitly merged and the resulting authoritative `master` SHA is verified.
+- Authoritative `master`: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`, the verified signed GitHub merge commit for PR #20 / Phase 15.
+- Phases 0 through 15 are historically merged, but the Phase 16 source audit proved that several earlier milestone claims were not fully integrated in the actual product.
+- Phase 16 therefore became **Inherited Product Completeness and Integration Closure**, not release packaging.
+- Phase 16 milestone branch: `dev/phase16-milestone`.
+- Verified Phase 16 implementation/evidence head: `bfdef3e5cb1699268cc23be5c9f4c9b4a9631f93`.
 
-## Phases 0–14 — COMPLETE / MERGED
-The repository contains the completed application shell, world/save foundation, runtime placement editor, Asset Library, terrain/streaming, components/archetypes/prefabs/sockets, Instant Play/templates, Visual Scripting, foliage/procedural/splines, gameplay framework breadth, Environment, AI Creation, Export Pipeline, and Scale/Polish milestones. See phase-specific implementation documents and merged PR history for detailed evidence.
+Historical `.polyforkAPI` credential material remains exposed in Git history and must be rotated/revoked separately. Never print, restore, copy, or reuse it.
 
-Historical `.polyforkAPI` credential material remains exposed in Git history and must be rotated/revoked separately.
+## Phases 0–15 — HISTORICALLY MERGED
+The repository includes the application shell, world/save foundation, placement editor, Asset Library, terrain/streaming, components/archetypes/prefabs/sockets, Instant Play/templates, Visual Scripting, foliage/procedural/splines, gameplay framework, Environment, AI Creation, project export, scale/polish, and multiplayer foundations.
 
-## Phase 15 — Multiplayer Foundations and Collaboration Roadmap — COMPLETE / PR #20 OPEN
-Branch: `dev/phase15-multiplayer-collaboration-milestone`
+Phase 16 does **not** treat those merge labels as proof of implementation completeness. The Phase 16 audit inspected and tested actual source/runtime paths and repaired the verified gaps.
 
-Base: `14085eb703b72d930f39121d3da18362d43cc77d`
+## Phase 16 — Inherited Product Completeness and Integration Closure — BRANCH VERIFIED
 
-Verified implementation head before documentation closeout: `93b67eb5e50ffe5b2b686027d6a400ee9ccff1f0`
+### Why this milestone replaced release packaging
+A direct repository/source audit found concrete implementation gaps that canonical documentation had overstated or missed. Shipping/release packaging before closing those gaps would have packaged an incomplete creator.
 
-Pre-merge documentation refresh started from: `72ab4d275fc5dbfeb69b35ab1679fee8588616b6`
+### P16-T01 — Application creator routes and world creation — COMPLETE
+- My Worlds, Templates, and Asset Library Home actions open real creator surfaces.
+- My Worlds uses the real project repository/open path.
+- Templates uses the real template registry and New World selection path.
+- New World exposes and persists biome presets.
+- Initial terrain consumes the persisted biome selection.
 
-Completion PR: `#20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap`
+### P16-T02 — Universal Asset Library closure — COMPLETE
+- real application path uses a user-scoped universal managed catalog;
+- legacy per-project source registrations migrate to the shared catalog;
+- semantic local ranking added;
+- GLTF/GLB inspection deepened;
+- placeholder hash thumbnails replaced by actual mesh-derived depiction with explicit fallback state;
+- cross-project stable identity/source sharing is executable-tested.
 
-### Delivered
-- versioned runtime-only session/peer/network identity layered over authored stable IDs;
-- Offline/Host/Client roles and project-owned Godot 4.7.1 ENet transport;
-- compatibility handshake, peer lifecycle, reconnect/host-disconnect/repeated-session cleanup;
-- existing first/third-person controllers extended for local-input ownership and remote player replication;
-- host-authoritative health/damage/heal and door/interaction replication with client spoof/direct-authority rejection;
-- opt-in multiplayer template capability, bounded player limits, teams, spawn strategy/offsets, score/objective match state;
-- bounded Visual Scripting integration through the existing gameplay event/action route;
-- accessible adaptive canonical Multiplayer panel with Offline / Host & Play / Join & Play;
-- host-only runtime save authority;
-- optional export dependency closure so offline builds omit networking and multiplayer builds package required network dependencies/capability metadata;
-- export-aware standalone Host/Client startup and real concurrent Windows two-process verification;
-- Small/Medium/Large bounded multiplayer state coverage;
-- inherited Phase 6–14 regressions and corrected rendered full/compact evidence;
-- design-complete collaborative-authoring roadmap explicitly separating durable collaboration from transient gameplay replication.
+### P16-T03 — Runtime placement editor closure — COMPLETE
+- free-fly and orbit authoring cameras;
+- drag marquee selection;
+- visible transform-axis gizmo;
+- real mesh vertex snapping;
+- hit-normal orientation;
+- authored Phase 6 socket-transform snapping;
+- terrain/geometry-aware exact Drop-to-Ground;
+- inherited XYZ grid-snapping contract retained for ordinary movement.
 
-### Verified implementation gates
-- Phase 15 Contracts — `31635239746` — PASS — all eight suites
-- Phase 15 Inherited Regressions — `31634218734` — PASS
-- Godot Smoke — `31635582701` — PASS on final implementation head
-- Phase 15 Visual Evidence — `31634842058` — PASS; corrected full/compact evidence inspected
-- Phase 15 Windows Multiplayer Export — `31635582699` — PASS; offline package and real concurrent exported host/client
+### P16-T04 — Template/gameplay integration closure — COMPLETE
+- RPG consumes Phase 10 inventory/narrative runtime modules;
+- Survival consumes Phase 10 inventory/health modules;
+- Driving consumes the Phase 10 vehicle module;
+- implemented runtime is no longer mislabeled as planned future functionality.
 
-### Pre-documentation-refresh PR CI audit
-At head `72ab4d...`, several PR workflows initially failed before tests because GitHub runners could not download Godot 4.7.1. Failed jobs were rerun without product-code changes; the executable GitHub Actions workflows subsequently completed successfully, including Phase 15 Contracts, Phase 15 inherited regressions, Godot Smoke, Phase 6/7 historical contracts, and the other triggered regression workflows.
+### P16-T05 — Environment water integration closure — COMPLETE
+- real water-provider registry;
+- project-owned basic water plane provider;
+- imported PackedScene provider;
+- transactional provider replacement and explicit non-destructive failure.
 
-The PR aggregate still reported `mergeable_state: unstable` because third-party GitHub App suites from Cursor, Graphite App, and Netlify were stuck queued with zero check runs. These are tracked as external integration state, not Phase 15 product-test failures. See `docs/qa/PHASE15_QA.md`.
+### P16-T06 — Focused verification — VERIFIED
+- Phase 16 Contracts — `31653938946` — PASS;
+- Phase 16 Shared Asset Library — `31653938953` — PASS;
+- Godot Smoke — `31653938984` — PASS.
 
-### Scope guard retained
-Phase 15 does not claim production matchmaking, cloud relay/account infrastructure, NAT traversal service, voice chat, anti-cheat platform integration, rollback netcode, dedicated-server fleet orchestration, or real-time collaborative editor mutation.
+### P16-T07 — Inherited regression verification — VERIFIED
+- Phase 16 Inherited Regressions — `31653938981` — PASS.
+- The matrix executes discoverable Phase 4–15 suites, with Phase 4/5 independently covered by Godot Smoke where no standalone phase runner exists.
+- The stale Phase 11 metadata-only water fixture was promoted to the real `basic_plane` provider rather than weakening provider validation.
 
-## Pre-merge gate
-1. Push/commit this documentation refresh to the existing Phase 15 branch.
-2. Fetch the new PR #20 head SHA.
-3. Verify branch remains ahead of and not behind authoritative `master`, with merge base still `14085eb...` unless `master` intentionally advanced.
-4. Inspect newly triggered GitHub Actions checks; separate executed product failures from infrastructure/setup failures.
-5. Inspect external GitHub App suites separately and determine whether any are actually required.
-6. Do **not** merge without explicit user authorization.
-7. After authorized merge, verify the resulting signed/authoritative `master` SHA and only then open Phase 16.
+### P16-T08 — Windows/export evidence — VERIFIED
+- Phase 16 Windows Export — `31653938952` — PASS.
+- Verified Environment water-provider dependency closure and clean package launch.
+- Re-ran inherited Phase 14 Small/Medium/Large profiled Windows exports.
+- Rebuilt inherited Phase 15 multiplayer/offline packages and launched the exported host/client concurrently with ownership/input assertions.
 
-## Phase 16 — BLOCKED
-Do not begin Phase 16 until PR #20 is explicitly merged and the resulting authoritative `master` SHA is verified.
+### P16-T09 — Visual evidence — VERIFIED
+- Phase 16 Visual Evidence — `31653938948` — PASS.
+- Captures actual running-app full/compact evidence for repaired Home creator routes, universal Asset Library, biome selection, and workspace authoring/gizmo state.
+
+### P16-T10 — Documentation and completion PR — READY
+Canonical QA/implementation/handoff/backlog documentation now reflects the source-verified milestone. The only remaining milestone-boundary action is one completion PR from `dev/phase16-milestone` to authoritative `master`, followed by review of the PR-triggered checks.
+
+Do not merge the completion PR without explicit user authorization.
+
+## Deferred after Phase 16
+Creator-application release packaging/distribution remains a future milestone and is not authorized until the Phase 16 completion PR is merged and authoritative `master` is reconciled. Also still outside the current major-release scope: production matchmaking/relay/auth/voice/anti-cheat/rollback/dedicated-server fleets, production real-time collaborative mutation, cloud marketplace infrastructure, and arbitrary FBX repair.
+
+## Architectural invariants retained
+- existing `PlaySession` remains the disposable Build/Play boundary;
+- authored mutation remains command/transaction owned with Undo/Redo;
+- stable authored IDs remain authoritative;
+- external Asset Library sources remain read-only;
+- gameplay event/Visual Scripting boundaries are reused;
+- project export architecture is reused;
+- multiplayer remains opt-in and transient;
+- no fake parallel editor/runtime was introduced.

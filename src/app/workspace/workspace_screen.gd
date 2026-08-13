@@ -33,7 +33,6 @@ var _play_session
 var _asset_library
 var _asset_handoff = AssetPlacementHandoff.new()
 
-
 func _ready() -> void:
     _session = EditorSession.new()
     editor_viewport.get_world_root().add_child(_session)
@@ -57,12 +56,9 @@ func _ready() -> void:
     _apply_mode_label()
     _update_editor_controls()
 
-
 func bind_project(project, dirty_callback: Callable, project_directory: String = "") -> Dictionary:
     if _play_session != null and _play_session.is_active():
-        _mode = &"build"
-        _play_session.exit_play()
-        mode_switch.set_mode(&"build")
+        _mode = &"build"; _play_session.exit_play(); mode_switch.set_mode(&"build")
     var result: Dictionary = _session.bind_project(project, dirty_callback)
     if not result.get("ok", false): status_state.text = "Editor project bind failed"; return result
     var resolved_directory := project_directory
@@ -84,7 +80,6 @@ func bind_project(project, dirty_callback: Callable, project_directory: String =
     if not scan_warning.is_empty(): status_state.text = scan_warning
     return config_result
 
-
 func set_configuration(configuration: Dictionary) -> Dictionary:
     _configuration = configuration.duplicate(true)
     world_title.text = str(_configuration.get("title", "Untitled World"))
@@ -96,21 +91,17 @@ func set_configuration(configuration: Dictionary) -> Dictionary:
     _update_project_status(); _update_editor_controls()
     return {"ok": true, "errors": [], "entity_count": _session.get_bridge().entity_count()}
 
-
 func get_configuration() -> Dictionary: return _configuration.duplicate(true)
 func get_mode() -> StringName: return _mode
 func get_asset_library(): return _asset_library
 func get_asset_browser(): return bottom_dock.get_asset_browser()
 func get_play_session(): return _play_session
 
-
 func register_asset_source(path: String, display_name: String = "") -> Dictionary:
     if _mode != &"build": return _failure("Asset sources can only be changed in Build mode.")
     if _asset_library == null: return _failure("No Asset Library is bound to this workspace.")
-    var result: Dictionary = _asset_library.register_source(path, display_name)
-    bottom_dock.refresh_asset_browser()
+    var result: Dictionary = _asset_library.register_source(path, display_name); bottom_dock.refresh_asset_browser()
     return _report_result(result, "Asset source registered")
-
 
 func begin_asset_placement(asset_record: Dictionary) -> Dictionary:
     if _mode != &"build": return _failure("Asset placement is unavailable in Play mode.")
@@ -118,7 +109,6 @@ func begin_asset_placement(asset_record: Dictionary) -> Dictionary:
     var result: Dictionary = _asset_handoff.begin(_session, _asset_library, asset_record)
     if result.get("ok", false): bottom_dock.close_asset_drawer()
     return _report_result(result, "Asset placement ready")
-
 
 func show_inspector(context: Dictionary) -> void:
     if _mode == &"build": inspector_panel.show_context(context)
@@ -156,11 +146,11 @@ func redo_edit() -> Dictionary: return _failure("Redo is unavailable in Play mod
 func set_snap_enabled(mode: StringName, enabled: bool) -> Dictionary: return _session.set_snap_enabled(mode, enabled)
 func drop_selection_to_ground() -> Dictionary: return _report_result(_session.drop_selection_to_ground(), "Dropped to ground")
 func snap_selection_to_surface(position_value: Vector3, normal: Vector3) -> Dictionary: return _report_result(_session.snap_selection_to_surface(position_value, normal), "Surface snapped")
+func snap_selection_to_vertex(candidates: Array) -> Dictionary: return _report_result(_session.snap_selection_to_vertex(candidates), "Vertex snapped")
 func snap_selection_to_object(candidates: Array) -> Dictionary: return _report_result(_session.snap_selection_to_object(candidates), "Object snapped")
 func snap_selection_to_socket(candidates: Array) -> Dictionary: return _report_result(_session.snap_selection_to_socket(candidates), "Socket snapped")
 func is_placement_active() -> bool: return _session.is_placement_active()
 func get_history_counts() -> Dictionary: return _session.get_history_counts()
-
 
 func handle_cancel() -> bool:
     if _mode == &"play": _request_build_mode(); return true
@@ -170,11 +160,9 @@ func handle_cancel() -> bool:
     if is_inspector_open(): hide_inspector(); return true
     return false
 
-
 func focus_primary() -> void: mode_switch.focus_primary()
 func focus_bottom_dock() -> void:
     if _mode == &"build": bottom_dock.focus_primary()
-
 
 func _unhandled_input(event: InputEvent) -> void:
     if not visible or _mode != &"build": return
@@ -183,7 +171,6 @@ func _unhandled_input(event: InputEvent) -> void:
     if _session.is_placement_active() and _is_confirm_event(event): commit_placement(); get_viewport().set_input_as_handled(); return
     var direction: Vector2 = _direction_from_event(event)
     if direction != Vector2.ZERO and _apply_direction(direction): get_viewport().set_input_as_handled()
-
 
 func _apply_direction(direction: Vector2) -> bool:
     if _session.is_placement_active():
@@ -196,7 +183,6 @@ func _apply_direction(direction: Vector2) -> bool:
         &"scale": return nudge_selection(&"scale", Vector3.ONE * direction.y * 0.1).get("ok", false)
     return false
 
-
 func _on_selection_changed(entity_ids: Array, primary_entity_id: String, runtime_node: Node3D) -> void:
     if _mode != &"build": inspector_panel.hide(); _update_editor_controls(); return
     if primary_entity_id.is_empty() or runtime_node == null:
@@ -206,7 +192,6 @@ func _on_selection_changed(entity_ids: Array, primary_entity_id: String, runtime
     if not record.is_empty(): inspector_panel.show_context(_entity_inspector_context(record, entity_ids.size()))
     _update_editor_controls()
 
-
 func _on_project_changed(project_data: Dictionary) -> void:
     _configuration = project_data.duplicate(true); _update_project_status()
     var primary: String = _session.get_primary_entity_id()
@@ -215,10 +200,7 @@ func _on_project_changed(project_data: Dictionary) -> void:
         if not record.is_empty(): inspector_panel.show_context(_entity_inspector_context(record, _session.get_selected_ids().size()))
     _update_editor_controls()
 
-
-func _on_placement_changed(active: bool, _preview_record: Dictionary) -> void:
-    viewport_center.visible = not active and get_runtime_entity_count() == 0; _update_editor_controls()
-
+func _on_placement_changed(active: bool, _preview_record: Dictionary) -> void: viewport_center.visible = not active and get_runtime_entity_count() == 0; _update_editor_controls()
 
 func _on_viewport_node_pressed(node: Node, hit_position: Vector3, hit_normal: Vector3) -> void:
     if _mode != &"build": return
@@ -227,10 +209,8 @@ func _on_viewport_node_pressed(node: Node, hit_position: Vector3, hit_normal: Ve
     var result: Dictionary = _session.select_runtime_node(node, Input.is_key_pressed(KEY_SHIFT))
     if not result.get("ok", false): _session.clear_selection()
 
-
 func _on_asset_placement_requested(record: Dictionary) -> void: begin_asset_placement(record)
 func _on_asset_library_status(message: String, _is_error: bool) -> void: status_state.text = message
-
 
 func _on_placement_action(action: StringName, enabled: bool) -> void:
     if _mode != &"build": return
@@ -238,13 +218,12 @@ func _on_placement_action(action: StringName, enabled: bool) -> void:
         &"place":
             if _session.is_placement_active(): _session.cancel_placement()
             else: begin_proxy_placement()
-        &"grid", &"surface", &"object", &"socket": _session.set_snap_enabled(action, enabled)
+        &"grid", &"surface", &"vertex", &"object", &"socket": _session.set_snap_enabled(action, enabled)
         &"ground": drop_selection_to_ground()
         &"group": group_selection()
         &"undo": undo_edit()
         &"redo": redo_edit()
     _update_editor_controls()
-
 
 func _on_tool_wheel_selected(tool: StringName) -> void:
     if _mode != &"build": return
@@ -256,7 +235,6 @@ func _on_tool_wheel_selected(tool: StringName) -> void:
         _:
             _active_transform_tool = tool; _session.set_tool(tool); transform_toolbar.select_tool(tool); tool_selected.emit(tool)
 
-
 func _on_transform_tool_selected(tool: StringName) -> void:
     if _mode != &"build": return
     match tool:
@@ -265,10 +243,8 @@ func _on_transform_tool_selected(tool: StringName) -> void:
         _:
             _active_transform_tool = tool; _session.set_tool(tool); tool_selected.emit(tool)
 
-
 func _on_inspector_closed() -> void:
     if _mode == &"build" and not _session.get_selected_ids().is_empty(): _session.clear_selection()
-
 
 func _configure_focus_navigation() -> void:
     var build_button := find_child("BuildButton", true, false) as Button
@@ -279,78 +255,50 @@ func _configure_focus_navigation() -> void:
     build_button.focus_neighbor_left = build_button.get_path_to(home_button); build_button.focus_neighbor_bottom = build_button.get_path_to(assets_button)
     play_button.focus_neighbor_bottom = play_button.get_path_to(assets_button); assets_button.focus_neighbor_top = assets_button.get_path_to(build_button)
 
-
 func _entity_inspector_context(record: Dictionary, selected_count: int) -> Dictionary:
     var entity_id := str(record.get("entity_id", "")); var cell_id := str(record.get("cell_id", "")); var parent = record.get("parent_entity_id"); var parent_id := "" if parent == null else str(parent)
     var transform_data: Dictionary = record.get("transform", {}); var title := str(record.get("display_name", "Entity")); if selected_count > 1: title += "  •  %d selected" % selected_count
     var asset_value = record.get("asset_id"); var asset_id := "" if asset_value == null else str(asset_value)
     return {"source": "entity_selection", "title": title, "type": "World entity", "summary": "Stable entity • %s" % entity_id.substr(0, 8), "position": _format_vector(transform_data.get("position", [])), "rotation": _format_vector(transform_data.get("rotation_degrees", [])), "scale": _format_vector(transform_data.get("scale", [])), "advanced_summary": "Entity ID: %s\nCell ID: %s\nAsset ID: %s\nParent: %s" % [entity_id, cell_id, "None" if asset_id.is_empty() else asset_id, "None" if parent_id.is_empty() else parent_id]}
 
-
 func _report_result(value: Variant, success_text: String) -> Dictionary:
     var result: Dictionary = value; status_state.text = success_text if result.get("ok", false) else str(result.get("errors", ["Edit failed"])[0]); _update_editor_controls(); return result
-
-
 func _update_project_status() -> void:
     var project_id := str(_configuration.get("project_id", "")); status_state.text = "Saved project • %s" % project_id.substr(0, 8) if project_id.length() >= 8 else "Session preview"
-
-
 func _update_editor_controls() -> void:
     var counts: Dictionary = _session.get_history_counts(); placement_toolbar.set_history_state(int(counts.get("undo", 0)) > 0, int(counts.get("redo", 0)) > 0); placement_toolbar.set_group_enabled(_session.get_selected_ids().size() >= 2)
     var is_build := _mode == &"build"
     viewport_center.visible = is_build and not _session.is_placement_active() and get_runtime_entity_count() == 0
-    placement_toolbar.visible = is_build
-    transform_toolbar.visible = is_build
-    bottom_dock.visible = is_build
-    if not is_build:
-        tool_wheel.close_wheel()
-        bottom_dock.close_asset_drawer()
-        inspector_panel.hide()
-
+    placement_toolbar.visible = is_build; transform_toolbar.visible = is_build; bottom_dock.visible = is_build
+    if not is_build: tool_wheel.close_wheel(); bottom_dock.close_asset_drawer(); inspector_panel.hide()
 
 func _on_mode_changed(mode: StringName) -> void:
     if mode == _mode: return
     if mode == &"play":
         var result: Dictionary = _play_session.enter_play(_session)
-        if not result.get("ok", false):
-            status_state.text = "Play startup failed: %s" % str(result.get("errors", ["Unknown error"])[0])
-            mode_switch.set_mode(&"build")
-            return
-        _mode = &"play"
-        status_state.text = "Playing • %s" % str(result.get("controller", "none")).replace("_", " ").capitalize()
+        if not result.get("ok", false): status_state.text = "Play startup failed: %s" % str(result.get("errors", ["Unknown error"])[0]); mode_switch.set_mode(&"build"); return
+        _mode = &"play"; status_state.text = "Playing • %s" % str(result.get("controller", "none")).replace("_", " ").capitalize()
     else:
-        _mode = &"build"
-        var exit_result: Dictionary = _play_session.exit_play()
+        _mode = &"build"; var exit_result: Dictionary = _play_session.exit_play()
         if not exit_result.get("ok", false): status_state.text = "Play cleanup failed: %s" % str(exit_result.get("errors", []))
         else: _update_project_status()
     _apply_mode_label(); _update_editor_controls(); mode_changed.emit(_mode)
 
-
 func _request_build_mode() -> void:
     if _mode == &"play": mode_switch.set_mode(&"build")
-
-
 func _on_tool_selected(tool: StringName) -> void:
     if _mode == &"build": tool_selected.emit(tool)
 func _apply_mode_label() -> void: mode_badge.text = "%s MODE" % str(_mode).to_upper(); status_mode.text = str(_mode).capitalize()
 func _request_home() -> void:
     if _mode == &"play": _request_build_mode()
     home_requested.emit()
-
-
 func _format_vector(value: Variant) -> String:
     if not value is Array or value.size() != 3: return "—"
     return "%.2f, %.2f, %.2f" % [float(value[0]), float(value[1]), float(value[2])]
-
-
 func _is_tool_wheel_event(event: InputEvent) -> bool:
     return (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_Q) or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_LEFT_SHOULDER)
-
-
 func _is_confirm_event(event: InputEvent) -> bool:
     return (event is InputEventKey and event.pressed and not event.echo and [KEY_ENTER, KEY_KP_ENTER].has(event.keycode)) or (event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_A)
-
-
 func _direction_from_event(event: InputEvent) -> Vector2:
     if event is InputEventKey and event.pressed and not event.echo:
         match event.keycode:
@@ -365,6 +313,4 @@ func _direction_from_event(event: InputEvent) -> Vector2:
             JOY_BUTTON_DPAD_UP: return Vector2.UP
             JOY_BUTTON_DPAD_DOWN: return Vector2.DOWN
     return Vector2.ZERO
-
-
 func _failure(message: String) -> Dictionary: return {"ok": false, "errors": [message]}

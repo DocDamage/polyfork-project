@@ -30,7 +30,7 @@ static func run_checks() -> Array[String]:
     windy["fog_density"] = 0.01
     document["weather_profiles"].append(windy)
     var water_id := StableId.generate()
-    document["water_hooks"].append({"water_hook_id": water_id, "display_name": "Ocean Provider", "provider_key": "test.water", "settings": {"wave_scale": 1.5}, "tags": ["ocean"]})
+    document["water_hooks"].append({"water_hook_id": water_id, "display_name": "Ocean Provider", "provider_key": "basic_plane", "settings": {"size": 80.0, "height": 0.0, "roughness": 0.18}, "tags": ["ocean"]})
     document["biome_overrides"].append({"override_id": StableId.generate(), "biome_id": biome_id, "weather_profile_id": windy_id, "time_offset_hours": 1.0, "wind_multiplier": 2.0, "fog_density_multiplier": 0.5, "water_hook_ids": [water_id]})
     var validation := EnvironmentContracts.validate_document(document)
     if not validation.is_empty(): return ["Coupled environment document must validate: %s" % str(validation)]
@@ -46,6 +46,8 @@ static func run_checks() -> Array[String]:
     if float(procedural.get_environment_wind().get("speed_mps", 0.0)) != 24.0: errors.append("Phase 9 procedural runtime must consume Phase 11 wind without mutating authored foliage.")
     var water := runtime.get_water_state()
     if water.get("water_hooks", []).size() != 1: errors.append("Biome environment coupling must expose stable water integration hooks.")
+    var water_snapshot := runtime.get_water_runtime_snapshot()
+    if int(water_snapshot.get("count", 0)) != 1: errors.append("Biome environment coupling must materialize its supported water provider.")
 
     var fallback_document := document.duplicate(true)
     fallback_document["biome_overrides"] = []
