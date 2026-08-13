@@ -127,18 +127,53 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $package = Join-Path $env:GITHUB_WORKSPACE 'artifacts\phase15\windows\Phase15_Multiplayer'
           $exe = Join-Path $package 'Phase15_Multiplayer.exe'
-          if (-not (Test-Path $exe)) { throw 'Phase 15 multiplayer export executable missing.' }
+          if (-not (Test-Path $exe)) { throw "Multiplayer export executable missing: $exe" }
           $port = 34917
-          $env:POLYFORK_MULTIPLAYER_ROLE='host'; $env:POLYFORK_MULTIPLAYER_PORT="$port"; $env:POLYFORK_MULTIPLAYER_PLAYER='Host'; $env:POLYFORK_MULTIPLAYER_EXPECTED_PEERS='2'; $env:POLYFORK_MULTIPLAYER_SMOKE='1'
-          $hostProcess = Start-Process -FilePath $exe -ArgumentList '--headless' -RedirectStandardOutput phase17-host.log -RedirectStandardError phase17-host.err -PassThru
+          $hostCmd = Join-Path $env:RUNNER_TEMP 'phase17-host.cmd'
+          $clientCmd = Join-Path $env:RUNNER_TEMP 'phase17-client.cmd'
+          @"
+          @echo off
+          set POLYFORK_MULTIPLAYER_ROLE=host
+          set POLYFORK_MULTIPLAYER_PORT=$port
+          set POLYFORK_MULTIPLAYER_PLAYER=Host
+          set POLYFORK_MULTIPLAYER_EXPECTED_PEERS=2
+          set POLYFORK_MULTIPLAYER_SMOKE=1
+          "$exe" --headless > "$env:GITHUB_WORKSPACE\phase17-host.log" 2>&1
+          exit /b %ERRORLEVEL%
+          "@ | Set-Content -Path $hostCmd -Encoding ASCII
+          @"
+          @echo off
+          set POLYFORK_MULTIPLAYER_ROLE=client
+          set POLYFORK_MULTIPLAYER_ADDRESS=127.0.0.1
+          set POLYFORK_MULTIPLAYER_PORT=$port
+          set POLYFORK_MULTIPLAYER_PLAYER=Client
+          set POLYFORK_MULTIPLAYER_EXPECTED_PEERS=2
+          set POLYFORK_MULTIPLAYER_SMOKE=1
+          "$exe" --headless > "$env:GITHUB_WORKSPACE\phase17-client.log" 2>&1
+          exit /b %ERRORLEVEL%
+          "@ | Set-Content -Path $clientCmd -Encoding ASCII
+          $hostProcess = Start-Process -FilePath cmd.exe -ArgumentList '/c', $hostCmd -PassThru -WindowStyle Hidden
           Start-Sleep -Seconds 1
-          $env:POLYFORK_MULTIPLAYER_ROLE='client'; $env:POLYFORK_MULTIPLAYER_ADDRESS='127.0.0.1'; $env:POLYFORK_MULTIPLAYER_PLAYER='Client'
-          $clientProcess = Start-Process -FilePath $exe -ArgumentList '--headless' -RedirectStandardOutput phase17-client.log -RedirectStandardError phase17-client.err -PassThru
-          if (-not $hostProcess.WaitForExit(45000)) { Stop-Process $hostProcess -Force; throw 'Exported host timed out.' }
-          if (-not $clientProcess.WaitForExit(45000)) { Stop-Process $clientProcess -Force; throw 'Exported client timed out.' }
-          if ($hostProcess.ExitCode -ne 0 -or $clientProcess.ExitCode -ne 0) { throw 'Exported multiplayer process failed.' }
-          if ((Get-Content phase17-host.log -Raw) -notmatch 'PASS: Phase 15 standalone multiplayer host connected') { throw 'Host completion marker missing.' }
-          if ((Get-Content phase17-client.log -Raw) -notmatch 'PASS: Phase 15 standalone multiplayer client connected') { throw 'Client completion marker missing.' }
+          $clientProcess = Start-Process -FilePath cmd.exe -ArgumentList '/c', $clientCmd -PassThru -WindowStyle Hidden
+          $deadline = (Get-Date).AddSeconds(45)
+          while ((!$hostProcess.HasExited -or !$clientProcess.HasExited) -and (Get-Date) -lt $deadline) {
+            Start-Sleep -Milliseconds 250
+            $hostProcess.Refresh()
+            $clientProcess.Refresh()
+          }
+          if (!$hostProcess.HasExited) { Stop-Process -Id $hostProcess.Id -Force; throw 'Exported host timed out.' }
+          if (!$clientProcess.HasExited) { Stop-Process -Id $clientProcess.Id -Force; throw 'Exported client timed out.' }
+          if ($hostProcess.ExitCode -ne 0) { throw "Exported host exited $($hostProcess.ExitCode)." }
+          if ($clientProcess.ExitCode -ne 0) { throw "Exported client exited $($clientProcess.ExitCode)." }
+          $hostLog = Get-Content phase17-host.log -Raw
+          $clientLog = Get-Content phase17-client.log -Raw
+          foreach ($entry in @(@('host',$hostLog), @('client',$clientLog))) {
+            $name = $entry[0]
+            $text = $entry[1]
+            if ($text -notmatch "PASS: Phase 15 standalone multiplayer $name connected") { throw "$name multiplayer completion marker missing." }
+            if ($text -notmatch 'local_input=true remote_input=false keyboard_mouse=true gamepad=true') { throw "$name input ownership marker missing." }
+            if ($text -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw "$name emitted strict Godot errors." }
+          }
       - name: Build deterministic PlayWorld Studio release package
         shell: pwsh
         run: |
@@ -151,6 +186,20 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "PHASE17_PACKAGE=$pkg" | Out-File -FilePath $env:GITHUB_ENV -Append
           "PHASE17_CREATOR=$(Join-Path $pkg 'PlayWorld Studio.exe')" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Build independent replacement package and prove deterministic output
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $epoch = [int64](git show -s --format=%ct $env:GITHUB_SHA)
+          python tools/release/build_creator_release.py --godot "$env:GODOT_EDITOR_EXE" --template-root "$env:GODOT_TEMPLATE_ROOT" --output-root artifacts/phase17/rebuild --source-commit "$env:GITHUB_SHA" --source-date-epoch $epoch 2>&1 | Tee-Object phase17-rebuild.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $replacement = Join-Path $env:GITHUB_WORKSPACE 'artifacts\phase17\rebuild\PlayWorld-Studio-0.1.0-rc.1-Windows-x64'
+          python tools/release/validate_creator_package.py "$replacement" 2>&1 | Tee-Object phase17-rebuild-validation.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $firstZip = Join-Path $env:GITHUB_WORKSPACE 'artifacts\phase17\release\PlayWorld-Studio-0.1.0-rc.1-Windows-x64.zip'
+          $secondZip = Join-Path $env:GITHUB_WORKSPACE 'artifacts\phase17\rebuild\PlayWorld-Studio-0.1.0-rc.1-Windows-x64.zip'
+          if ((Get-FileHash $firstZip -Algorithm SHA256).Hash -ne (Get-FileHash $secondZip -Algorithm SHA256).Hash) { throw 'Identical release inputs did not produce a deterministic creator ZIP.' }
+          "PHASE17_UPGRADE_PACKAGE=$replacement" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Run packaged creator clean first run and creator-to-game export
         shell: pwsh
         run: |
@@ -165,20 +214,18 @@ jobs:
           if ($text -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Packaged first-run strict error gate failed.' }
           if ($text -notmatch 'PASS: Phase 17 packaged creator first-run authoring and creator-to-game export completed.') { throw 'Packaged first-run completion marker missing.' }
           "PHASE17_APPDATA=$cleanAppData" | Out-File -FilePath $env:GITHUB_ENV -Append
-      - name: Relaunch, reopen, relocate upgrade, and read-only-style install
+      - name: Relaunch, reopen, independent-build upgrade, and read-only-style install
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $env:APPDATA = $env:PHASE17_APPDATA
           & "$env:PHASE17_CREATOR" --headless -- --phase17-release-smoke=reopen 2>&1 | Tee-Object phase17-packaged-reopen.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $upgradeRoot = Join-Path $env:RUNNER_TEMP 'phase17-upgrade-package'
-          Copy-Item $env:PHASE17_PACKAGE $upgradeRoot -Recurse -Force
-          $upgradeExe = Join-Path $upgradeRoot 'PlayWorld Studio.exe'
+          $upgradeExe = Join-Path $env:PHASE17_UPGRADE_PACKAGE 'PlayWorld Studio.exe'
           & $upgradeExe --headless -- --phase17-release-smoke=reopen 2>&1 | Tee-Object phase17-packaged-upgrade.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $readonlyRoot = Join-Path $env:RUNNER_TEMP 'phase17-readonly-package'
-          Copy-Item $env:PHASE17_PACKAGE $readonlyRoot -Recurse -Force
+          Copy-Item $env:PHASE17_UPGRADE_PACKAGE $readonlyRoot -Recurse -Force
           cmd /c "attrib +R /S /D `"$readonlyRoot\*`"" | Out-Null
           $readonlyExe = Join-Path $readonlyRoot 'PlayWorld Studio.exe'
           & $readonlyExe --headless -- --phase17-release-smoke=readonly 2>&1 | Tee-Object phase17-packaged-readonly.log
@@ -200,6 +247,21 @@ jobs:
           }
           New-Item -ItemType Directory -Force -Path artifacts\phase17\visual | Out-Null
           Copy-Item "$visualRoot\*.png" artifacts\phase17\visual\ -Force
+      - name: Run packaged creator UI and controller acceptance
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:APPDATA = $env:PHASE17_APPDATA
+          & "$env:PHASE17_CREATOR" --rendering-method gl_compatibility --audio-driver Dummy --disable-vsync -- --phase17-acceptance 2>&1 | Tee-Object phase17-packaged-acceptance.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $text = Get-Content phase17-packaged-acceptance.log -Raw
+          if ($text -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Packaged UI/controller acceptance strict error gate failed.' }
+          if ($text -notmatch 'PASS: Phase 17 packaged creator UI, controller, accessibility, and major-screen acceptance completed.') { throw 'Packaged UI/controller acceptance completion marker missing.' }
+          $acceptRoot = Join-Path $env:APPDATA 'Godot\app_userdata\PlayWorld Studio\phase17-acceptance'
+          foreach ($name in @('01-home-1600x900.png','02-home-1280x720.png','03-home-compact.png','04-asset-library-1280x720.png','05-new-world-1280x720.png','06-workspace-1280x720.png','07-instant-play-1280x720.png','08-export-1280x720.png')) {
+            if (-not (Test-Path (Join-Path $acceptRoot $name))) { throw "Missing packaged acceptance evidence: $name" }
+          }
+          Copy-Item "$acceptRoot\*.png" artifacts\phase17\visual\ -Force
       - name: Upload bounded release candidate and evidence
         if: always()
         uses: actions/upload-artifact@v4
