@@ -3,13 +3,13 @@ extends RefCounted
 
 const PRODUCT_NAME := "PlayWorld Studio"
 const COMPANY_NAME := "PlayWorld Studio"
-const VERSION := "0.1.0-rc.1"
-const CHANNEL := "rc"
+const VERSION := "0.1.0"
+const CHANNEL := "stable"
 const PACKAGE_PREFIX := "PlayWorld-Studio"
 const PLATFORM := "Windows"
 const ARCHITECTURE := "x86_64"
 const GODOT_VERSION := "4.7.1"
-const BASE_COMMIT := "37d311b90f0684668a49e7f3b8ab197e6abcbe3a"
+const BASE_COMMIT := "91b8b9c39fddda4b80ad5c6101d563245ef3e2d0"
 
 static func version() -> String:
     return str(ProjectSettings.get_setting("application/config/version", VERSION))

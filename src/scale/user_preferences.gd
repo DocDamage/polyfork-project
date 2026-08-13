@@ -26,7 +26,10 @@ func load_preferences() -> Dictionary:
         return {"ok": true, "errors": [], "settings": result}
     var parsed: Dictionary = _parse_preferences_text(FileAccess.get_file_as_string(_path))
     if not parsed.get("ok", false):
-        return {"ok": false, "errors": ["Could not load user scale/polish preferences."], "settings": result}
+        var backup := _preserve_malformed_file()
+        var errors: Array[String] = ["Could not load user scale/polish preferences. Safe defaults are active."]
+        if not backup.is_empty(): errors.append("Malformed preferences were preserved at %s" % backup)
+        return {"ok": false, "errors": errors, "settings": result, "recovery_backup": backup}
     var values: Dictionary = parsed.get("values", {})
     for key in result.keys():
         if values.has(key): result[key] = values[key]
@@ -35,12 +38,37 @@ func load_preferences() -> Dictionary:
 
 func save_preferences(settings: Dictionary) -> Dictionary:
     var normalized: Dictionary = normalize(settings)
+    var absolute := ProjectSettings.globalize_path(_path)
+    var parent := absolute.get_base_dir()
+    var make_error := DirAccess.make_dir_recursive_absolute(parent)
+    if make_error not in [OK, ERR_ALREADY_EXISTS]:
+        return {"ok": false, "errors": ["Could not create the user preferences directory."], "settings": normalized}
+    var temp_path := "%s.phase18-tmp" % _path
     var config := ConfigFile.new()
     for key in normalized.keys(): config.set_value("preferences", key, normalized[key])
-    var save_error: Error = config.save(_path)
+    var save_error: Error = config.save(temp_path)
     if save_error != OK:
-        return {"ok": false, "errors": ["Could not save user scale/polish preferences."], "settings": normalized}
+        return {"ok": false, "errors": ["Could not stage user scale/polish preferences."], "settings": normalized}
+    var temp_absolute := ProjectSettings.globalize_path(temp_path)
+    if FileAccess.file_exists(_path):
+        var previous := "%s.previous" % _path
+        _copy_file(_path, previous)
+    var rename_error := DirAccess.rename_absolute(temp_absolute, absolute)
+    if rename_error != OK:
+        DirAccess.remove_absolute(temp_absolute)
+        return {"ok": false, "errors": ["Could not atomically replace user scale/polish preferences."], "settings": normalized}
     return {"ok": true, "errors": [], "settings": normalized}
+
+func _preserve_malformed_file() -> String:
+    if not FileAccess.file_exists(_path): return ""
+    var backup := "%s.recovery-%d.bak" % [_path, Time.get_unix_time_from_system()]
+    return backup if _copy_file(_path, backup) else ""
+
+func _copy_file(source: String, target: String) -> bool:
+    var data := FileAccess.get_file_as_bytes(source)
+    var handle := FileAccess.open(target, FileAccess.WRITE)
+    if handle == null: return false
+    handle.store_buffer(data); handle.close(); return true
 
 static func normalize(settings: Dictionary) -> Dictionary:
     var result: Dictionary = defaults()
@@ -58,23 +86,17 @@ static func _parse_preferences_text(text: String) -> Dictionary:
     var in_preferences := false
     for raw_line in text.split("\n"):
         var line := str(raw_line).strip_edges()
-        if line.is_empty() or line.begins_with(";") or line.begins_with("#"):
-            continue
+        if line.is_empty() or line.begins_with(";") or line.begins_with("#"): continue
         if line.begins_with("["):
-            if not line.ends_with("]") or line.length() < 3:
-                return {"ok": false, "values": {}}
-            in_preferences = line == "[preferences]"
-            continue
-        if not in_preferences or not line.contains("="):
-            return {"ok": false, "values": {}}
+            if not line.ends_with("]") or line.length() < 3: return {"ok": false, "values": {}}
+            in_preferences = line == "[preferences]"; continue
+        if not in_preferences or not line.contains("="): return {"ok": false, "values": {}}
         var separator := line.find("=")
         var key := line.substr(0, separator).strip_edges()
         var value_text := line.substr(separator + 1).strip_edges()
-        if key.is_empty() or value_text.is_empty():
-            return {"ok": false, "values": {}}
+        if key.is_empty() or value_text.is_empty(): return {"ok": false, "values": {}}
         var parsed_value: Variant = _parse_scalar(value_text)
-        if parsed_value == null:
-            return {"ok": false, "values": {}}
+        if parsed_value == null: return {"ok": false, "values": {}}
         values[key] = parsed_value
     return {"ok": true, "values": values}
 
@@ -94,6 +116,5 @@ static func _nearest_scale(value: float) -> float:
     for candidate in UI_SCALES:
         var distance: float = absf(value - float(candidate))
         if distance < best_distance:
-            selected = float(candidate)
-            best_distance = distance
+            selected = float(candidate); best_distance = distance
     return selected

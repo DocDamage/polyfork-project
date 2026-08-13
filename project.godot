@@ -1,11 +1,11 @@
 ; Engine configuration file.
-; PlayWorld Studio release candidate configuration.
+; PlayWorld Studio stable release configuration.
 config_version=5
 
 [application]
 config/name="PlayWorld Studio"
 config/description="Create, author, play, and export interactive 3D worlds."
-config/version="0.1.0-rc.1"
+config/version="0.1.0"
 config/icon="res://assets/branding/playworld-studio-icon.svg"
 run/main_scene="res://src/main/Main.tscn"
 
@@ -15,8 +15,10 @@ ScalePolish="*res://src/scale/scale_polish_service.gd"
 ExportWorkspace="*res://src/app/workspace/export_workspace_layer.gd"
 NetworkRuntime="*res://src/network/network_runtime_service.gd"
 MultiplayerWorkspace="*res://src/app/workspace/multiplayer_workspace_layer.gd"
+ReleaseMaintenance="*res://src/release/release_maintenance.gd"
 ReleaseVerification="*res://src/release/release_verification.gd"
 ReleaseAcceptance="*res://src/release/release_acceptance.gd"
+StableReleaseVerification="*res://src/release/stable_release_verification.gd"
 
 [display]
 window/size/viewport_width=1600
@@ -37,8 +39,8 @@ ui_accept={
 
 [playworld]
 product/company_name="PlayWorld Studio"
-release/channel="rc"
-release/source_commit="37d311b90f0684668a49e7f3b8ab197e6abcbe3a"
+release/channel="stable"
+release/source_commit="91b8b9c39fddda4b80ad5c6101d563245ef3e2d0"
 release/godot_version="4.7.1"
 release/architecture="x86_64"
 release/package_prefix="PlayWorld-Studio"
