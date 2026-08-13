@@ -19,12 +19,19 @@ func _run() -> void:
     for excluded in ["tests/*", ".github/*", "downloads/*", "tools/*"]:
         if not preset.contains(excluded): errors.append("Creator export preset does not exclude development material: %s" % excluded)
 
-    var original := str(ProjectSettings.get_setting("playworld/export/godot_executable", ""))
+    var original_tool := str(ProjectSettings.get_setting("playworld/export/godot_executable", ""))
     ProjectSettings.set_setting("playworld/export/godot_executable", "Z:/phase17-intentionally-missing/godot.exe")
     var missing_tool: Dictionary = ExportPipeline._resolve_export_tooling()
-    ProjectSettings.set_setting("playworld/export/godot_executable", original)
-    if missing_tool.get("ok", false) or not str(missing_tool.get("errors", [])).contains("missing"):
+    ProjectSettings.set_setting("playworld/export/godot_executable", original_tool)
+    if missing_tool.get("ok", false) or not str(missing_tool.get("errors", [])).to_lower().contains("missing"):
         errors.append("Missing configured export tooling does not fail explicitly.")
+
+    var original_appdata := OS.get_environment("APPDATA")
+    OS.set_environment("APPDATA", ProjectSettings.globalize_path("user://phase17-empty-appdata-%d" % Time.get_ticks_usec()))
+    var missing_template: Dictionary = ExportPipeline._ensure_windows_export_templates()
+    OS.set_environment("APPDATA", original_appdata)
+    if missing_template.get("ok", false) or not str(missing_template.get("errors", [])).to_lower().contains("missing"):
+        errors.append("Missing Windows export templates do not fail explicitly.")
 
     var malformed := "user://phase17-contract-malformed.cfg"
     var handle := FileAccess.open(malformed, FileAccess.WRITE)
