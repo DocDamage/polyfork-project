@@ -8,17 +8,20 @@ const CreatorOverlay = preload("res://src/app/screens/home/home_creator_overlay.
 const ProjectRepository = preload("res://src/world/project_repository.gd")
 const TemplateRegistry = preload("res://src/templates/template_registry.gd")
 const AssetLibrary = preload("res://src/assets/asset_library_service.gd")
+const ProductIdentity = preload("res://src/release/product_identity.gd")
 const ROUTE_NEW_WORLD: StringName = &"new_world"
 const ROUTE_CONTINUE: StringName = &"continue"
 const ROUTE_MY_WORLDS: StringName = &"my_worlds"
 const ROUTE_TEMPLATES: StringName = &"templates"
 const ROUTE_ASSET_LIBRARY: StringName = &"asset_library"
+const ROUTE_ABOUT: StringName = &"about"
 
 @onready var create_button: Button = %CreateButton
 @onready var continue_button: Button = %ContinueButton
 @onready var worlds_button: Button = %WorldsButton
 @onready var templates_button: Button = %TemplatesButton
 @onready var asset_library_button: Button = %AssetLibraryButton
+@onready var about_button: Button = %AboutButton
 @onready var settings_button: Button = %SettingsButton
 @onready var hub: GridContainer = %Hub
 
@@ -35,6 +38,7 @@ func _ready() -> void:
     worlds_button.pressed.connect(_request_route.bind(ROUTE_MY_WORLDS))
     templates_button.pressed.connect(_request_route.bind(ROUTE_TEMPLATES))
     asset_library_button.pressed.connect(_request_route.bind(ROUTE_ASSET_LIBRARY))
+    about_button.pressed.connect(_request_route.bind(ROUTE_ABOUT))
     settings_button.pressed.connect(_open_settings)
     _settings_screen = SettingsScene.instantiate()
     add_child(_settings_screen)
@@ -69,8 +73,11 @@ func focus_primary() -> void:
     else: create_button.grab_focus()
 
 func _configure_focus_navigation() -> void:
+    about_button.focus_neighbor_right = about_button.get_path_to(settings_button)
+    about_button.focus_neighbor_bottom = about_button.get_path_to(create_button)
+    settings_button.focus_neighbor_left = settings_button.get_path_to(about_button)
     settings_button.focus_neighbor_bottom = settings_button.get_path_to(create_button)
-    create_button.focus_neighbor_top = create_button.get_path_to(settings_button)
+    create_button.focus_neighbor_top = create_button.get_path_to(about_button)
     create_button.focus_neighbor_right = create_button.get_path_to(continue_button)
     create_button.focus_neighbor_bottom = create_button.get_path_to(worlds_button)
     continue_button.focus_neighbor_left = continue_button.get_path_to(create_button)
@@ -82,7 +89,7 @@ func _configure_focus_navigation() -> void:
     templates_button.focus_neighbor_left = templates_button.get_path_to(worlds_button)
     templates_button.focus_neighbor_bottom = templates_button.get_path_to(asset_library_button)
     asset_library_button.focus_neighbor_top = asset_library_button.get_path_to(worlds_button)
-    _set_tab_order([settings_button, create_button, continue_button, worlds_button, templates_button, asset_library_button])
+    _set_tab_order([about_button, settings_button, create_button, continue_button, worlds_button, templates_button, asset_library_button])
 
 func _set_tab_order(controls: Array) -> void:
     for index in range(controls.size() - 1):
@@ -113,7 +120,15 @@ func _request_route(route: StringName) -> void:
         ROUTE_MY_WORLDS: _open_worlds_overlay()
         ROUTE_TEMPLATES: _open_templates_overlay()
         ROUTE_ASSET_LIBRARY: _open_asset_library_overlay()
+        ROUTE_ABOUT: _open_about_overlay()
         _: route_requested.emit(route)
+
+func _open_about_overlay() -> void:
+    _overlay_mode = ROUTE_ABOUT
+    var identity: Dictionary = ProductIdentity.summary()
+    _creator_overlay.call("present", "About PlayWorld Studio", "Release candidate %s  •  Windows x64" % str(identity.get("version", "unknown")), [], {
+        "status": "Godot %s  •  source %s" % [str(identity.get("godot_version", "")), ProductIdentity.short_commit()],
+    })
 
 func _open_worlds_overlay() -> void:
     _overlay_mode = ROUTE_MY_WORLDS
