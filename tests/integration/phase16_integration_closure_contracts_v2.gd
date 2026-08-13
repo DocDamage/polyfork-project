@@ -73,7 +73,7 @@ static func _check_editor_integration() -> Array[String]:
     var errors: Array[String] = []
     var snapping = SnappingService.new()
     var grid_result: Vector3 = snapping.snap_position(Vector3(1.2, 3.37, 4.7))
-    if not is_equal_approx(grid_result.y, 3.37): errors.append("Grid snapping altered vertical ground-contact height.")
+    if grid_result != Vector3(1.0, 3.0, 5.0): errors.append("Grid snapping no longer preserves the inherited deterministic XYZ contract.")
     var vertex: Dictionary = snapping.snap_to_vertex(Vector3(1.1, 2.0, 3.0), [{"id": "v", "position": Vector3(1.0, 2.0, 3.0)}])
     if not vertex.get("snapped", false): errors.append("Vertex snapping did not resolve a nearby real vertex.")
     var normal := Vector3(0.0, 0.70710678, 0.70710678).normalized()
