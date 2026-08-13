@@ -35,4 +35,4 @@ The portable ZIP is required to rebuild byte-for-byte for identical inputs. The 
 
 ## Security
 
-Release automation scans packaged material and bounded support diagnostics for forbidden development/private material and credential-like patterns. Historical `.polyforkAPI` material in Git history remains an external rotation/revocation concern and is not included in the release package.
+Release automation scans packaged material and bounded support diagnostics for forbidden development/private material and credential-like patterns. Historical credential artifacts retained only in Git history remain an external rotation/revocation concern and are not included in the release package.
