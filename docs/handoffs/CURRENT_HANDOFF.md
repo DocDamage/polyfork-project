@@ -1,4 +1,4 @@
-# POLYFORK PROJECT — PHASE 16 TRANSITION HANDOFF
+# POLYFORK PROJECT — PHASE 16 COMPLETION PR HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
@@ -11,97 +11,70 @@ Current authoritative `master`:
 
 `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
 
-This is the verified signed GitHub merge commit for:
-
-**PR #20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap**
-
-PR #20 is **MERGED**.
-
-Merged at:
-
-`2026-08-12T21:16:19Z`
-
-Phase 15 branch head included in the merge:
-
-`5f981a75f7c77ae1d144d1abb30831c57f7abfba`
+This is the verified signed GitHub merge commit for **PR #20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap**.
 
 The repository default branch `main` remains obsolete starter code. **Never develop from `main`.**
 
-## MERGED PROJECT STATE
-Phases **0 through 15 are complete and merged** into authoritative `master`.
+## IMPORTANT COMPLETENESS CORRECTION
+Phases 0 through 15 are historically merged, but the Phase 16 direct source/runtime audit proved that several earlier milestone claims were not fully integrated in the actual product. Do not use merge labels or documentation alone as proof of functional completeness.
 
-## PHASE 15 — COMPLETE / MERGED
-Phase 15 delivered the multiplayer foundation while preserving the existing `PlaySession` and gameplay architecture, plus a durable collaborative-authoring roadmap that explicitly keeps gameplay replication separate from collaborative project editing.
+Phase 16 was therefore redirected from release packaging to **Inherited Product Completeness and Integration Closure**.
 
-### Delivered
-- runtime-only stable network/session identity and versioned compatibility handshake;
-- Godot 4.7.1 ENet Offline/Host/Client lifecycle;
-- local/remote player ownership and movement/presence replication through existing controllers;
-- host-authoritative generic gameplay replication and client-authority rejection;
-- multiplayer template capability, bounded player limits, teams, spawn offsets/strategies, score/objective state;
-- bounded Visual Scripting multiplayer actions/events through the existing gameplay event bus;
-- adaptive accessible Offline / Host & Play / Join & Play workspace UX;
-- host-only runtime save authority and reconnect/host-disconnect cleanup;
-- optional multiplayer standalone dependency closure while offline exports remain free of network runtime;
-- real concurrent exported Windows host/client verification;
-- Small/Medium/Large network-state coverage and inherited Phase 6–14 regressions;
-- corrected full/compact rendered evidence;
-- collaborative-authoring architecture roadmap.
-
-### Verified implementation gates
-- Phase 15 Contracts — `31635239746` — PASS — all eight suites
-- Phase 15 Inherited Regressions — `31634218734` — PASS
-- Godot Smoke — `31635582701` — PASS
-- Phase 15 Visual Evidence — `31634842058` — PASS
-- Phase 15 Windows Multiplayer Export — `31635582699` — PASS
-
-The final documentation-refresh head also passed repository-owned GitHub Actions after transient Godot-download setup failures were retried. Those failures happened before tests executed and are infrastructure/setup failures, not product failures. Cursor, Graphite, and Netlify remain third-party integration checks and must be interpreted separately.
-
-## PHASE 16 — UNBLOCKED / DISCOVERY AUTHORIZED
+## PHASE 16 BRANCH
 Milestone branch:
 
 `dev/phase16-milestone`
 
-Base:
+Authoritative base:
 
 `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
 
-The Phase 16 implementation scope is **not yet defined**. Do not infer it from the Phase 15 collaboration roadmap or any single deferred limitation.
+Verified implementation/evidence head:
 
-### Required discovery before implementation
-Inspect the current:
-- Product Requirements;
-- Product Decisions;
-- Product Charter;
-- Risk Register;
-- Security / Privacy / Licensing;
-- System Architecture and related architecture documents;
-- Master Implementation Plan and task backlog;
-- QA quality gates, test matrix, performance/visual acceptance documents;
-- system documentation;
-- known deferred limitations and historical phase closeouts.
+`bfdef3e5cb1699268cc23be5c9f4c9b4a9631f93`
 
-Then select the highest-value remaining coherent milestone and explicitly document Phase 16 scope, non-goals, architecture reuse, task checkpoints, acceptance criteria, and verification evidence before implementing it.
+## PHASE 16 — IMPLEMENTATION COMPLETE / BRANCH VERIFIED
+Phase 16 repaired the actual creator-facing and cross-phase gaps found by repository scanning rather than relying on prior closeout claims.
+
+### Delivered
+- working Home My Worlds / Templates / Asset Library creator routes;
+- New World biome selection persisted and applied through terrain;
+- universal user-scoped Asset Library shared across worlds, with legacy source migration;
+- real asset-derived thumbnail depiction with explicit fallback state;
+- richer GLTF/GLB analysis and deterministic offline semantic-style ranking;
+- free-fly/orbit authoring camera, marquee selection, and visible transform gizmo;
+- real mesh vertex snapping and surface-normal orientation;
+- Phase 6 authored socket-transform snapping;
+- exact terrain/geometry-aware command-backed Drop-to-Ground while preserving ordinary XYZ grid snapping;
+- RPG/Survival/Driving starter templates promoted to implemented Phase 10 gameplay modules;
+- real transactional Environment water providers (`basic_plane` and imported `PackedScene`);
+- focused cross-phase contracts, shared-library coverage, inherited regressions, visual evidence, and Windows/export/multiplayer evidence.
+
+## VERIFIED BRANCH GATES
+All required repository-owned Phase 16 gates passed on the implementation/evidence head:
+
+- Phase 16 Contracts — `31653938946` — PASS
+- Phase 16 Shared Asset Library — `31653938953` — PASS
+- Godot Smoke — `31653938984` — PASS
+- Phase 16 Visual Evidence — `31653938948` — PASS
+- Phase 16 Inherited Regressions — `31653938981` — PASS
+- Phase 16 Windows Export — `31653938952` — PASS
+
+The Windows gate includes Phase 16 clean-package verification, inherited Phase 14 Small/Medium/Large exports, inherited Phase 15 multiplayer/offline package build, and a real concurrent exported host/client connection with ownership/input assertions.
 
 ## DEVELOPMENT STYLE
-Use one long Phase 16 milestone. Internal `P16-T##` checkpoints are not PR boundaries.
+Phase 16 was executed as one long milestone. Internal checkpoints were not PR boundaries. The next boundary is one completion PR to `master`.
 
-Workflow:
-
-`verified master → dev/phase16-milestone → define Phase 16 from authoritative evidence → implement complete milestone → tests/regressions/visual/Windows-export evidence where applicable → documentation closeout → one completion PR`
-
-## ARCHITECTURAL GUARDS
-- reuse existing `PlaySession`;
-- reuse command / Undo / Redo mutation boundaries;
-- reuse stable authored IDs;
-- reuse the gameplay event bus and existing Visual Scripting architecture;
-- reuse Asset Library and save/export contracts;
-- preserve offline-first behavior;
-- keep multiplayer opt-in;
-- do not turn runtime replication into collaborative authoring;
-- do not introduce duplicate/fake placeholder systems.
-
-All new persistent mutation must respect existing project/save and command ownership boundaries.
+## ARCHITECTURAL GUARDS RETAINED
+- existing `PlaySession` reused;
+- command / Undo / Redo mutation ownership retained;
+- stable authored IDs retained;
+- gameplay event bus and Visual Scripting reused;
+- Asset Library and save/export contracts reused;
+- external asset sources remain read-only;
+- multiplayer remains opt-in;
+- runtime replication remains separate from collaborative authoring;
+- no duplicate/fake parallel editor/runtime introduced.
 
 ## UI / UX GUARD
 Preserve the canonical Polyfork visual language: dark, playful but professional, approximately 70/30 Nintendo/Apple influence, large cards by default with denser alternatives where appropriate, minimal hidden menus, context-sensitive tool colors, controller-first usability with keyboard/mouse parity, strong focus states, and adaptive layouts.
@@ -111,10 +84,7 @@ Do not regress to a generic dark-slate developer-tool interface.
 ## SECURITY NOTE
 Historical `.polyforkAPI` credential material remains present in Git history and must be treated as exposed. Do not print, copy, restore, or reuse it. Rotation/revocation is a separate external action.
 
-## COMPLETED TRANSITION TASK
-**P16-T00 — Verify Phase 15 merge and reconcile stale post-merge canonical status — COMPLETE.**
-
 ## NEXT AUTHORIZED WORK
-**P16-T01/P16-T02 — Audit remaining authoritative requirements and deferred limitations, then define the complete Phase 16 milestone before implementation.**
+Open/review the single Phase 16 completion PR from `dev/phase16-milestone` to authoritative `master`, verify its PR-triggered repository-owned checks, and do **not** merge without explicit user authorization.
 
-After Phase 16 is defined, execute the entire milestone continuously and open one completion PR at the milestone boundary.
+Do **not** begin creator-application release packaging or another implementation phase until Phase 16 is merged and authoritative `master` is reconciled.

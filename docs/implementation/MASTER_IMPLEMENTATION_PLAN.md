@@ -2,33 +2,34 @@
 
 ## Authoritative state
 - The real project lives on `master`; repository default branch `main` is obsolete starter code and must not be used for development.
-- Phase 16 authoritative base: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`, the verified signed GitHub merge commit for PR #20.
-- Phases 0 through 15 are historically merged, but Phase 16 source audit proved that several merged milestone claims were not fully integrated in the actual product.
+- Authoritative `master`: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`, the verified signed GitHub merge commit for PR #20 / Phase 15.
+- Phases 0 through 15 are historically merged, but the Phase 16 source audit proved that several earlier milestone claims were not fully integrated in the actual product.
 - Phase 16 therefore became **Inherited Product Completeness and Integration Closure**, not release packaging.
 - Phase 16 milestone branch: `dev/phase16-milestone`.
+- Verified Phase 16 implementation/evidence head: `bfdef3e5cb1699268cc23be5c9f4c9b4a9631f93`.
 
 Historical `.polyforkAPI` credential material remains exposed in Git history and must be rotated/revoked separately. Never print, restore, copy, or reuse it.
 
 ## Phases 0–15 — HISTORICALLY MERGED
 The repository includes the application shell, world/save foundation, placement editor, Asset Library, terrain/streaming, components/archetypes/prefabs/sockets, Instant Play/templates, Visual Scripting, foliage/procedural/splines, gameplay framework, Environment, AI Creation, project export, scale/polish, and multiplayer foundations.
 
-Phase 16 does **not** treat those merge labels as proof of implementation completeness. The Phase 16 audit inspects and tests the actual source/runtime paths.
+Phase 16 does **not** treat those merge labels as proof of implementation completeness. The Phase 16 audit inspected and tested actual source/runtime paths and repaired the verified gaps.
 
-## Phase 16 — Inherited Product Completeness and Integration Closure
+## Phase 16 — Inherited Product Completeness and Integration Closure — BRANCH VERIFIED
 
 ### Why this milestone replaced release packaging
 A direct repository/source audit found concrete implementation gaps that canonical documentation had overstated or missed. Shipping/release packaging before closing those gaps would have packaged an incomplete creator.
 
 ### P16-T01 — Application creator routes and world creation — COMPLETE
-- My Worlds, Templates, and Asset Library Home actions now open real surfaces.
+- My Worlds, Templates, and Asset Library Home actions open real creator surfaces.
 - My Worlds uses the real project repository/open path.
 - Templates uses the real template registry and New World selection path.
-- New World now exposes and persists biome presets.
-- initial terrain consumes the persisted biome selection.
+- New World exposes and persists biome presets.
+- Initial terrain consumes the persisted biome selection.
 
 ### P16-T02 — Universal Asset Library closure — COMPLETE
 - real application path uses a user-scoped universal managed catalog;
-- legacy per-project source registrations can migrate to the shared catalog;
+- legacy per-project source registrations migrate to the shared catalog;
 - semantic local ranking added;
 - GLTF/GLB inspection deepened;
 - placeholder hash thumbnails replaced by actual mesh-derived depiction with explicit fallback state;
@@ -56,38 +57,33 @@ A direct repository/source audit found concrete implementation gaps that canonic
 - imported PackedScene provider;
 - transactional provider replacement and explicit non-destructive failure.
 
-### P16-T06 — Focused verification — IMPLEMENTED
-Repository-owned gates now cover:
-- Phase 16 product contracts;
-- Phase 16 integration-closure contracts;
-- universal Asset Library cross-project contract;
-- Godot Smoke.
+### P16-T06 — Focused verification — VERIFIED
+- Phase 16 Contracts — `31653938946` — PASS;
+- Phase 16 Shared Asset Library — `31653938953` — PASS;
+- Godot Smoke — `31653938984` — PASS.
 
-Executed failures discovered during implementation were treated as product/test defects and repaired; they were not waived.
+### P16-T07 — Inherited regression verification — VERIFIED
+- Phase 16 Inherited Regressions — `31653938981` — PASS.
+- The matrix executes discoverable Phase 4–15 suites, with Phase 4/5 independently covered by Godot Smoke where no standalone phase runner exists.
+- The stale Phase 11 metadata-only water fixture was promoted to the real `basic_plane` provider rather than weakening provider validation.
 
-### P16-T07 — Inherited regression verification — IMPLEMENTED
-`phase16-inherited-regressions.yml` executes discoverable Phase 4–15 suite runners plus Phase 7 playable and Phase 14 scale-stress runtime gates.
+### P16-T08 — Windows/export evidence — VERIFIED
+- Phase 16 Windows Export — `31653938952` — PASS.
+- Verified Environment water-provider dependency closure and clean package launch.
+- Re-ran inherited Phase 14 Small/Medium/Large profiled Windows exports.
+- Rebuilt inherited Phase 15 multiplayer/offline packages and launched the exported host/client concurrently with ownership/input assertions.
 
-### P16-T08 — Windows/export evidence — IMPLEMENTED
-`phase16-windows-export.yml` proves:
-- Environment water-provider runtime dependency closure;
-- clean standalone package launch;
-- inherited Phase 14 profiled Windows exports;
-- inherited Phase 15 concurrent host/client Windows export behavior.
+### P16-T09 — Visual evidence — VERIFIED
+- Phase 16 Visual Evidence — `31653938948` — PASS.
+- Captures actual running-app full/compact evidence for repaired Home creator routes, universal Asset Library, biome selection, and workspace authoring/gizmo state.
 
-### P16-T09 — Visual evidence — IMPLEMENTED
-`phase16-visual.yml` captures actual running-app full/compact evidence for repaired Home creator routes, universal Asset Library, biome selection, and workspace authoring/gizmo state.
+### P16-T10 — Documentation and completion PR — READY
+Canonical QA/implementation/handoff/backlog documentation now reflects the source-verified milestone. The only remaining milestone-boundary action is one completion PR from `dev/phase16-milestone` to authoritative `master`, followed by review of the PR-triggered checks.
 
-### P16-T10 — Documentation and completion PR — IN PROGRESS
-Required closeout:
-1. source-level QA record and implementation docs agree with actual code;
-2. inspect all repository-owned Phase 16/inherited/Windows/visual checks on the live branch/PR head;
-3. distinguish infrastructure setup failures from executed product failures;
-4. open one Phase 16 completion PR targeting `master`;
-5. do not merge without explicit user authorization.
+Do not merge the completion PR without explicit user authorization.
 
 ## Deferred after Phase 16
-Creator-application release packaging/distribution remains a future milestone. Also still out of current major-release scope: production matchmaking/relay/auth/voice/anti-cheat/rollback/dedicated-server fleets, production real-time collaborative mutation, cloud marketplace infrastructure, and arbitrary FBX repair.
+Creator-application release packaging/distribution remains a future milestone and is not authorized until the Phase 16 completion PR is merged and authoritative `master` is reconciled. Also still outside the current major-release scope: production matchmaking/relay/auth/voice/anti-cheat/rollback/dedicated-server fleets, production real-time collaborative mutation, cloud marketplace infrastructure, and arbitrary FBX repair.
 
 ## Architectural invariants retained
 - existing `PlaySession` remains the disposable Build/Play boundary;

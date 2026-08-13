@@ -1,108 +1,68 @@
 # Phase 16 — Inherited Product Completeness and Integration Closure
 
 ## Status
-Defined from a source-level audit of authoritative `master` `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613` and authorized for continuous implementation on `dev/phase16-milestone`.
+**Implementation complete and branch-verified. Completion PR ready.**
 
-See `docs/qa/PHASE16_INHERITED_COMPLETENESS_AUDIT.md` for the evidence that invalidated the earlier release-candidate assumption.
+Authoritative base: `master` at `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`.
+
+Milestone branch: `dev/phase16-milestone`.
+
+Verified implementation/evidence head: `bfdef3e5cb1699268cc23be5c9f4c9b4a9631f93`.
+
+See `docs/qa/PHASE16_INHERITED_COMPLETENESS_AUDIT.md` for the source-level evidence that invalidated the earlier release-candidate assumption, and `docs/qa/PHASE16_QA.md` for the closeout record.
 
 ## Milestone goal
-Close the verified creator-facing and cross-phase implementation gaps inherited from Phases 1–11, strengthen the tests that previously allowed those gaps to pass, and restore agreement between actual product behavior and the authoritative product requirements before release packaging begins.
+Close the verified creator-facing and cross-phase implementation gaps inherited from earlier phases, strengthen the tests that previously allowed those gaps to pass, and restore agreement between actual product behavior and authoritative product requirements before release packaging begins.
 
-## P16-T01 — Complete application-shell creator routes
-Deliver real in-app surfaces and navigation for:
-- My Worlds: list persisted projects, open a selected project, deterministic empty state;
-- Templates: browse built-in template manifests and start New World with a selected template;
-- Asset Library: open a library-management surface even when no world is active, including registered source roots and scan status.
+## Completed scope
 
-All routes must preserve canonical styling, keyboard/gamepad focus, and back navigation.
+### P16-T01 — Application-shell creator routes
+Delivered real in-app My Worlds, Templates, and Asset Library surfaces using existing repositories/registries and preserving canonical focus/back behavior.
 
-## P16-T02 — Complete New World biome selection
-Deliver creation-time biome selection with a safe default and persist the selected biome into project/runtime configuration. The selected biome must be applied through the existing terrain/environment contracts when a project is activated; no parallel biome system.
+### P16-T02 — New World biome selection
+Delivered creation-time Meadow/Desert/Alpine selection with safe persistence into runtime configuration and application through existing terrain contracts.
 
-## P16-T03 — Replace fake thumbnails and deepen Asset Library inspection
-Replace hash-art placeholders with real asset depiction:
-- supported 3D assets/scenes render in an offscreen thumbnail studio;
-- image/texture assets use decoded image previews;
-- unsupported/unrenderable sources use an explicit fallback state rather than pretending to depict the asset.
+### P16-T03 — Asset Library depiction and inspection
+Replaced fake hash-art thumbnails with actual imported mesh-derived depiction where possible and explicit fallbacks otherwise. Deepened deterministic GLTF/GLB analysis for bounds/dimensions, scene counts/names, animation/skeleton indicators, collision/LOD hints, and source/runtime estimates.
 
-Expand analyzer metadata where deterministically available:
-- bounds/dimensions;
-- material/texture counts/details;
-- animation/skeleton counts;
-- collision/LOD indicators;
-- source/file/runtime memory estimates.
+### P16-T04 — Deterministic semantic-style search and universal storage
+Added offline deterministic concept/synonym ranking while retaining strong lexical matching. The real application path now uses one user-scoped managed Asset Library shared across worlds, with migration from legacy per-project source registries and read-only external source files.
 
-Preserve source folders as read-only.
+### P16-T05 — Viewport authoring interaction
+Delivered free-fly/orbit authoring cameras, visible transform axes/gizmo, and drag marquee selection through the existing editor session.
 
-## P16-T04 — Add deterministic semantic-style catalog search
-Add a local, offline semantic search layer that ranks records using normalized token/tag/metadata concepts and synonyms without requiring cloud embeddings. Exact/lexical matches remain strongly weighted. The API must be extensible to future embedding providers but the shipped path remains local-first and deterministic.
+### P16-T06 — Snapping and grounding integration
+Delivered real mesh vertex snapping, surface-normal orientation, authored Phase 6 socket-transform snapping, and terrain/geometry-aware exact Drop-to-Ground. Ordinary movement preserves the inherited full XYZ grid-snapping contract; grounding performs its exact command-backed translation without grid re-quantization.
 
-## P16-T05 — Finish viewport authoring interaction
-Using the existing editor session/command boundaries, deliver:
-- free-fly authoring camera;
-- switchable third-person orbit authoring camera;
-- visible move/rotate/scale gizmo handles;
-- viewport marquee/box selection;
-- keyboard/mouse and controller-compatible camera/tool switching;
-- no mutation outside command/Undo/Redo ownership.
+### P16-T07 — Template/gameplay promotion
+RPG consumes implemented Phase 10 inventory/narrative runtime modules, Survival consumes inventory/health, and Driving consumes vehicle runtime. Implemented systems are no longer labeled as future planned modules.
 
-## P16-T06 — Complete snapping and grounding integration
-Deliver:
-- vertex snapping from real runtime mesh geometry where available;
-- surface-normal orientation alignment;
-- Phase 6 authored-socket snapping using actual socket local transforms resolved onto placed entity transforms;
-- terrain/geometry-aware Drop-to-Ground using collision/terrain resolution rather than a fixed Y value.
+### P16-T08 — Water provider integration
+Existing Environment water-hook records now drive real providers: project-owned `basic_plane` and imported `PackedScene`. Provider replacement is staged transactionally; unknown providers fail explicitly without destroying the prior valid runtime.
 
-Add cross-phase tests proving Phase 3 placement consumes Phase 6 sockets and Phase 5 terrain.
+### P16-T09 — Test and inherited-regression closure
+Added focused product/integration/shared-library coverage and repaired stale inherited fixtures without weakening production validation. Re-ran the full relevant Phase 4–15 regression matrix, playable/scale gates, Godot Smoke, visual evidence, and Windows/export/multiplayer evidence.
 
-## P16-T07 — Promote later gameplay systems into built-in templates
-Update runtime-module contracts and built-in templates so existing Phase 10 capabilities are actually represented in starter experiences:
-- RPG: inventory + dialogue + quests;
-- Survival: inventory/health-oriented starter capability;
-- Driving: vehicle runtime capability;
-- FPS/Third-Person keep their existing controller and multiplayer behavior.
+### P16-T10 — Visual evidence and closeout
+Captured full/compact running-app evidence for repaired creator routes, universal Asset Library, biome selection, and workspace authoring state. Canonical QA/implementation/backlog/handoff documents now reflect actual verified behavior.
 
-Use existing gameplay services; do not fork template-specific engines.
+## Verification evidence
+- Phase 16 Contracts — `31653938946` — PASS
+- Phase 16 Shared Asset Library — `31653938953` — PASS
+- Godot Smoke — `31653938984` — PASS
+- Phase 16 Visual Evidence — `31653938948` — PASS
+- Phase 16 Inherited Regressions — `31653938981` — PASS
+- Phase 16 Windows Export — `31653938952` — PASS
 
-## P16-T08 — Complete water provider integration
-Add a provider registry/adapter boundary that consumes existing Environment water-hook records. Provide at least one project-owned basic water provider and an imported-scene provider path so owned/imported water assets can be instantiated and configured at runtime. Provider failure must be explicit and non-destructive.
-
-## P16-T09 — Close test gaps and inherited regressions
-Add focused contracts/runtime evidence for:
-- all primary Home routes;
-- biome creation/persistence/application;
-- real thumbnail depiction/fallback semantics;
-- analyzer metadata and semantic ranking;
-- camera/gizmo/box-selection behavior;
-- vertex/normal/socket/drop-to-ground integration;
-- template promotion;
-- water provider consumption.
-
-Then run inherited Phase 6–15 regressions, Godot Smoke, scale stress, and relevant export/multiplayer gates.
-
-## P16-T10 — Visual evidence and closeout
-Capture and inspect running-app evidence at 1600×900 and 1024×640 for:
-- Home/My Worlds/Templates/Asset Library route surfaces;
-- New World biome selection;
-- editor viewport camera/gizmo/selection state;
-- real Asset Library thumbnails;
-- water/template integration where visually meaningful.
-
-Update canonical docs to reflect actual verified behavior and open one Phase 16 completion PR to `master`.
+The Windows gate proves Phase 16 Environment dependency closure and clean-package launch, inherited Phase 14 Small/Medium/Large profiled exports, inherited Phase 15 multiplayer/offline package generation, and a real concurrent exported Windows host/client connection with ownership/input assertions.
 
 ## Explicit non-goals
-- release-candidate packaging of PlayWorld Studio itself; deferred until after this milestone;
+- release-candidate packaging of PlayWorld Studio itself; deferred until after this milestone is merged;
 - production collaborative editing;
 - cloud matchmaking/relay/auth/voice/anti-cheat/rollback/dedicated-server infrastructure;
 - arbitrary FBX repair;
 - cloud semantic-search requirement;
 - replacement of `PlaySession`, command history, stable IDs, Asset Library contracts, or save/export architecture.
 
-## Required completion evidence
-- Phase 16 Contracts — PASS;
-- Phase 16 Inherited Regressions — PASS;
-- Godot Smoke — PASS;
-- Phase 16 Visual Evidence — PASS and inspected;
-- relevant Windows game-export and multiplayer-export inherited gates — PASS where affected;
-- no known inherited gap listed in the Phase 16 audit remains open;
-- one Phase 16 completion PR targets authoritative `master`.
+## Remaining milestone boundary
+Open one Phase 16 completion PR targeting authoritative `master`. PR-triggered repository-owned checks must remain green. Do not merge without explicit user authorization. Do not begin release packaging until Phase 16 is merged and authoritative `master` is reconciled.

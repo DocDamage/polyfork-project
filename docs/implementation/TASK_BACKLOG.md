@@ -2,9 +2,7 @@
 
 Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are milestone gates, not task gates, unless a handoff explicitly says otherwise.
 
-## Completed phases 0–15
-Phases 0 through 15 are complete and merged on authoritative `master`.
-
+## Historically merged phases 0–15
 - [x] Phase 0 — Repository and contracts
 - [x] Phase 1 — App shell and canonical UI foundation
 - [x] Phase 2 — World project + save foundation
@@ -24,50 +22,39 @@ Phases 0 through 15 are complete and merged on authoritative `master`.
 
 Authoritative `master`: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
 
-## Phase 15 — COMPLETE / MERGED
-Milestone branch: `dev/phase15-multiplayer-collaboration-milestone`
+The Phase 16 source audit established that historical merge labels were not, by themselves, proof of end-to-end product completeness. Phase 16 closes the verified inherited gaps before release packaging.
 
-Merged completion PR: `#20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap`
-
-Merged at: `2026-08-12T21:16:19Z`
-
-Phase 15 branch head included in the merge: `5f981a75f7c77ae1d144d1abb30831c57f7abfba`
-
-- [x] P15-T01 Network identity/session contracts
-- [x] P15-T02 ENet host/client transport and lifecycle
-- [x] P15-T03 Multiplayer spawn/ownership/movement replication
-- [x] P15-T04 Host-authoritative gameplay replication
-- [x] P15-T05 Template/match/Visual Scripting multiplayer hooks
-- [x] P15-T06 Accessible adaptive Offline/Host/Join UX
-- [x] P15-T07 Save authority/reconnect/failure hardening
-- [x] P15-T08 Optional export closure and exported two-process Windows verification
-- [x] P15-T09 Collaborative-authoring architecture roadmap
-- [x] P15-T10 Full verification/evidence/docs/completion PR
-- [x] P15-T11 Pre-merge canonical documentation audit/refresh
-- [x] P15-GATE PR #20 merge verification and authoritative `master` reconciliation
-
-### Phase 15 completion verification
-- Phase 15 Contracts — `31635239746` — PASS — all eight suites
-- Phase 15 Inherited Regressions — `31634218734` — PASS
-- Godot Smoke — `31635582701` — PASS
-- Phase 15 Visual Evidence — `31634842058` — PASS
-- Phase 15 Windows Multiplayer Export — `31635582699` — PASS
-
-Later pre-merge GitHub Actions setup/download failures were retried and repository-owned executable checks completed successfully without product-code changes. Third-party Cursor/Graphite/Netlify suite state is tracked separately from Polyfork-owned verification.
-
-## Phase 16 — UNBLOCKED / SCOPE DISCOVERY
+## Phase 16 — INHERITED PRODUCT COMPLETENESS AND INTEGRATION CLOSURE — BRANCH VERIFIED
 Milestone branch: `dev/phase16-milestone`
 
 Authoritative base: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
 
-The Phase 16 implementation scope is intentionally not assigned until the remaining authoritative requirements and deferred limitations have been audited.
+Verified implementation/evidence head: `bfdef3e5cb1699268cc23be5c9f4c9b4a9631f93`
 
-- [x] P16-T00 Verify PR #20 merge and authoritative `master`; reconcile stale post-merge status documentation
-- [ ] P16-T01 Audit Product Requirements, Decisions, Charter, Risks, Security, System Architecture, implementation/backlog/QA/system documentation, and deferred limitations
-- [ ] P16-T02 Select the highest-value coherent remaining milestone and define explicit scope/non-goals/architecture/acceptance gates
-- [ ] P16-T03+ Implement the complete defined milestone continuously; detailed checkpoints are added only after scope is evidence-backed
-- [ ] P16-QA Run milestone contracts, inherited regressions, visual evidence, and Windows/export evidence where applicable
-- [ ] P16-DOC Close canonical documentation and prepare the Phase 16 handoff
-- [ ] P16-GATE Open one completion PR targeting authoritative `master`
+- [x] P16-T00 Verify PR #20 merge and authoritative `master`; reconcile transition state
+- [x] P16-T01 Audit actual source/runtime paths and define the inherited-completeness milestone
+- [x] P16-T02 Repair Home creator routes and New World biome creation/application
+- [x] P16-T03 Replace fake Asset Library thumbnails, deepen inspection, and add deterministic semantic ranking
+- [x] P16-T04 Move the real application to a user-scoped universal Asset Library with legacy source migration
+- [x] P16-T05 Complete authoring camera, marquee selection, visible gizmo, vertex/normal/socket snapping, and exact terrain-aware grounding
+- [x] P16-T06 Promote implemented Phase 10 gameplay systems into RPG/Survival/Driving templates
+- [x] P16-T07 Materialize Environment water hooks through real transactional providers
+- [x] P16-T08 Add focused product/integration/shared-library contracts and strict Godot Smoke coverage
+- [x] P16-T09 Run inherited Phase 4–15 regressions, scale/playable checks, visual evidence, and Windows/export/multiplayer evidence
+- [x] P16-T10 Close source-level QA and canonical branch documentation
+- [ ] P16-GATE Open one completion PR targeting authoritative `master`; review PR-triggered checks; merge only with explicit user authorization
+
+### Phase 16 branch verification
+- Phase 16 Contracts — `31653938946` — PASS
+- Phase 16 Shared Asset Library — `31653938953` — PASS
+- Godot Smoke — `31653938984` — PASS
+- Phase 16 Visual Evidence — `31653938948` — PASS
+- Phase 16 Inherited Regressions — `31653938981` — PASS
+- Phase 16 Windows Export — `31653938952` — PASS
+
+The Windows gate includes real Phase 16 clean-package launch, inherited Phase 14 Small/Medium/Large exports, inherited Phase 15 multiplayer/offline package build, and concurrent exported host/client verification.
+
+## Next milestone boundary
+Do not begin creator-application release packaging or a new implementation phase until the Phase 16 completion PR is merged and authoritative `master` is reconciled.
 
 Historical `.polyforkAPI` credential material remains exposed in Git history and requires separate external rotation/revocation. Do not print, copy, restore, or reuse it.
