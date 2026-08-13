@@ -3,13 +3,12 @@
 ## Authoritative state
 
 - Repository default and authoritative integrated line: `master`.
-- Current `master`: `9ed7abd28144f9757244f33aa33176e7074aca86`, verified signed merge commit for PR #23 / Phase 18.
-- PR #23 was merged prematurely before the required manual visual gate was valid. Preserve the merge and repair forward; do not reset or rewrite `master`.
-- Historical `main` is obsolete starter code and is not a development base.
-- Phases 0 through 17 are complete and accepted.
-- Phase 18 implementation is integrated but final acceptance remains open.
-- Active corrective branch: `fix/phase18-post-merge-closeout`.
-- The corrective PR targets `master` and remains unmerged until explicit user authorization.
+- Authoritative `master`: `49a5b55748244097d952ab9c095dd00ed0ec9f06`.
+- This is the verified signed merge commit for PR #24, the Phase 18 post-merge closeout correction.
+- Historical `main` is obsolete starter code. `archive/obsolete-main-phase14` is retained only as historical reference and is not a development base.
+- `master` is protected by active repository rules; normal changes must use a branch and pull request.
+- Phases 0 through 18 are complete and accepted.
+- There is no active implementation milestone branch.
 - Phase 19 is not authorized.
 
 ## Accepted phases
@@ -32,65 +31,69 @@
 - Phase 15 — Multiplayer Foundations and Collaboration Roadmap
 - Phase 16 — Inherited Product Completeness and Integration Closure
 - Phase 17 — Release Candidate and Distribution
+- Phase 18 — Stable Release and Windows Productization
 
-## Phase 18 — Stable Release and Windows Productization
+## Phase 18 — Stable Release and Windows Productization — COMPLETE
 
-Target product: **PlayWorld Studio 0.1.0**.
+Product: **PlayWorld Studio 0.1.0**.
 
-Target portable package: `PlayWorld-Studio-0.1.0-Windows-x64.zip`.
+Portable package: `PlayWorld-Studio-0.1.0-Windows-x64.zip`.
 
-Target installer: `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`.
+Installer: `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`.
 
-### P18-T01 — Reconcile merged Phase 17 state — COMPLETE
-Phase 18 was branched from exact authoritative `master@91b8b9c39fddda4b80ad5c6101d563245ef3e2d0`; PR #22 and `master` default-branch authority were verified.
+### P18-T01 — Repository authority and milestone branch — COMPLETE
+Phase 18 began from the exact merged Phase 17 source of truth.
 
 ### P18-T02 — Stable 0.1.0 identity — COMPLETE
-Application/project/export/manifest/package/About identity is stable `0.1.0`, Windows x64, with RC wording retained only where historical or explicitly describing the supported upgrade source.
+Application, About, Windows metadata, export preset, release manifest, package, and installer consistently report stable `0.1.0` identity.
 
-### P18-T03 — Windows installer/uninstall — COMPLETE
-Inno Setup packaging installs the complete creator payload, creates normal Windows integration, marks installed mode, supports alternate installation directories, and uninstalls application files without deleting per-user authored data.
+### P18-T03 — Windows installer and uninstall — COMPLETE
+The installer supports normal and alternate locations, repair/reinstall, and removal of application files without deleting per-user authored state.
 
-### P18-T04 — Upgrade/migration hardening — COMPLETE
-The exact Phase 17 artifact `9169222546` and RC ZIP hash `8db8162872077d00582ab20de5361a59cae19a45a9bacb2a3a7f199d18b4d9b9` are the upgrade fixture. Stable migration is explicit, idempotent, non-destructive, records source/target versions, and preserves RC user data.
+### P18-T04 — Upgrade and migration hardening — COMPLETE
+The exact Phase 17 release candidate artifact is the verified upgrade fixture. Stable migration is explicit, idempotent, non-destructive, and preserves RC-created projects and preferences.
 
 ### P18-T05 — Backup and recovery — COMPLETE
-Existing atomic saves/checkpoints are reused. Corrupt canonical project metadata is backed up before checkpoint promotion; malformed preferences are backed up before safe defaults; unavailable sources and missing release/export components remain explicit failures.
+Damaged canonical project metadata is preserved before valid checkpoint promotion. Malformed preferences are preserved before safe defaults are applied.
 
-### P18-T06 — Diagnostics/support bundle — COMPLETE
-The Support & Recovery surface emits bounded diagnostics covering stable identity, source/build identity, runtime/OS/rendering/GPU, install mode, user-data directories, exporter/template availability, schema, and Asset Library health. Automated scans reject private release material.
+### P18-T06 — Diagnostics and support bundle — COMPLETE
+Support & Recovery exposes bounded product, runtime, rendering, install-mode, user-data, exporter, schema, and Asset Library health information.
 
-### P18-T07 — Production failure/recovery UX — COMPLETE
-Support/recovery is a first-class Home action. Existing project, Asset Library, and export surfaces retain explicit error reporting; damaged projects are surfaced with recoverability status and a user-triggered checkpoint recovery path.
+### P18-T07 — Production recovery UX — COMPLETE
+Support & Recovery is a first-class Home action. Recoverable damaged projects and explicit failure states are surfaced without fabricating success.
 
-### P18-T08 — Installer/package QA — COMPLETE IN AUTOMATION
-The stable workflow exercises portable first run/reopen/read-only layout, clean installed first run, repair/reinstall, uninstall with user-data preservation, reinstall, alternate install location, exact RC-profile upgrade, creator export, and exported-game launch.
+### P18-T08 — Portable and installed lifecycle QA — COMPLETE
+Automation verifies portable first run, reopen, read-only-style package location, clean installed first run, alternate-location installation, repair, uninstall preservation, reinstall, and installed RC-profile upgrade.
 
-### P18-T09 — Controller/accessibility regression — RETAINED
-The Phase 17 packaged acceptance marker remains mandatory, including gamepad A → `ui_accept`, D-pad focus navigation, compact layouts, keyboard/mouse parity, and major creator screens.
+### P18-T09 — Controller and accessibility regression — COMPLETE
+Packaged acceptance retains keyboard/mouse parity, real gamepad navigation, gamepad A → `ui_accept`, focus assertions, reduced-motion and compact-density persistence, and Build/Play navigation.
 
-### P18-T10 — Stable visual acceptance — CORRECTION REQUIRED
-The original workflow captured eleven files, but downloaded evidence showed that `09-about-version-1280x720.png` was Home rather than About/version. Therefore the original green workflow did not satisfy the manual visual gate.
+### P18-T10 — Stable visual acceptance — COMPLETE
+All eleven required screenshots were generated from the final green corrective source and manually inspected. The corrected About/version image visibly proves PlayWorld Studio `0.1.0`, stable, Windows x64, Godot 4.7.1, and source identity.
 
-### P18-T11 — Release security hardening — COMPLETE
-Portable payload, installer, release manifests/checksums, and support bundle remain subject to the existing private-material and credential-pattern scans. The corrective work does not weaken those scanners.
+### P18-T11 — Release validation — COMPLETE
+Portable package, independent rebuild, installer, and generated support material passed the final distribution checks.
 
-### P18-T12 — Stable release automation — COMPLETE, WITH VISUAL ASSERTION HARDENED
-`.github/workflows/phase18-stable-release.yml` runs source regressions and Windows productization, builds deterministic portable packages, builds the installer, verifies real RC→stable migration, executes packaged app workflows, captures visuals, scans artifacts, and uploads bounded release evidence.
+### P18-T12 — Stable release automation — COMPLETE
+The dedicated Phase 18 workflow builds and validates the portable package, independent rebuild, installer, RC migration, packaged creator workflows, visuals, and release evidence.
 
-The corrective implementation activates the real About action and requires exact overlay identity, stacking, coverage, and label-renderability assertions before the About screenshot is accepted.
+### P18-T13 — Full inherited regression — COMPLETE
+The final corrective head passed the core harness, Phase 4–15 suites, Phase 16 closure, scale/export gates, exported multiplayer host/client, and packaged controller/accessibility acceptance.
 
-### P18-T13 — Full inherited regression — REQUIRED AT CORRECTIVE HEAD
-The corrective Phase 18 workflow must rerun the core harness, Phase 4–15 suites, Phase 16 product/integration/shared-asset closure, Phase 14 scale/export, Phase 15 multiplayer export/host/client, and Phase 17 packaged controller/accessibility assertions.
+### P18-T14 — Documentation and closeout — COMPLETE
+Canonical README, planning, QA, backlog, and handoff documentation reflect the signed PR #24 merge and completed Phase 18 state.
 
-### P18-T14 — Documentation/closeout — CORRECTED
-Canonical planning, QA, backlog, and handoff documentation must reflect the premature PR #23 merge and the forward-fix branch. Exact run/artifact/checksum/manual-review evidence belongs in the corrective PR rather than the historical merged PR.
+### P18-T15 — About/version evidence hardening — COMPLETE
+The real Home About action produces a topmost full-size overlay with a typed identity card. Packaged verification requires exact identity and renderability assertions before capture.
 
-### P18-T15 — About/version evidence hardening — IMPLEMENTED, AWAITING CI
-The Home overlay is promoted to the topmost Home child, exposes bounded presentation state, receives a correctly typed About item collection, displays a visible stable identity card, and is verified before packaged capture.
+## Phase 18 final verification record
 
-## Phase 18 corrective completion gate
-
-Phase 18 is finally accepted only when the exact corrective head has green source and Windows stable-release jobs, newly generated package/installer artifacts and checksums are verified, all eleven screenshots are manually inspected, the About image visibly proves stable `0.1.0` identity, and the corrective PR contains exact evidence while remaining unmerged until explicit authorization.
+- Corrective branch head: `5ee4e96318d34d466ec0b7fb477db8bf32941139`
+- Tested merge candidate: `f859086a7ec874fe39cf1b83019925f544a92a10`
+- Final signed integrated merge: `49a5b55748244097d952ab9c095dd00ed0ec9f06`
+- Workflow `31699466148` — SUCCESS
+- Stable release artifact `9180943528`
+- Exact checksums and manual visual findings are recorded in `docs/qa/PHASE18_QA.md` and merged PR #24.
 
 ## Architectural invariants retained
 
@@ -98,7 +101,11 @@ Phase 18 is finally accepted only when the exact corrective head has green sourc
 - authored mutation remains command/transaction owned with Undo/Redo;
 - stable authored IDs remain authoritative;
 - external Asset Library sources remain read-only;
-- terrain/streaming, components/prefabs/sockets, Visual Scripting, gameplay, Environment, AI privacy/consent, authored-game export, and multiplayer boundaries are reused;
+- existing terrain, gameplay, visual scripting, environment, export, and multiplayer boundaries are reused;
 - user data remains separate from application installation;
 - offline behavior remains first-class;
 - no parallel editor/runtime/exporter architecture was introduced.
+
+## Next milestone boundary
+
+No Phase 19 scope has been approved. A new phase must begin only after the user defines its objectives, acceptance criteria, exclusions, branch, and handoff from current authoritative `master@49a5b55748244097d952ab9c095dd00ed0ec9f06`.
