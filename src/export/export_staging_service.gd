@@ -23,12 +23,13 @@ func assemble(project_directory: String, stage_root: String, project_data: Dicti
         effective_profile = PerformanceProfiles.get_profile(performance_profile.get("preset_id", PerformanceProfiles.DEFAULT))
     var multiplayer_capability: Dictionary = multiplayer_capability_for_project(project_data)
     if not _reset_directory(stage_root): return _failure("Unable to reset deterministic export staging directory.")
-    var closure: Dictionary = SourceClosure.resolve(runtime_roots_for_project(project_data))
+    var runtime_source_root := _runtime_source_root()
+    var closure: Dictionary = SourceClosure.resolve(runtime_roots_for_project(project_data), runtime_source_root)
     if not closure.get("ok", false): return closure
     var manifest_files: Array[Dictionary] = []
     for source_path_value in closure.get("paths", []):
         var source_path: String = str(source_path_value)
-        var copied: Dictionary = _copy_file("res://%s" % source_path, stage_root.path_join(source_path))
+        var copied: Dictionary = _copy_file(_runtime_source_path(source_path, runtime_source_root), stage_root.path_join(source_path))
         if not copied.get("ok", false): errors.append_array(copied.get("errors", [])); break
         manifest_files.append(_runtime_file(source_path))
     if not errors.is_empty(): return {"ok": false, "errors": errors}
@@ -87,7 +88,7 @@ func assemble(project_directory: String, stage_root: String, project_data: Dicti
     var manifest_errors: Array[String] = Contracts.validate_manifest(manifest)
     if not manifest_errors.is_empty(): return {"ok": false, "errors": manifest_errors}
     var manifest_write: Dictionary = _write_json(stage_root.path_join("export_manifest.json"), manifest); if not manifest_write.get("ok", false): return manifest_write
-    return {"ok": true, "errors": [], "stage_root": stage_root, "manifest": manifest, "runtime_source_paths": closure.get("paths", []), "file_count": manifest_files.size() + 1, "performance_profile": effective_profile.duplicate(true), "multiplayer_capability": multiplayer_capability.duplicate(true)}
+    return {"ok": true, "errors": [], "stage_root": stage_root, "manifest": manifest, "runtime_source_paths": closure.get("paths", []), "runtime_source_root": runtime_source_root, "file_count": manifest_files.size() + 1, "performance_profile": effective_profile.duplicate(true), "multiplayer_capability": multiplayer_capability.duplicate(true)}
 
 static func runtime_roots_for_project(project_data: Dictionary) -> Array[String]:
     var roots: Array[String] = RUNTIME_ROOTS.duplicate()
@@ -123,6 +124,15 @@ renderer/rendering_method=\"gl_compatibility\"
 renderer/rendering_method.mobile=\"gl_compatibility\"
 textures/default_filters/use_nearest_mipmap_filter=false
 """ % package_name
+
+static func _runtime_source_root() -> String:
+    var bundled := OS.get_executable_path().get_base_dir().path_join("tools").path_join("runtime_source")
+    if DirAccess.dir_exists_absolute(bundled): return bundled
+    return ""
+
+static func _runtime_source_path(relative_path: String, source_root: String) -> String:
+    if source_root.strip_edges().is_empty(): return "res://%s" % relative_path
+    return source_root.trim_suffix("/").trim_suffix("\\").path_join(relative_path)
 
 static func _copy_file(source_path: String, destination_path: String) -> Dictionary:
     if source_path.strip_edges().is_empty() or not FileAccess.file_exists(source_path): return _failure("Export staging source file is unavailable: %s" % source_path)
