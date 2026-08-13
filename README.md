@@ -7,42 +7,34 @@ The user-facing direction is **smart defaults first, advanced controls on demand
 ## Repository authority
 
 - Repository default and authoritative integrated branch: `master`.
-- Current `master`: `9ed7abd28144f9757244f33aa33176e7074aca86`.
-- That commit is the verified signed merge of **PR #23 — Phase 18 — Stable Release and Windows Productization**.
-- PR #23 was merged prematurely before the required manual visual closeout was valid. Preserve repository history and repair forward from current `master`.
-- Phases **0 through 17 are complete and accepted**.
-- Phase 18 implementation is integrated, but final Phase 18 acceptance remains open.
-- Corrective branch: `fix/phase18-post-merge-closeout`.
-- Historical `main` is obsolete starter code and must not be used for development.
-- No Phase 19 work is authorized.
+- Authoritative `master`: `49a5b55748244097d952ab9c095dd00ed0ec9f06`.
+- That commit is the verified signed merge of **PR #24 — Phase 18 — Post-merge closeout correction**.
+- Phases **0 through 18 are complete and accepted**.
+- PR #23 integrated the Phase 18 implementation prematurely; PR #24 completed the corrective visual, QA, evidence, and documentation closeout without rewriting repository history.
+- Historical `main` is obsolete starter code. Its archived branch is retained only as `archive/obsolete-main-phase14` and must not be used for development.
+- `master` is protected by active repository rules. Changes should be made on a branch and integrated through a pull request.
+- No Phase 19 work is authorized until a new handoff defines that milestone.
 
-## Phase 18 correction
+## PlayWorld Studio 0.1.0 stable release
 
-The original Phase 18 artifact contained an invalid `09-about-version-1280x720.png`: it showed Home rather than the required About/version surface. The old automation proved that a PNG existed, but did not prove that the real About action rendered the expected interface.
+Phase 18 establishes the first stable Windows productization boundary:
 
-The corrective branch:
+- portable package: `PlayWorld-Studio-0.1.0-Windows-x64.zip`;
+- installer: `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`;
+- Windows x86_64;
+- bundled Godot 4.7.1 exporter and Windows export templates;
+- deterministic portable ZIP and SHA-256 integrity data;
+- normal Windows install, repair, reinstall, and uninstall lifecycle;
+- per-user projects, preferences, Asset Library state, recovery data, and support data outside the application directory;
+- real `0.1.0-rc.1 → 0.1.0` migration verification using the exact Phase 17 RC artifact;
+- checkpoint-based project recovery and malformed-preference recovery backups;
+- bounded Support & Recovery diagnostics;
+- packaged creator → standalone Windows game export and launch;
+- packaged controller, accessibility, focus, and visual acceptance.
 
-- promotes the Home overlay to the topmost Home surface;
-- uses a correctly typed About item collection;
-- renders a visible PlayWorld Studio `0.1.0` identity card;
-- activates the real About button during packaged QA;
-- requires exact title, version, channel, platform, Godot version, source identity, overlay coverage, and label renderability before capture;
-- retains all existing release, lifecycle, controller, accessibility, export, upgrade, uninstall, and support checks.
+Final Phase 18 verification ran on the exact corrective source in workflow `31699466148`. Both `source-regressions` and `windows-stable-release` passed. The final artifact is `9180943528`; all eleven packaged screenshots were manually inspected, including a corrected About/version capture that visibly proves PlayWorld Studio `0.1.0`, stable, Windows x64, Godot 4.7.1, and source identity.
 
-Phase 18 is finally accepted only after the exact corrective head is green, new release artifacts and checksums are verified, all eleven screenshots are manually inspected, and the corrective PR remains unmerged until explicit user authorization.
-
-## PlayWorld Studio 0.1.0 target
-
-- `PlayWorld-Studio-0.1.0-Windows-x64.zip`
-- `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`
-- Windows x86_64
-- Godot 4.7.1 exporter and Windows export templates
-- deterministic portable ZIP and SHA-256 integrity data
-- normal Windows install/uninstall path
-- per-user projects, preferences, Asset Library state, recovery data, and support data outside the application directory
-- real `0.1.0-rc.1 → 0.1.0` migration verification using the exact Phase 17 RC artifact
-- packaged creator → standalone Windows game export and launch
-- packaged controller/accessibility and visual acceptance
+Detailed release evidence is recorded in `docs/qa/PHASE18_QA.md` and the merged PR #24 discussion.
 
 ## Core promise
 
