@@ -198,7 +198,22 @@ func drop_selection_to_ground(ground_y: float = 0.0) -> Dictionary:
     var primary_node := _bridge.get_entity_node(primary_id) as Node3D
     var minimum_y: float = _runtime_min_y(primary_node, current.y)
     var target := Vector3(current.x, current.y + (surface_y - minimum_y), current.z)
-    return move_selection_to(target)
+    var delta := target - current
+    var updates: Dictionary = {}
+    for entity_id in _selection.get_selected_ids():
+        var selected_record: Dictionary = _find_record(entity_id)
+        if selected_record.is_empty(): return _failure("Selected entity no longer exists in the project.")
+        var transform_data: Dictionary = selected_record.get("transform", {}).duplicate(true)
+        var position_value: Vector3 = _vector3(transform_data.get("position", [0.0, 0.0, 0.0])) + delta
+        var rotation_value: Vector3 = _vector3(transform_data.get("rotation_degrees", [0.0, 0.0, 0.0]))
+        var scale_value: Vector3 = _vector3(transform_data.get("scale", [1.0, 1.0, 1.0]))
+        var cell_id: String = str(selected_record.get("cell_id", ""))
+        var resolved_cell: String = _resolve_cell_id(position_value)
+        if not resolved_cell.is_empty(): cell_id = resolved_cell
+        updates[entity_id] = {"transform": _transform_dict(position_value, rotation_value, scale_value), "cell_id": cell_id}
+    var result: Dictionary = _history.execute_command(SetTransformsCommand.new(_project, updates), "Drop selection to ground")
+    if not result.get("ok", false): return _history_failure(result)
+    return _finish_mutation(true)
 
 func snap_selection_to_surface(hit_position: Vector3, hit_normal: Vector3) -> Dictionary:
     if not _selection.has_selection(): return _failure("Surface snapping requires a selection.")
