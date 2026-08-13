@@ -43,6 +43,15 @@ def run(command: list[str]) -> None:
         raise SystemExit("Godot emitted strict errors during creator release build.")
 
 
+def mark_generated_outputs_ignored() -> None:
+    artifact_root = ROOT / "artifacts"
+    artifact_root.mkdir(parents=True, exist_ok=True)
+    (artifact_root / ".gdignore").write_text(
+        "# Generated release/test outputs are not project source.\n",
+        encoding="utf-8",
+    )
+
+
 def copy_docs(package_dir: Path) -> None:
     target = package_dir / "docs"
     target.mkdir(parents=True, exist_ok=True)
@@ -153,6 +162,7 @@ def main() -> int:
     product = json.loads(PRODUCT_PATH.read_text(encoding="utf-8"))
     version = product["version"]
     package_name = f"{product['package_prefix']}-{version}-Windows-x64"
+    mark_generated_outputs_ignored()
     output_root = (ROOT / args.output_root).resolve(); package_dir = output_root / package_name
     if output_root.exists(): shutil.rmtree(output_root)
     package_dir.mkdir(parents=True)
