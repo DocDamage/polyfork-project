@@ -1,9 +1,12 @@
 ; Engine configuration file.
-; Starter scaffold for PlayWorld Studio.
+; PlayWorld Studio release candidate configuration.
 config_version=5
 
 [application]
 config/name="PlayWorld Studio"
+config/description="Create, author, play, and export interactive 3D worlds."
+config/version="0.1.0-rc.1"
+config/icon="res://assets/branding/playworld-studio-icon.svg"
 run/main_scene="res://src/main/Main.tscn"
 
 [autoload]
@@ -12,6 +15,8 @@ ScalePolish="*res://src/scale/scale_polish_service.gd"
 ExportWorkspace="*res://src/app/workspace/export_workspace_layer.gd"
 NetworkRuntime="*res://src/network/network_runtime_service.gd"
 MultiplayerWorkspace="*res://src/app/workspace/multiplayer_workspace_layer.gd"
+ReleaseVerification="*res://src/release/release_verification.gd"
+ReleaseAcceptance="*res://src/release/release_acceptance.gd"
 
 [display]
 window/size/viewport_width=1600
@@ -19,3 +24,21 @@ window/size/viewport_height=900
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
+
+[input]
+
+ui_accept={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":32,"physical_keycode":0,"key_label":0,"unicode":32,"location":0,"echo":false,"script":null)
+, Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194309,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+, Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":0,"pressure":0.0,"pressed":false,"script":null)
+]
+}
+
+[playworld]
+product/company_name="PlayWorld Studio"
+release/channel="rc"
+release/source_commit="37d311b90f0684668a49e7f3b8ab197e6abcbe3a"
+release/godot_version="4.7.1"
+release/architecture="x86_64"
+release/package_prefix="PlayWorld-Studio"

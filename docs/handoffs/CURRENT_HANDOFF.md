@@ -1,90 +1,153 @@
-# POLYFORK PROJECT — PHASE 16 COMPLETION PR HANDOFF
+# POLYFORK PROJECT — PHASE 17 COMPLETION PR HANDOFF
 
 Repository: `https://github.com/DocDamage/polyfork-project`
 
 Use the GitHub connector for repository work.
 
 ## AUTHORITATIVE BRANCH
-The real project lives on `master`.
+
+The repository default branch and authoritative integrated line is:
+
+`master`
 
 Current authoritative `master`:
 
-`b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
+`37d311b90f0684668a49e7f3b8ab197e6abcbe3a`
 
-This is the verified signed GitHub merge commit for **PR #20 — Phase 15 — Multiplayer Foundations and Collaboration Roadmap**.
+This is the verified signed GitHub merge commit for **PR #21 — Phase 16 — Inherited Product Completeness and Integration Closure**.
 
-The repository default branch `main` remains obsolete starter code. **Never develop from `main`.**
+The historical `main` branch contains obsolete starter code. Never develop from `main`.
 
-## IMPORTANT COMPLETENESS CORRECTION
-Phases 0 through 15 are historically merged, but the Phase 16 direct source/runtime audit proved that several earlier milestone claims were not fully integrated in the actual product. Do not use merge labels or documentation alone as proof of functional completeness.
+Phases **0 through 16 are complete and merged**.
 
-Phase 16 was therefore redirected from release packaging to **Inherited Product Completeness and Integration Closure**.
+## PHASE 17 — RELEASE CANDIDATE AND DISTRIBUTION
 
-## PHASE 16 BRANCH
 Milestone branch:
 
-`dev/phase16-milestone`
+`dev/phase17-milestone`
 
 Authoritative base:
 
-`b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
+`37d311b90f0684668a49e7f3b8ab197e6abcbe3a`
 
-Verified implementation/evidence head:
+Verified implementation/release-evidence head:
 
-`bfdef3e5cb1699268cc23be5c9f4c9b4a9631f93`
+`8f46b4cddd62efc5502033b3a9c0259bb740ec26`
 
-## PHASE 16 — IMPLEMENTATION COMPLETE / BRANCH VERIFIED
-Phase 16 repaired the actual creator-facing and cross-phase gaps found by repository scanning rather than relying on prior closeout claims.
+Product version:
 
-### Delivered
-- working Home My Worlds / Templates / Asset Library creator routes;
-- New World biome selection persisted and applied through terrain;
-- universal user-scoped Asset Library shared across worlds, with legacy source migration;
-- real asset-derived thumbnail depiction with explicit fallback state;
-- richer GLTF/GLB analysis and deterministic offline semantic-style ranking;
-- free-fly/orbit authoring camera, marquee selection, and visible transform gizmo;
-- real mesh vertex snapping and surface-normal orientation;
-- Phase 6 authored socket-transform snapping;
-- exact terrain/geometry-aware command-backed Drop-to-Ground while preserving ordinary XYZ grid snapping;
-- RPG/Survival/Driving starter templates promoted to implemented Phase 10 gameplay modules;
-- real transactional Environment water providers (`basic_plane` and imported `PackedScene`);
-- focused cross-phase contracts, shared-library coverage, inherited regressions, visual evidence, and Windows/export/multiplayer evidence.
+`PlayWorld Studio 0.1.0-rc.1`
 
-## VERIFIED BRANCH GATES
-All required repository-owned Phase 16 gates passed on the implementation/evidence head:
+Windows package:
 
-- Phase 16 Contracts — `31653938946` — PASS
-- Phase 16 Shared Asset Library — `31653938953` — PASS
-- Godot Smoke — `31653938984` — PASS
-- Phase 16 Visual Evidence — `31653938948` — PASS
-- Phase 16 Inherited Regressions — `31653938981` — PASS
-- Phase 16 Windows Export — `31653938952` — PASS
+`PlayWorld-Studio-0.1.0-rc.1-Windows-x64.zip`
 
-The Windows gate includes Phase 16 clean-package verification, inherited Phase 14 Small/Medium/Large exports, inherited Phase 15 multiplayer/offline package build, and a real concurrent exported host/client connection with ownership/input assertions.
+## VERIFIED FINAL RELEASE EVIDENCE
 
-## DEVELOPMENT STYLE
-Phase 16 was executed as one long milestone. Internal checkpoints were not PR boundaries. The next boundary is one completion PR to `master`.
+Full Phase 17 release workflow:
 
-## ARCHITECTURAL GUARDS RETAINED
-- existing `PlaySession` reused;
-- command / Undo / Redo mutation ownership retained;
-- stable authored IDs retained;
-- gameplay event bus and Visual Scripting reused;
-- Asset Library and save/export contracts reused;
-- external asset sources remain read-only;
-- multiplayer remains opt-in;
-- runtime replication remains separate from collaborative authoring;
-- no duplicate/fake parallel editor/runtime introduced.
+`31668662576` — **PASS**
 
-## UI / UX GUARD
-Preserve the canonical Polyfork visual language: dark, playful but professional, approximately 70/30 Nintendo/Apple influence, large cards by default with denser alternatives where appropriate, minimal hidden menus, context-sensitive tool colors, controller-first usability with keyboard/mouse parity, strong focus states, and adaptive layouts.
+Both required jobs passed:
 
-Do not regress to a generic dark-slate developer-tool interface.
+- `source-regressions` — PASS
+- `windows-release` — PASS
+
+The Windows release job proved:
+
+- Phase 17 release contracts;
+- inherited Phase 16 Windows export closure;
+- inherited Phase 14 Small/Medium/Large Windows exports;
+- inherited Phase 15 offline/multiplayer Windows exports;
+- concurrent exported multiplayer host/client runtime;
+- deterministic PlayWorld Studio creator-package construction;
+- independent second package build with byte-for-byte identical ZIP output;
+- package integrity, SHA-256, manifest, included-file, forbidden-development-material, and credential-like-material scanning;
+- clean packaged creator first launch;
+- real project create/open/edit/save workflow;
+- Instant Play and return to Build;
+- real shared Asset Library GLTF source/indexing behavior;
+- packaged creator → standalone Windows game export → exported game launch;
+- restart/reopen persistence;
+- independent replacement-build upgrade persistence;
+- read-only-style installation with writable per-user data separation;
+- packaged visual evidence generation;
+- packaged UI/controller/accessibility/major-screen acceptance.
+
+Required packaged acceptance marker is present in the final evidence log:
+
+`PASS: Phase 17 packaged creator UI, controller, accessibility, and major-screen acceptance completed.`
+
+The physical gamepad A button is explicitly mapped to semantic `ui_accept` in the packaged creator InputMap; the acceptance assertion was retained unchanged.
+
+Final release artifact:
+
+- artifact ID: `9169011730`
+- artifact name: `phase17-release-candidate`
+- artifact SHA-256 digest: `18b36d3d43288c322ae35fc215ce6a3a7cada2226192ecaaf46d880a5d2d588b`
+
+RC ZIP SHA-256:
+
+`0911cc136b3deaf689b7959359ec9c45bee2f10255c7af573c9855ea0bbcdfa3`
+
+The release manifest identifies source commit `8f46b4cddd62efc5502033b3a9c0259bb740ec26`, authoritative base `37d311b90f0684668a49e7f3b8ab197e6abcbe3a`, Windows x86_64, and Godot `4.7.1.stable.official.a13da4feb`.
+
+## VISUAL EVIDENCE REVIEW
+
+The final artifact's packaged acceptance screenshots were downloaded and visually inspected, not merely checked for existence:
+
+- Home — 1600×900: coherent large-card layout, visible Continue/My Worlds/Templates/Asset Library routes;
+- Home — 1280×720: coherent full layout with focus state visible;
+- compact Home: responsive vertical stacking with lower cards continuing below the viewport and no control overlap;
+- Asset Library: source card, path, Add Folder/Scan controls, and indexed-source status render cleanly;
+- New World: Small/Medium/Large, biome, template, and Create World controls render cleanly;
+- Build workspace: toolbar, Build/Play switch, tool palette, viewport, and bottom creation categories render cleanly;
+- Instant Play: Play state and playable runtime viewport render correctly;
+- Export: Windows x86_64 export panel renders cleanly over the Build workspace.
+
+No GLTF default-scene fixture warning remains in the final release logs.
+
+The hosted Windows runner emits the expected OpenGL 3.3/ANGLE fallback warning and reports Microsoft's Basic Render Driver. This is runner-specific rendering infrastructure and is not classified as a PlayWorld Studio product defect.
+
+## PHASE 17 DELIVERED
+
+- formal product/version identity and About/version UI;
+- dedicated Windows x64 creator export preset and branded executable metadata/icon;
+- deterministic Windows ZIP packaging;
+- release manifest, SHA-256 checksums, third-party notices, release/user documentation;
+- creator-package credential/private-development-material scan;
+- bundled Godot executable and Windows export templates;
+- bundled standalone-game runtime source closure;
+- packaged creator support for standalone Windows game export;
+- explicit missing-exporter/template failure handling;
+- malformed preference recovery and per-user data/install separation;
+- first-run, restart/reopen, upgrade/replacement-package, and read-only-style install verification;
+- packaged visual evidence and controller/accessibility acceptance;
+- dedicated Phase 17 release CI plus inherited export/scale/multiplayer regressions;
+- generated `artifacts/` isolation via `.gdignore`;
+- explicit gamepad A → `ui_accept` mapping;
+- valid default scene in the Phase 17 GLTF fixture.
 
 ## SECURITY NOTE
-Historical `.polyforkAPI` credential material remains present in Git history and must be treated as exposed. Do not print, copy, restore, or reuse it. Rotation/revocation is a separate external action.
 
-## NEXT AUTHORIZED WORK
-Open/review the single Phase 16 completion PR from `dev/phase16-milestone` to authoritative `master`, verify its PR-triggered repository-owned checks, and do **not** merge without explicit user authorization.
+Historical `.polyforkAPI` credential material in Git history must be considered exposed. Never print, recover, test, reuse, or distribute it.
 
-Do **not** begin creator-application release packaging or another implementation phase until Phase 16 is merged and authoritative `master` is reconciled.
+The final package scan proves the RC package does not contain the legacy marker, OpenAI-style credential pattern, `.env` files, tests, `.github`, downloads, or `.git` development material.
+
+External revocation/rotation of any historically exposed credential remains required unless it has already been completed outside the repository. There is no repository evidence proving that external action occurred, so do not claim it has.
+
+## COMPLETION BOUNDARY
+
+Phase 17 implementation and release verification are complete on `dev/phase17-milestone`.
+
+Open exactly one completion PR:
+
+**`Phase 17 — Release Candidate and Distribution`**
+
+Base: `master`
+
+Head: `dev/phase17-milestone`
+
+Leave the PR **unmerged** until the user explicitly authorizes merge.
+
+No Phase 18 development is authorized. After Phase 17 is merged, a new handoff must explicitly define the next milestone before implementation continues.

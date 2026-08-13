@@ -3,7 +3,7 @@
 You are implementing PlayWorld Studio, a Godot 4.7.x runtime game-creation platform.
 
 ## Branch authority
-The real project lives on `master`. The repository default branch `main` is obsolete starter code. Never start implementation from `main`.
+The repository default branch and real project source of truth is `master`. The historical `main` branch contains obsolete starter code. Never start implementation from `main`.
 
 Before creating or switching a development branch, read `docs/handoffs/CURRENT_HANDOFF.md` and verify the authoritative `master` SHA recorded there against GitHub.
 

@@ -4,7 +4,7 @@
 Keep implementation grounded, verifiable, resumable across threads, and efficient enough to make meaningful progress before review gates.
 
 ## Repository authority
-The real project lives on `master`. Repository default branch `main` is obsolete starter code and must not be used as a development base. Before branching, compare the live `master` SHA with `docs/handoffs/CURRENT_HANDOFF.md`.
+The repository default branch and real project source of truth is `master`. The historical `main` branch contains obsolete starter code and must not be used as a development base. Before branching, compare the live `master` SHA with `docs/handoffs/CURRENT_HANDOFF.md`.
 
 ## Milestone workflow
 A **task** is an implementation checkpoint such as `P03-T04`. A **milestone** is the larger authorized delivery range that may contain several consecutive tasks, usually a complete implementation phase or an explicitly grouped subset of one.
@@ -13,7 +13,7 @@ Pull requests are milestone gates, not task gates. Internal task boundaries rema
 
 ## Rules
 1. Read `README.md`, `docs/PRODUCT_REQUIREMENTS.md`, `docs/implementation/MASTER_IMPLEMENTATION_PLAN.md`, and `docs/handoffs/CURRENT_HANDOFF.md` before modifying code.
-2. Verify authoritative `master` and never silently substitute repository default `main`.
+2. Verify the live repository default/authoritative `master` branch and never substitute historical `main`.
 3. Implement only the milestone or task range explicitly authorized by `CURRENT_HANDOFF.md`. The handoff may authorize multiple consecutive task IDs when they belong to one milestone.
 4. Work continuously through the authorized milestone on one focused branch. Do not stop merely because an internal task ID is complete.
 5. Commit at sensible internal checkpoints and run real verification throughout the milestone. Intermediate CI failures are evidence to investigate, not a reason to weaken tests or prematurely open a PR.

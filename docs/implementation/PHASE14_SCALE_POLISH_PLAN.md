@@ -11,9 +11,9 @@ Authoritative base remains:
 
 `master` at `cbf5afa2427b3dc3aa9ebb9f27597045b8a148f0`
 
-That base is the verified signed merge commit for PR #18 — Phase 13 — Export Pipeline. The obsolete repository default branch `main` was not used.
+That base is the verified signed merge commit for PR #18 — Phase 13 — Export Pipeline. The historical `main` branch, now obsolete starter code, was not used.
 
-Phase 14 completion PR **#19** is open from `dev/phase14-scale-polish-milestone` to authoritative `master`. It is not merged and must not be merged without explicit user authorization.
+Phase 14 completion PR **#19** was subsequently merged into authoritative `master` and is retained here as historical milestone evidence.
 
 ## Milestone invariant — PRESERVED
 Phase 14 hardened the existing product instead of replacing working systems with parallel architectures.
@@ -149,7 +149,7 @@ Each clean package reused the Phase 7 third-person controller path and verified 
 
 No intentional performance-budget exceptions remain open at Phase 14 closeout.
 
-## P14-T10 — Milestone closeout — COMPLETE — PR #19 OPEN
+## P14-T10 — Milestone closeout — COMPLETE
 Completed:
 1. Phase 14 benchmark/performance gates — PASS;
 2. accessibility/controller/adaptive-layout suites — PASS;
@@ -160,6 +160,6 @@ Completed:
 7. Phase 13 Windows export path after Phase 14 changes — PASS with Low/Balanced/High clean-package launches;
 8. accepted performance exceptions — none;
 9. implementation plan, backlog, and current handoff moved to Phase 14 closeout state;
-10. single Phase 14 completion PR **#19** opened from the milestone branch to authoritative `master`.
+10. single Phase 14 completion PR **#19** opened from the milestone branch to authoritative `master` and was subsequently merged.
 
-PR #19 is open and awaiting explicit user merge authorization. Do not merge it without that authorization. Do not begin Phase 15 until PR #19 is explicitly merged and the resulting authoritative `master` SHA is verified.
+This file is historical Phase 14 evidence. Current authorization and branch state are governed by `docs/handoffs/CURRENT_HANDOFF.md`.

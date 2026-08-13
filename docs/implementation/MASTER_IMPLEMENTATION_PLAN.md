@@ -1,91 +1,97 @@
 # Master Implementation Plan
 
 ## Authoritative state
-- The real project lives on `master`; repository default branch `main` is obsolete starter code and must not be used for development.
-- Authoritative `master`: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`, the verified signed GitHub merge commit for PR #20 / Phase 15.
-- Phases 0 through 15 are historically merged, but the Phase 16 source audit proved that several earlier milestone claims were not fully integrated in the actual product.
-- Phase 16 therefore became **Inherited Product Completeness and Integration Closure**, not release packaging.
-- Phase 16 milestone branch: `dev/phase16-milestone`.
-- Verified Phase 16 implementation/evidence head: `bfdef3e5cb1699268cc23be5c9f4c9b4a9631f93`.
 
-Historical `.polyforkAPI` credential material remains exposed in Git history and must be rotated/revoked separately. Never print, restore, copy, or reuse it.
+- Repository default branch and authoritative integrated line: `master`.
+- Current authoritative `master`: `37d311b90f0684668a49e7f3b8ab197e6abcbe3a`, verified signed merge commit for PR #21 / Phase 16.
+- Historical `main` contains obsolete starter code and is not a development base.
+- Phases 0 through 16 are complete and merged.
+- Phase 17 is implementation-complete and release-verified on `dev/phase17-milestone`, pending its single completion PR to `master`.
+- Verified Phase 17 implementation/evidence head: `8f46b4cddd62efc5502033b3a9c0259bb740ec26`.
+- Full Phase 17 release workflow `31668662576`: source and Windows jobs PASS.
+- Final evidence artifact: `9169011730` / `phase17-release-candidate`.
+- RC ZIP SHA-256: `0911cc136b3deaf689b7959359ec9c45bee2f10255c7af573c9855ea0bbcdfa3`.
 
-## Phases 0–15 — HISTORICALLY MERGED
-The repository includes the application shell, world/save foundation, placement editor, Asset Library, terrain/streaming, components/archetypes/prefabs/sockets, Instant Play/templates, Visual Scripting, foliage/procedural/splines, gameplay framework, Environment, AI Creation, project export, scale/polish, and multiplayer foundations.
+Historical `.polyforkAPI` credential material remains exposed in Git history and must be rotated/revoked separately unless that external action has already been independently completed. Never print, restore, test, copy, or reuse it.
 
-Phase 16 does **not** treat those merge labels as proof of implementation completeness. The Phase 16 audit inspected and tested actual source/runtime paths and repaired the verified gaps.
+## Completed phases
 
-## Phase 16 — Inherited Product Completeness and Integration Closure — BRANCH VERIFIED
+- Phase 0 — Repository and Contracts
+- Phase 1 — Application Shell and Canonical UI
+- Phase 2 — World Project / Save Foundation
+- Phase 3 — Runtime Placement Editor
+- Phase 4 — Universal Asset Library
+- Phase 5 — Terrain + Streaming
+- Phase 6 — Components, Archetypes, Prefabs, Sockets
+- Phase 7 — Instant Play + Templates
+- Phase 8 — Visual Scripting
+- Phase 9 — Foliage / Procedural / Splines
+- Phase 10 — Gameplay Framework Breadth
+- Phase 11 — Environment
+- Phase 12 — AI Creation
+- Phase 13 — Export Pipeline
+- Phase 14 — Scale and Polish
+- Phase 15 — Multiplayer Foundations and Collaboration Roadmap
+- Phase 16 — Inherited Product Completeness and Integration Closure
 
-### Why this milestone replaced release packaging
-A direct repository/source audit found concrete implementation gaps that canonical documentation had overstated or missed. Shipping/release packaging before closing those gaps would have packaged an incomplete creator.
+## Phase 17 — Release Candidate and Distribution — VERIFIED
 
-### P16-T01 — Application creator routes and world creation — COMPLETE
-- My Worlds, Templates, and Asset Library Home actions open real creator surfaces.
-- My Worlds uses the real project repository/open path.
-- Templates uses the real template registry and New World selection path.
-- New World exposes and persists biome presets.
-- Initial terrain consumes the persisted biome selection.
+Target release: `PlayWorld Studio 0.1.0-rc.1`
 
-### P16-T02 — Universal Asset Library closure — COMPLETE
-- real application path uses a user-scoped universal managed catalog;
-- legacy per-project source registrations migrate to the shared catalog;
-- semantic local ranking added;
-- GLTF/GLB inspection deepened;
-- placeholder hash thumbnails replaced by actual mesh-derived depiction with explicit fallback state;
-- cross-project stable identity/source sharing is executable-tested.
+Target package: `PlayWorld-Studio-0.1.0-rc.1-Windows-x64.zip`
 
-### P16-T03 — Runtime placement editor closure — COMPLETE
-- free-fly and orbit authoring cameras;
-- drag marquee selection;
-- visible transform-axis gizmo;
-- real mesh vertex snapping;
-- hit-normal orientation;
-- authored Phase 6 socket-transform snapping;
-- terrain/geometry-aware exact Drop-to-Ground;
-- inherited XYZ grid-snapping contract retained for ordinary movement.
+### P17-T01 — Product/version identity — COMPLETE
+Formal creator product identity, release channel/version, icon, branded Windows metadata, and About/version UI are implemented and contract-tested.
 
-### P16-T04 — Template/gameplay integration closure — COMPLETE
-- RPG consumes Phase 10 inventory/narrative runtime modules;
-- Survival consumes Phase 10 inventory/health modules;
-- Driving consumes the Phase 10 vehicle module;
-- implemented runtime is no longer mislabeled as planned future functionality.
+### P17-T02 — Windows creator export preset — COMPLETE
+A dedicated Windows x64 creator preset builds the PlayWorld Studio application itself.
 
-### P16-T05 — Environment water integration closure — COMPLETE
-- real water-provider registry;
-- project-owned basic water plane provider;
-- imported PackedScene provider;
-- transactional provider replacement and explicit non-destructive failure.
+### P17-T03 — Deterministic release package — COMPLETE
+Release construction produces the portable creator ZIP deterministically. Run `31668662576` independently rebuilt the package and proved byte-for-byte identical ZIP output.
 
-### P16-T06 — Focused verification — VERIFIED
-- Phase 16 Contracts — `31653938946` — PASS;
-- Phase 16 Shared Asset Library — `31653938953` — PASS;
-- Godot Smoke — `31653938984` — PASS.
+### P17-T04 — Release manifest/checksums/notices — COMPLETE
+The package contains schema-v1 release identity, included-file hashes/sizes, `SHA256SUMS.txt`, ZIP SHA-256 sidecar, third-party notices, and release/user documentation.
 
-### P16-T07 — Inherited regression verification — VERIFIED
-- Phase 16 Inherited Regressions — `31653938981` — PASS.
-- The matrix executes discoverable Phase 4–15 suites, with Phase 4/5 independently covered by Godot Smoke where no standalone phase runner exists.
-- The stale Phase 11 metadata-only water fixture was promoted to the real `basic_plane` provider rather than weakening provider validation.
+### P17-T05 — Clean Windows installation verification — COMPLETE
+The packaged executable launches against a clean user-data root and successfully creates/edits/saves a real project.
 
-### P16-T08 — Windows/export evidence — VERIFIED
-- Phase 16 Windows Export — `31653938952` — PASS.
-- Verified Environment water-provider dependency closure and clean package launch.
-- Re-ran inherited Phase 14 Small/Medium/Large profiled Windows exports.
-- Rebuilt inherited Phase 15 multiplayer/offline packages and launched the exported host/client concurrently with ownership/input assertions.
+### P17-T06 — Core creator workflow smoke — COMPLETE
+Packaged Home/New World/workspace, real placement/editing, Asset Library indexing, Instant Play, Build return, save/reopen, and major creator surfaces are runtime-verified.
 
-### P16-T09 — Visual evidence — VERIFIED
-- Phase 16 Visual Evidence — `31653938948` — PASS.
-- Captures actual running-app full/compact evidence for repaired Home creator routes, universal Asset Library, biome selection, and workspace authoring/gizmo state.
+### P17-T07 — Standalone export from packaged creator — COMPLETE
+The distributed creator carries its required Godot exporter, Windows templates, and raw runtime source closure. The packaged creator exports a standalone Windows game and the exported game launches to the Phase 13 runtime marker. Missing exporter/template conditions fail explicitly.
 
-### P16-T10 — Documentation and completion PR — READY
-Canonical QA/implementation/handoff/backlog documentation now reflects the source-verified milestone. The only remaining milestone-boundary action is one completion PR from `dev/phase16-milestone` to authoritative `master`, followed by review of the PR-triggered checks.
+### P17-T08 — Upgrade and data safety — COMPLETE
+Per-user project/library/preferences paths remain outside the installation directory. Malformed preferences fall back safely. Restart/reopen, independent replacement-package upgrade, and read-only-style install verification pass.
 
-Do not merge the completion PR without explicit user authorization.
+### P17-T09 — Release UX and visual acceptance — COMPLETE
+Packaged Home 1600×900/1280×720/compact, Asset Library, New World, Build workspace, Instant Play, and Export screenshots were captured and visually inspected. Controller/focus/accessibility acceptance passes, including physical gamepad A → semantic `ui_accept`.
 
-## Deferred after Phase 16
-Creator-application release packaging/distribution remains a future milestone and is not authorized until the Phase 16 completion PR is merged and authoritative `master` is reconciled. Also still outside the current major-release scope: production matchmaking/relay/auth/voice/anti-cheat/rollback/dedicated-server fleets, production real-time collaborative mutation, cloud marketplace infrastructure, and arbitrary FBX repair.
+### P17-T10 — Supply-chain and secret validation — COMPLETE
+Package validation checks required tooling/runtime files, manifest hashes/sizes, SHA-256 sums, forbidden development paths/files, legacy `.polyforkAPI` marker material, and OpenAI-style credential patterns. The final package validation passes.
+
+### P17-T11 — Regression and release automation — COMPLETE
+Dedicated `.github/workflows/phase17-release.yml` runs source contracts, inherited Phase 4–16 regressions, Phase 14 Windows profiles, Phase 15 exported multiplayer, deterministic packaging, packaged creator runtime verification, visual capture, acceptance, and bounded evidence upload.
+
+### P17-T12 — Release documentation and handoff — COMPLETE
+Release guides/notices and canonical README/plan/backlog/QA/handoff state are reconciled to the final verified release evidence.
+
+## Final Phase 17 evidence
+
+Workflow `31668662576` passed both `source-regressions` and `windows-release`. The required packaged acceptance log contains:
+
+`PASS: Phase 17 packaged creator UI, controller, accessibility, and major-screen acceptance completed.`
+
+Artifact `9169011730` contains the RC ZIP/checksum/manifest, release logs, and packaged visual evidence. The repaired GLTF fixture no longer emits the previous default-scene warning. The only visual-run warning observed is the GitHub-hosted Windows ANGLE fallback to Microsoft Basic Render Driver.
+
+## Completion boundary
+
+The next milestone action is exactly one Phase 17 completion PR from `dev/phase17-milestone` to `master`. Do not merge it without explicit user authorization.
+
+Phase 18 is undefined and unauthorized until Phase 17 is merged and a new handoff explicitly defines the next milestone.
 
 ## Architectural invariants retained
+
 - existing `PlaySession` remains the disposable Build/Play boundary;
 - authored mutation remains command/transaction owned with Undo/Redo;
 - stable authored IDs remain authoritative;
@@ -93,4 +99,5 @@ Creator-application release packaging/distribution remains a future milestone an
 - gameplay event/Visual Scripting boundaries are reused;
 - project export architecture is reused;
 - multiplayer remains opt-in and transient;
+- gameplay replication remains separate from collaborative authoring;
 - no fake parallel editor/runtime was introduced.
