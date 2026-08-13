@@ -142,14 +142,14 @@ jobs:
           $clientLog = Join-Path $env:GITHUB_WORKSPACE 'phase18-client.log'
           $hostEnv = @{ POLYFORK_MULTIPLAYER_ROLE='host'; POLYFORK_MULTIPLAYER_PORT="$port"; POLYFORK_MULTIPLAYER_PLAYER='Host'; POLYFORK_MULTIPLAYER_EXPECTED_PEERS='2'; POLYFORK_MULTIPLAYER_SMOKE='1' }
           $clientEnv = @{ POLYFORK_MULTIPLAYER_ROLE='client'; POLYFORK_MULTIPLAYER_ADDRESS='127.0.0.1'; POLYFORK_MULTIPLAYER_PORT="$port"; POLYFORK_MULTIPLAYER_PLAYER='Client'; POLYFORK_MULTIPLAYER_EXPECTED_PEERS='2'; POLYFORK_MULTIPLAYER_SMOKE='1' }
-          $host = Start-Process -FilePath $exe -ArgumentList '--headless' -PassThru -WindowStyle Hidden -RedirectStandardOutput $hostLog -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'host.err') -Environment $hostEnv
+          $hostProcess = Start-Process -FilePath $exe -ArgumentList '--headless' -PassThru -WindowStyle Hidden -RedirectStandardOutput $hostLog -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'host.err') -Environment $hostEnv
           Start-Sleep -Seconds 1
-          $client = Start-Process -FilePath $exe -ArgumentList '--headless' -PassThru -WindowStyle Hidden -RedirectStandardOutput $clientLog -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'client.err') -Environment $clientEnv
+          $clientProcess = Start-Process -FilePath $exe -ArgumentList '--headless' -PassThru -WindowStyle Hidden -RedirectStandardOutput $clientLog -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'client.err') -Environment $clientEnv
           $deadline = (Get-Date).AddSeconds(45)
-          while ((!$host.HasExited -or !$client.HasExited) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $host.Refresh(); $client.Refresh() }
-          if (!$host.HasExited) { Stop-Process -Id $host.Id -Force; throw 'Exported host timed out.' }
-          if (!$client.HasExited) { Stop-Process -Id $client.Id -Force; throw 'Exported client timed out.' }
-          if ($host.ExitCode -ne 0 -or $client.ExitCode -ne 0) { throw 'Exported multiplayer process failed.' }
+          while ((!$hostProcess.HasExited -or !$clientProcess.HasExited) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250; $hostProcess.Refresh(); $clientProcess.Refresh() }
+          if (!$hostProcess.HasExited) { Stop-Process -Id $hostProcess.Id -Force; throw 'Exported host timed out.' }
+          if (!$clientProcess.HasExited) { Stop-Process -Id $clientProcess.Id -Force; throw 'Exported client timed out.' }
+          if ($hostProcess.ExitCode -ne 0 -or $clientProcess.ExitCode -ne 0) { throw 'Exported multiplayer process failed.' }
           foreach ($entry in @(@('host',$hostLog),@('client',$clientLog))) {
             $text = Get-Content $entry[1] -Raw
             if ($text -notmatch "PASS: Phase 15 standalone multiplayer $($entry[0]) connected") { throw "$($entry[0]) completion marker missing." }
@@ -182,7 +182,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          gh api "repos/${{ github.repository }}/actions/artifacts/$env:RC_ARTIFACT_ID/zip" > phase17-artifact.zip
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json'; 'X-GitHub-Api-Version' = '2022-11-28' }
+          $artifactUri = "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$env:RC_ARTIFACT_ID/zip"
+          Invoke-WebRequest -Headers $headers -Uri $artifactUri -OutFile phase17-artifact.zip
           Expand-Archive phase17-artifact.zip -DestinationPath phase17-artifact
           $rcZip = Get-ChildItem phase17-artifact -Recurse -Filter 'PlayWorld-Studio-0.1.0-rc.1-Windows-x64.zip' | Select-Object -First 1
           if (-not $rcZip) { throw 'Exact Phase 17 RC package ZIP was not found in artifact 9169222546.' }
