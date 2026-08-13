@@ -6,7 +6,7 @@ const TEXT_EXTENSIONS: Array[String] = ["gd", "tscn", "tres", "gdshader", "cfg",
 const GENERATED_RUNTIME_PATHS: Array[String] = ["export_manifest.json"]
 const GENERATED_RUNTIME_PREFIXES: Array[String] = ["runtime_data/"]
 
-static func resolve(root_paths: Array[String]) -> Dictionary:
+static func resolve(root_paths: Array[String], source_root: String = "") -> Dictionary:
     var errors: Array[String] = []
     var queued: Array[String] = []
     var seen: Dictionary = {}
@@ -20,7 +20,7 @@ static func resolve(root_paths: Array[String]) -> Dictionary:
     while not queued.is_empty() and errors.is_empty():
         var path: String = queued.pop_front()
         if seen.has(path): continue
-        var resource_path: String = "res://%s" % path
+        var resource_path: String = _source_path(path, source_root)
         if not FileAccess.file_exists(resource_path):
             errors.append("Runtime source dependency is missing: %s" % path)
             continue
@@ -54,6 +54,11 @@ static func _is_generated_runtime_path(path: String) -> bool:
     for prefix in GENERATED_RUNTIME_PREFIXES:
         if path.begins_with(prefix): return true
     return false
+
+static func _source_path(path: String, source_root: String) -> String:
+    var root := source_root.strip_edges()
+    if root.is_empty(): return "res://%s" % path
+    return root.trim_suffix("/").trim_suffix("\\").path_join(path)
 
 static func _normalize(path: String) -> String:
     var value: String = path.strip_edges().replace("\\", "/")
