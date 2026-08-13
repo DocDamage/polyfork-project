@@ -1,33 +1,41 @@
-# Troubleshooting
+# Troubleshooting PlayWorld Studio 0.1.0
 
-## PlayWorld Studio will not start
+## Check the running build
 
-Re-extract the complete ZIP and confirm `PlayWorld Studio.exe` and its `.pck` remain together. Do not move only the EXE out of the package directory.
+Open **About**. Stable builds should show PlayWorld Studio `0.1.0`, stable channel, Windows x64, Godot runtime information and source/build identity.
 
-## Existing projects do not appear
+## Create a support report
 
-Confirm you are using the same Windows user profile. Projects are stored in per-user application data, not beside the executable.
+From Home choose **Support**. The Support & Recovery surface can create `PlayWorld-Support.json` in the per-user support directory. The report is intentionally bounded to product/build/runtime/OS/rendering/GPU/install mode, user-data directory locations, exporter/template availability, schema and Asset Library health. It does not intentionally include project contents or provider credentials.
 
-## Asset Library source is unavailable
+## A project will not open
 
-Restore access to the registered external folder or register its new location. PlayWorld does not silently copy or replace the original source folder.
+Open **Support & Recovery**. Damaged project metadata is listed separately from healthy worlds. If a valid checkpoint exists, choose the recovery action. PlayWorld Studio preserves the damaged canonical metadata before promoting the checkpoint. If no valid checkpoint exists, the UI reports that recovery is unavailable rather than deleting data.
 
-## Windows game export says tooling is missing
+## Settings fail to load
 
-Confirm `tools/godot/godot.exe` exists inside the extracted creator package. If using a custom exporter, verify the configured path or `PLAYWORLD_GODOT_EXPORTER` value points to a readable Godot 4.7.1 executable.
+Malformed preferences fall back to safe defaults and the malformed file is preserved as a recovery backup. Reconfigure preferences after launch if needed.
 
-## Windows game export says templates are missing
+## Asset Library source unavailable
 
-Confirm `tools/export_templates/4.7.1.stable/windows_release_x86_64.exe` exists. Re-extract or reinstall the full creator package if it is missing.
+The registered external folder may have moved, been disconnected, or become inaccessible. Restore the original path/drive or register the correct source folder again. PlayWorld Studio does not move the originals automatically.
 
-## Export fails for an asset dependency
+## Windows export fails
 
-Open Asset Library and verify the referenced source is available and scans successfully. Missing required dependencies are hard failures by design.
+Open Support and check exporter/template availability. The release package must retain `tools/godot/` and `tools/export_templates/4.7.1.stable/`. In portable mode, extract/copy the complete package rather than only `PlayWorld Studio.exe`. In installed mode, run the installer again to repair missing application files.
 
-## AI Creation is unavailable
+## Application directory is not writable
 
-Check provider endpoint/model configuration, privacy scope, cloud consent, and the environment variable named by `credential_env`. Credentials are not stored in provider descriptors.
+Do not redirect projects into the application directory. PlayWorld Studio stores user state in the Windows user profile and is verified against a read-only-style application location. If the executable itself is damaged or incomplete, repair/reinstall the application.
 
-## Preferences are malformed
+## Upgrade from the RC behaves unexpectedly
 
-PlayWorld falls back to safe preference defaults and reports the preference load failure. Correct or remove the malformed per-user preference file; project data is separate.
+Do not delete the per-user PlayWorld Studio directory. Use Support & Recovery to inspect migration state and project health. Migration/recovery backups are kept separately from application files. Repair/reinstall the stable application if bundled components are missing.
+
+## Uninstall did not remove my projects
+
+That is intentional. Phase 18 uninstall removes application files/shortcuts while preserving authored per-user data. Delete user data separately only after making any desired backup.
+
+## Known infrastructure warning
+
+GitHub-hosted Windows visual QA may fall back through ANGLE/Microsoft Basic Render Driver. That hosted-runner condition is not used to suppress unrelated PlayWorld Studio errors.

@@ -1,8 +1,12 @@
 # Version History
 
+## 0.1.0 — Phase 18
+
+First stable Windows productization boundary. Adds stable identity, Windows installer/uninstaller, exact RC→stable migration verification, backup/recovery, bounded diagnostics/support UX, installed lifecycle QA, user-data-preserving uninstall, stable release security scans, and stable visual acceptance around the existing creator/runtime/export architecture.
+
 ## 0.1.0-rc.1 — Phase 17
 
-First PlayWorld Studio Windows release-candidate packaging boundary. Adds creator distribution, bundled export tooling, deterministic release integrity metadata, packaged-app end-to-end verification, and release documentation.
+First packaged PlayWorld Studio Windows release candidate. Added creator distribution, bundled export tooling, deterministic portable release integrity metadata, packaged-app end-to-end verification, creator→standalone-game export/launch, controller/accessibility acceptance, and release documentation.
 
 ## Pre-RC milestones
 
