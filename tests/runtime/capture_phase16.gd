@@ -55,12 +55,13 @@ func _run() -> void:
     workspace.update_placement_preview(Vector3(4.0, 2.0, 4.0))
     var committed: Dictionary = workspace.commit_placement()
     if not committed.get("ok", false): _fail("Could not commit Phase 16 placement: %s" % str(committed.get("errors", []))); return
-    var editor_viewport := workspace.get_node("ViewportFrame/ViewportBackdrop/EditorViewport3D")
-    var session := editor_viewport.get_world_root().get_node_or_null("EditorSession")
+    var editor_viewport: Node = workspace.get_node("ViewportFrame/ViewportBackdrop/EditorViewport3D")
+    var world_root: Node = editor_viewport.call("get_world_root") as Node
+    var session: Node = world_root.get_node_or_null("EditorSession") if world_root != null else null
     if session == null: _fail("Editor session is unavailable for Phase 16 capture."); return
-    session.set_tool(&"move")
-    editor_viewport.set_camera_mode(&"orbit")
-    editor_viewport.focus_selection()
+    session.call("set_tool", &"move")
+    editor_viewport.call("set_camera_mode", &"orbit")
+    editor_viewport.call("focus_selection")
     await _settle(); await _capture("07-workspace-gizmo-orbit-full")
     root.size = Vector2i(1024, 640); await _settle(); await _capture("08-workspace-gizmo-orbit-compact")
 
