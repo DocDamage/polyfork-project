@@ -2,10 +2,11 @@
 
 Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are milestone gates, not task gates, unless a handoff explicitly says otherwise.
 
-## Historically merged phases 0–15
-- [x] Phase 0 — Repository and contracts
-- [x] Phase 1 — App shell and canonical UI foundation
-- [x] Phase 2 — World project + save foundation
+## Integrated milestones
+
+- [x] Phase 0 — Repository and Contracts
+- [x] Phase 1 — Application Shell and Canonical UI
+- [x] Phase 2 — World Project + Save Foundation
 - [x] Phase 3 — Runtime Placement Editor
 - [x] Phase 4 — Universal Asset Library — PR #9
 - [x] Phase 5 — Terrain + Streaming — PR #10
@@ -19,42 +20,50 @@ Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are
 - [x] Phase 13 — Export Pipeline — PR #18
 - [x] Phase 14 — Scale and Polish — PR #19
 - [x] Phase 15 — Multiplayer Foundations and Collaboration Roadmap — PR #20
+- [x] Phase 16 — Inherited Product Completeness and Integration Closure — PR #21
 
-Authoritative `master`: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
+Repository default/authoritative branch: `master`
 
-The Phase 16 source audit established that historical merge labels were not, by themselves, proof of end-to-end product completeness. Phase 16 closes the verified inherited gaps before release packaging.
+Authoritative `master`: `37d311b90f0684668a49e7f3b8ab197e6abcbe3a`
 
-## Phase 16 — INHERITED PRODUCT COMPLETENESS AND INTEGRATION CLOSURE — BRANCH VERIFIED
-Milestone branch: `dev/phase16-milestone`
+Historical `main` is obsolete starter code and is not a development base.
 
-Authoritative base: `b4b5e88ef11ba514b1c8755e45e1a9de5cf04613`
+## Phase 17 — RELEASE CANDIDATE AND DISTRIBUTION — VERIFIED
 
-Verified implementation/evidence head: `bfdef3e5cb1699268cc23be5c9f4c9b4a9631f93`
+Milestone branch: `dev/phase17-milestone`
 
-- [x] P16-T00 Verify PR #20 merge and authoritative `master`; reconcile transition state
-- [x] P16-T01 Audit actual source/runtime paths and define the inherited-completeness milestone
-- [x] P16-T02 Repair Home creator routes and New World biome creation/application
-- [x] P16-T03 Replace fake Asset Library thumbnails, deepen inspection, and add deterministic semantic ranking
-- [x] P16-T04 Move the real application to a user-scoped universal Asset Library with legacy source migration
-- [x] P16-T05 Complete authoring camera, marquee selection, visible gizmo, vertex/normal/socket snapping, and exact terrain-aware grounding
-- [x] P16-T06 Promote implemented Phase 10 gameplay systems into RPG/Survival/Driving templates
-- [x] P16-T07 Materialize Environment water hooks through real transactional providers
-- [x] P16-T08 Add focused product/integration/shared-library contracts and strict Godot Smoke coverage
-- [x] P16-T09 Run inherited Phase 4–15 regressions, scale/playable checks, visual evidence, and Windows/export/multiplayer evidence
-- [x] P16-T10 Close source-level QA and canonical branch documentation
-- [ ] P16-GATE Open one completion PR targeting authoritative `master`; review PR-triggered checks; merge only with explicit user authorization
+Authoritative base: `37d311b90f0684668a49e7f3b8ab197e6abcbe3a`
 
-### Phase 16 branch verification
-- Phase 16 Contracts — `31653938946` — PASS
-- Phase 16 Shared Asset Library — `31653938953` — PASS
-- Godot Smoke — `31653938984` — PASS
-- Phase 16 Visual Evidence — `31653938948` — PASS
-- Phase 16 Inherited Regressions — `31653938981` — PASS
-- Phase 16 Windows Export — `31653938952` — PASS
+Verified implementation/evidence head: `8f46b4cddd62efc5502033b3a9c0259bb740ec26`
 
-The Windows gate includes real Phase 16 clean-package launch, inherited Phase 14 Small/Medium/Large exports, inherited Phase 15 multiplayer/offline package build, and concurrent exported host/client verification.
+Final release workflow: `31668662576` — **PASS**
+
+Final evidence artifact: `9169011730` — `phase17-release-candidate`
+
+RC ZIP SHA-256: `0911cc136b3deaf689b7959359ec9c45bee2f10255c7af573c9855ea0bbcdfa3`
+
+- [x] P17-T01 Product identity/version/icon/About surface
+- [x] P17-T02 Windows x64 creator export preset and branded metadata
+- [x] P17-T03 Deterministic release ZIP packaging and independent rebuild proof
+- [x] P17-T04 Release manifest, SHA-256 checksums, third-party notices, and release docs
+- [x] P17-T05 Clean packaged Windows first-run verification
+- [x] P17-T06 Core creator create/open/edit/save/Asset Library/Instant Play runtime smoke
+- [x] P17-T07 Packaged creator → standalone Windows game export → launch, with bundled exporter/templates/runtime closure and explicit failure handling
+- [x] P17-T08 Restart/reopen, malformed preferences, upgrade/replacement-package persistence, and read-only-style user-data separation
+- [x] P17-T09 Packaged UI visual review plus controller/focus/accessibility acceptance, including gamepad A → `ui_accept`
+- [x] P17-T10 Package integrity, supply-chain, forbidden-material, and credential-like-material scanning
+- [x] P17-T11 Dedicated release CI plus inherited Phase 4–16/scale/export/multiplayer regressions
+- [x] P17-T12 Canonical release documentation and completion handoff reconciliation
+- [ ] P17-GATE Open exactly one completion PR `Phase 17 — Release Candidate and Distribution` from `dev/phase17-milestone` to `master`; verify PR-triggered checks; merge only with explicit user authorization
+
+### Phase 17 verification details
+
+Both source and Windows release jobs passed in workflow `31668662576`. The Windows job includes byte-identical deterministic rebuild, package integrity/credential scan, clean first run, creator-to-game export and launch, reopen/upgrade/read-only persistence, packaged visual capture, and packaged UI/controller/accessibility acceptance.
+
+The final artifact's eight acceptance screenshots were downloaded and visually inspected. The prior GLTF default-scene warning is absent. The hosted runner's ANGLE/Microsoft Basic Render Driver warning is an infrastructure limitation, not a product gate failure.
 
 ## Next milestone boundary
-Do not begin creator-application release packaging or a new implementation phase until the Phase 16 completion PR is merged and authoritative `master` is reconciled.
 
-Historical `.polyforkAPI` credential material remains exposed in Git history and requires separate external rotation/revocation. Do not print, copy, restore, or reuse it.
+Complete the single Phase 17 PR boundary and leave the PR unmerged until explicit user authorization. No Phase 18 implementation is authorized.
+
+Historical `.polyforkAPI` credential material remains exposed in Git history and requires separate external rotation/revocation unless independently completed. Do not print, recover, test, copy, restore, or reuse it.
