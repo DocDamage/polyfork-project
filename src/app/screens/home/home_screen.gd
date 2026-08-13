@@ -136,7 +136,13 @@ func _request_route(route: StringName) -> void:
 func _open_about_overlay() -> void:
     _overlay_mode = ROUTE_ABOUT
     var identity: Dictionary = ProductIdentity.summary()
-    _creator_overlay.call("present", "About PlayWorld Studio", "%s  •  stable  •  Windows x64" % str(identity.get("version", "unknown")), [], {
+    var version := str(identity.get("version", "unknown"))
+    var items: Array[Dictionary] = [{
+        "id": "",
+        "title": "%s %s" % [str(identity.get("product_name", "PlayWorld Studio")), version],
+        "subtitle": "Stable channel  •  Windows x64  •  Godot %s" % str(identity.get("godot_version", "")),
+    }]
+    _creator_overlay.call("present", "About PlayWorld Studio", "%s  •  stable  •  Windows x64" % version, items, {
         "status": "Godot %s  •  source %s" % [str(identity.get("godot_version", "")), ProductIdentity.short_commit()],
     })
 
@@ -152,7 +158,7 @@ func _open_templates_overlay() -> void:
     var registry = TemplateRegistry.new()
     var load_result: Dictionary = registry.load_builtin()
     if not load_result.get("ok", false):
-        _creator_overlay.call("present", "Templates", "Built-in starter experiences", [], {"status": "Could not load templates: %s" % str(load_result.get("errors", []))}); return
+        _creator_overlay.call("present", "Templates", "Built-in starter experiences", _empty_overlay_items(), {"status": "Could not load templates: %s" % str(load_result.get("errors", []))}); return
     var items: Array[Dictionary] = []
     for manifest in registry.list_manifests():
         var display: Dictionary = manifest.get("display", {})
@@ -164,11 +170,11 @@ func _open_asset_library_overlay() -> void:
     _library = AssetLibrary.new("", _shared_asset_library_root())
     var load_result: Dictionary = _library.load_library()
     if not load_result.get("ok", false):
-        _creator_overlay.call("present", "Asset Library", "Universal external asset library", [], {"status": "Could not load library: %s" % str(load_result.get("errors", []))}); return
+        _creator_overlay.call("present", "Asset Library", "Universal external asset library", _empty_overlay_items(), {"status": "Could not load library: %s" % str(load_result.get("errors", []))}); return
     for project in _repository.list_projects():
         var migration: Dictionary = _library.migrate_legacy_sources(_repository.get_project_directory(str(project.project_id)))
         if not migration.get("ok", false):
-            _creator_overlay.call("present", "Asset Library", "Universal external asset library", [], {"status": "Legacy source migration failed: %s" % str(migration.get("errors", []))}); return
+            _creator_overlay.call("present", "Asset Library", "Universal external asset library", _empty_overlay_items(), {"status": "Legacy source migration failed: %s" % str(migration.get("errors", []))}); return
     _present_library()
 
 func _present_library() -> void:
@@ -183,6 +189,10 @@ func _present_library() -> void:
         "primary_label": "Scan Library",
         "status": "%d sources  •  %d indexed assets" % [items.size(), _library.get_records(true).size()],
     })
+
+func _empty_overlay_items() -> Array[Dictionary]:
+    var items: Array[Dictionary] = []
+    return items
 
 func _on_overlay_item_requested(item_id: String) -> void:
     if _overlay_mode == ROUTE_MY_WORLDS:

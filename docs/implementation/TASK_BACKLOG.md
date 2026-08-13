@@ -22,20 +22,25 @@ Task IDs use `P##-T##` as internal implementation checkpoints. Pull requests are
 - [x] Phase 15 — Multiplayer Foundations and Collaboration Roadmap — PR #20
 - [x] Phase 16 — Inherited Product Completeness and Integration Closure — PR #21
 - [x] Phase 17 — Release Candidate and Distribution — PR #22
+- [x] Phase 18 implementation integrated prematurely — PR #23
 
 Repository default/authoritative branch: `master`.
 
-Authoritative `master`: `91b8b9c39fddda4b80ad5c6101d563245ef3e2d0`.
+Current `master`: `9ed7abd28144f9757244f33aa33176e7074aca86`.
+
+PR #23 was merged before the required manual visual gate was valid. Preserve history and repair forward.
 
 Historical `main` is obsolete starter code and is not a development base.
 
 ## Phase 18 — STABLE RELEASE AND WINDOWS PRODUCTIZATION
 
-Milestone branch: `dev/phase18-stable-release`.
+Original milestone branch: `dev/phase18-stable-release`.
 
-Authoritative base: `91b8b9c39fddda4b80ad5c6101d563245ef3e2d0`.
+Original base: `91b8b9c39fddda4b80ad5c6101d563245ef3e2d0`.
 
-Completion PR: #23 — `Phase 18 — Stable Release and Windows Productization`.
+Premature merge: PR #23 into `master@9ed7abd28144f9757244f33aa33176e7074aca86`.
+
+Corrective branch: `fix/phase18-post-merge-closeout`.
 
 - [x] P18-T01 Reconcile merged Phase 17/master authority and create stable milestone branch
 - [x] P18-T02 Promote all authoritative product/version/package surfaces to `0.1.0`
@@ -46,12 +51,13 @@ Completion PR: #23 — `Phase 18 — Stable Release and Windows Productization`.
 - [x] P18-T07 Add first-class Support & Recovery UI and explicit recovery/failure reporting
 - [x] P18-T08 Add portable + clean installed + repair/reinstall + uninstall-preservation + alternate/read-only install QA
 - [x] P18-T09 Retain packaged controller/accessibility acceptance and gamepad A → `ui_accept`
-- [x] P18-T10 Generate stable visual evidence set; final artifact still requires manual review before completion
-- [x] P18-T11 Scan portable package, installer, support bundle, and release material for credentials/private development files
+- [x] P18-T10 Generate the eleven-image stable visual evidence set
+- [x] P18-T11 Scan portable package, installer, support bundle, and release material for private development files
 - [x] P18-T12 Add dedicated Phase 18 stable-release automation and deterministic portable rebuild proof
-- [x] P18-T13 Wire full inherited creator/export/scale/multiplayer regression into final stable workflow
-- [x] P18-T14 Reconcile canonical planning/QA/handoff/release documentation
-- [ ] P18-GATE Exact final head: source + Windows stable-release jobs PASS; artifacts/checksums verified; screenshots manually inspected; PR #23 evidence completed; mark ready; leave unmerged
+- [x] P18-T13 Wire full inherited creator/export/scale/multiplayer regression into the final stable workflow
+- [x] P18-T14 Reconcile canonical planning/QA/handoff/release documentation for the original milestone
+- [x] P18-T15 Correct the About overlay typing/stacking and require exact runtime/renderability assertions before screenshot capture
+- [ ] P18-GATE Exact corrective head: source + Windows stable-release jobs pass; new artifacts/checksums verified; all screenshots manually inspected; corrective PR evidence completed; leave unmerged until explicit authorization
 
 ## Phase 18 release identities
 
@@ -62,4 +68,4 @@ Completion PR: #23 — `Phase 18 — Stable Release and Windows Productization`.
 - Exact Phase 17 artifact: `9169222546`
 - Exact Phase 17 RC ZIP SHA-256: `8db8162872077d00582ab20de5361a59cae19a45a9bacb2a3a7f199d18b4d9b9`
 
-No Phase 19 work is authorized. PR #23 must not be merged without explicit user authorization.
+No Phase 19 work is authorized. The corrective Phase 18 PR must not be merged without explicit user authorization.

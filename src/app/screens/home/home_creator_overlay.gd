@@ -18,6 +18,7 @@ func _ready() -> void:
     name = "HomeCreatorOverlay"
     set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     theme_type_variation = &"DrawerPanel"
+    mouse_filter = Control.MOUSE_FILTER_STOP
     _build_ui()
     hide()
 
@@ -32,6 +33,9 @@ func present(title: String, subtitle: String, items: Array[Dictionary], options:
     _primary_button.text = str(options.get("primary_label", "Refresh"))
     _status.text = str(options.get("status", ""))
     show()
+    var parent := get_parent()
+    if parent != null:
+        parent.move_child(self, parent.get_child_count() - 1)
     _focus_first()
 
 func close() -> void:
@@ -39,6 +43,21 @@ func close() -> void:
     _status.text = ""
 
 func set_status(message: String) -> void: _status.text = message
+
+func presentation_state() -> Dictionary:
+    var parent_control := get_parent() as Control
+    var covers_parent := parent_control != null and size.x >= parent_control.size.x - 1.0 and size.y >= parent_control.size.y - 1.0
+    return {
+        "visible": is_visible_in_tree(),
+        "title": _title.text if _title != null else "",
+        "subtitle": _subtitle.text if _subtitle != null else "",
+        "status": _status.text if _status != null else "",
+        "title_renderable": _title != null and _title.is_visible_in_tree() and _title.size.x > 0.0 and _title.size.y > 0.0,
+        "subtitle_renderable": _subtitle != null and _subtitle.is_visible_in_tree() and _subtitle.size.x > 0.0 and _subtitle.size.y > 0.0,
+        "status_renderable": _status != null and _status.is_visible_in_tree() and _status.size.x > 0.0 and _status.size.y > 0.0,
+        "covers_parent": covers_parent,
+        "topmost": get_parent() != null and get_index() == get_parent().get_child_count() - 1,
+    }
 
 func _build_ui() -> void:
     var margin := MarginContainer.new()
