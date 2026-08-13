@@ -7,31 +7,42 @@ The user-facing direction is **smart defaults first, advanced controls on demand
 ## Repository authority
 
 - Repository default and authoritative integrated branch: `master`.
-- Authoritative `master`: `91b8b9c39fddda4b80ad5c6101d563245ef3e2d0`.
-- That commit is the verified signed merge of **PR #22 — Phase 17 — Release Candidate and Distribution**.
+- Current `master`: `9ed7abd28144f9757244f33aa33176e7074aca86`.
+- That commit is the verified signed merge of **PR #23 — Phase 18 — Stable Release and Windows Productization**.
+- PR #23 was merged prematurely before the required manual visual closeout was valid. Preserve repository history and repair forward from current `master`.
+- Phases **0 through 17 are complete and accepted**.
+- Phase 18 implementation is integrated, but final Phase 18 acceptance remains open.
+- Corrective branch: `fix/phase18-post-merge-closeout`.
 - Historical `main` is obsolete starter code and must not be used for development.
-- Phases **0 through 17 are complete and merged**.
-- Phase 18 development branch: `dev/phase18-stable-release`.
-- Phase 18 completion boundary: PR #23, **Phase 18 — Stable Release and Windows Productization**, targeting `master`; it must remain unmerged until explicitly authorized.
+- No Phase 19 work is authorized.
 
-## PlayWorld Studio 0.1.0
+## Phase 18 correction
 
-Phase 18 promotes the creator from `0.1.0-rc.1` to the first stable Windows productization target:
+The original Phase 18 artifact contained an invalid `09-about-version-1280x720.png`: it showed Home rather than the required About/version surface. The old automation proved that a PNG existed, but did not prove that the real About action rendered the expected interface.
 
-- portable package: `PlayWorld-Studio-0.1.0-Windows-x64.zip`;
-- installer: `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`;
-- Windows x86_64;
-- bundled Godot 4.7.1 exporter and Windows export templates;
-- deterministic portable ZIP and SHA-256 integrity data;
-- normal Windows install/uninstall path;
-- per-user projects, preferences, Asset Library state, recovery data, and support data outside the application directory;
-- real `0.1.0-rc.1 → 0.1.0` migration verification using the exact Phase 17 RC artifact;
-- project/checkpoint recovery and malformed-preference recovery backups;
-- bounded Support & Recovery diagnostics with credential/private-material scanning;
-- packaged creator → standalone Windows game export and launch;
-- packaged controller/accessibility and visual acceptance.
+The corrective branch:
 
-Final release evidence is recorded on PR #23 after the exact completion head passes `.github/workflows/phase18-stable-release.yml` and the resulting screenshots are manually reviewed.
+- promotes the Home overlay to the topmost Home surface;
+- uses a correctly typed About item collection;
+- renders a visible PlayWorld Studio `0.1.0` identity card;
+- activates the real About button during packaged QA;
+- requires exact title, version, channel, platform, Godot version, source identity, overlay coverage, and label renderability before capture;
+- retains all existing release, lifecycle, controller, accessibility, export, upgrade, uninstall, and support checks.
+
+Phase 18 is finally accepted only after the exact corrective head is green, new release artifacts and checksums are verified, all eleven screenshots are manually inspected, and the corrective PR remains unmerged until explicit user authorization.
+
+## PlayWorld Studio 0.1.0 target
+
+- `PlayWorld-Studio-0.1.0-Windows-x64.zip`
+- `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`
+- Windows x86_64
+- Godot 4.7.1 exporter and Windows export templates
+- deterministic portable ZIP and SHA-256 integrity data
+- normal Windows install/uninstall path
+- per-user projects, preferences, Asset Library state, recovery data, and support data outside the application directory
+- real `0.1.0-rc.1 → 0.1.0` migration verification using the exact Phase 17 RC artifact
+- packaged creator → standalone Windows game export and launch
+- packaged controller/accessibility and visual acceptance
 
 ## Core promise
 
@@ -61,6 +72,6 @@ Final release evidence is recorded on PR #23 after the exact completion head pas
 - `docs/release/TROUBLESHOOTING.md`
 - `docs/handoffs/CURRENT_HANDOFF.md`
 
-## Security note
+## Historical secret boundary
 
-Historical `.polyforkAPI` credential material in Git history must be treated as exposed. Never print, restore, test, copy, reuse, or package it. External revocation/rotation remains required unless independently confirmed outside this repository; repository evidence does not prove that action occurred.
+Secret material previously committed to repository history must be treated as exposed and must never be restored, tested, reused, or distributed. External revocation remains required unless independently verified outside the repository.
