@@ -126,19 +126,49 @@ func _capture_visuals() -> Array[String]:
     if make_error not in [OK, ERR_ALREADY_EXISTS]: return ["Could not create stable visual evidence directory."]
     var main := get_tree().current_scene
     if main == null: return ["Stable visual gate did not reach Main."]
-    get_window().size = Vector2i(1280, 720); main.call("_show_home")
+    get_window().size = Vector2i(1280, 720)
+    main.call("_show_home")
     for _frame in range(3): await get_tree().process_frame
     var home := main.get_node_or_null("HomeScreen")
     if home == null: return ["Stable visual gate cannot find Home."]
-    home.call("_open_about_overlay"); for _frame in range(3): await get_tree().process_frame
-    errors.append_array(_capture("09-about-version-1280x720.png")); home.call("_close_creator_overlay")
-    home.call("_open_settings"); for _frame in range(3): await get_tree().process_frame
-    errors.append_array(_capture("10-settings-1280x720.png")); home.call("_close_settings")
+    var about_button := home.get_node_or_null("SafeArea/Content/Header/HeaderActions/AboutButton")
+    if about_button == null:
+        errors.append("Stable visual gate cannot find the real About action.")
+    else:
+        about_button.emit_signal("pressed")
+        for _frame in range(3): await get_tree().process_frame
+        var overlay := home.get_node_or_null("HomeCreatorOverlay")
+        errors.append_array(_verify_about_overlay(overlay, true))
+        errors.append_array(_capture("09-about-version-1280x720.png"))
+        home.call("_close_creator_overlay")
+    home.call("_open_settings")
+    for _frame in range(3): await get_tree().process_frame
+    errors.append_array(_capture("10-settings-1280x720.png"))
+    home.call("_close_settings")
     var maintenance := get_node_or_null("/root/ReleaseMaintenance")
     if maintenance == null: errors.append("Stable support/recovery surface is unavailable.")
     else:
-        maintenance.call("show_support_panel"); for _frame in range(3): await get_tree().process_frame
+        maintenance.call("show_support_panel")
+        for _frame in range(3): await get_tree().process_frame
         errors.append_array(_capture("11-support-recovery-1280x720.png"))
+    return errors
+
+func _verify_about_overlay(overlay, require_renderable: bool) -> Array[String]:
+    if overlay == null: return ["About/version action did not create the Home overlay."]
+    if not overlay.has_method("presentation_state"): return ["Home overlay does not expose verifiable presentation state."]
+    var state: Dictionary = overlay.call("presentation_state")
+    var errors: Array[String] = []
+    if not bool(state.get("visible", false)): errors.append("About/version overlay is not visible after the real About action.")
+    if str(state.get("title", "")) != "About PlayWorld Studio": errors.append("About/version overlay title is incorrect.")
+    var expected_subtitle := "%s  •  stable  •  Windows x64" % ProductIdentity.version()
+    if str(state.get("subtitle", "")) != expected_subtitle: errors.append("About/version overlay does not expose the exact stable version/channel/platform identity.")
+    var status := str(state.get("status", ""))
+    if not status.contains("Godot %s" % ProductIdentity.GODOT_VERSION): errors.append("About/version overlay does not expose the Godot runtime identity.")
+    if not status.contains("source %s" % ProductIdentity.short_commit()): errors.append("About/version overlay does not expose the source identity.")
+    if not bool(state.get("topmost", false)): errors.append("About/version overlay is not the topmost Home surface.")
+    if require_renderable:
+        for key in ["title_renderable", "subtitle_renderable", "status_renderable", "covers_parent"]:
+            if not bool(state.get(key, false)): errors.append("About/version overlay failed renderability assertion: %s" % key)
     return errors
 
 func _verify_user_paths() -> Array[String]:
