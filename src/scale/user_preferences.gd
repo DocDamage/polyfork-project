@@ -22,12 +22,14 @@ static func defaults() -> Dictionary:
 
 func load_preferences() -> Dictionary:
     var result: Dictionary = defaults()
-    var config := ConfigFile.new()
-    var load_error: Error = config.load(_path)
-    if load_error != OK and load_error != ERR_FILE_NOT_FOUND:
+    if not FileAccess.file_exists(_path):
+        return {"ok": true, "errors": [], "settings": result}
+    var parsed: Dictionary = _parse_preferences_text(FileAccess.get_file_as_string(_path))
+    if not parsed.get("ok", false):
         return {"ok": false, "errors": ["Could not load user scale/polish preferences."], "settings": result}
-    if load_error == OK:
-        for key in result.keys(): result[key] = config.get_value("preferences", key, result[key])
+    var values: Dictionary = parsed.get("values", {})
+    for key in result.keys():
+        if values.has(key): result[key] = values[key]
     result = normalize(result)
     return {"ok": true, "errors": [], "settings": result}
 
@@ -50,6 +52,41 @@ static func normalize(settings: Dictionary) -> Dictionary:
     var glyphs: String = str(settings.get("controller_glyphs", "auto"))
     result["controller_glyphs"] = glyphs if ["auto", "generic"].has(glyphs) else "auto"
     return result
+
+static func _parse_preferences_text(text: String) -> Dictionary:
+    var values: Dictionary = {}
+    var in_preferences := false
+    for raw_line in text.split("\n"):
+        var line := str(raw_line).strip_edges()
+        if line.is_empty() or line.begins_with(";") or line.begins_with("#"):
+            continue
+        if line.begins_with("["):
+            if not line.ends_with("]") or line.length() < 3:
+                return {"ok": false, "values": {}}
+            in_preferences = line == "[preferences]"
+            continue
+        if not in_preferences or not line.contains("="):
+            return {"ok": false, "values": {}}
+        var separator := line.find("=")
+        var key := line.substr(0, separator).strip_edges()
+        var value_text := line.substr(separator + 1).strip_edges()
+        if key.is_empty() or value_text.is_empty():
+            return {"ok": false, "values": {}}
+        var parsed_value: Variant = _parse_scalar(value_text)
+        if parsed_value == null:
+            return {"ok": false, "values": {}}
+        values[key] = parsed_value
+    return {"ok": true, "values": values}
+
+static func _parse_scalar(value_text: String) -> Variant:
+    if value_text == "true": return true
+    if value_text == "false": return false
+    if value_text.begins_with("\""):
+        if not value_text.ends_with("\"") or value_text.length() < 2: return null
+        return value_text.substr(1, value_text.length() - 2).replace("\\\"", "\"").replace("\\\\", "\\")
+    if value_text.is_valid_float(): return value_text.to_float()
+    if value_text.is_valid_int(): return value_text.to_int()
+    return null
 
 static func _nearest_scale(value: float) -> float:
     var selected: float = float(UI_SCALES[0])
