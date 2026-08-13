@@ -2,6 +2,7 @@ extends SceneTree
 
 const ProductIdentity = preload("res://src/release/product_identity.gd")
 const ExportPipeline = preload("res://src/export/export_pipeline.gd")
+const SourceClosure = preload("res://src/export/export_source_closure.gd")
 const UserPreferences = preload("res://src/scale/user_preferences.gd")
 
 func _init() -> void:
@@ -18,6 +19,23 @@ func _run() -> void:
         if not preset.contains(required): errors.append("Creator export preset is missing release metadata: %s" % required)
     for excluded in ["tests/*", ".github/*", "downloads/*", "tools/*"]:
         if not preset.contains(excluded): errors.append("Creator export preset does not exclude development material: %s" % excluded)
+
+    var external_root := ProjectSettings.globalize_path("user://phase17-runtime-source-contract-%d" % Time.get_ticks_usec())
+    var external_runtime := external_root.path_join("runtime")
+    if DirAccess.make_dir_recursive_absolute(external_runtime) not in [OK, ERR_ALREADY_EXISTS]:
+        errors.append("Could not prepare external runtime source closure fixture.")
+    else:
+        var root_handle := FileAccess.open(external_runtime.path_join("root.gd"), FileAccess.WRITE)
+        var dep_handle := FileAccess.open(external_runtime.path_join("dep.gd"), FileAccess.WRITE)
+        if root_handle == null or dep_handle == null:
+            errors.append("Could not create external runtime source closure fixture files.")
+        else:
+            root_handle.store_string("extends RefCounted\nconst Dep = preload(\"res://runtime/dep.gd\")\n"); root_handle.close()
+            dep_handle.store_string("extends RefCounted\n"); dep_handle.close()
+            var external_closure: Dictionary = SourceClosure.resolve(["runtime/root.gd"], external_root)
+            var expected_paths: Array[String] = ["runtime/dep.gd", "runtime/root.gd"]
+            if not external_closure.get("ok", false) or external_closure.get("paths", []) != expected_paths:
+                errors.append("Runtime source closure cannot resolve raw dependencies from an external packaged source root.")
 
     var original_tool := str(ProjectSettings.get_setting("playworld/export/godot_executable", ""))
     ProjectSettings.set_setting("playworld/export/godot_executable", "Z:/phase17-intentionally-missing/godot.exe")
