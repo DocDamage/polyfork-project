@@ -19,6 +19,9 @@ func _run() -> void:
         if not preset.contains(required): errors.append("Creator export preset is missing release metadata: %s" % required)
     for excluded in ["tests/*", ".github/*", "downloads/*", "tools/*", "artifacts/*"]:
         if not preset.contains(excluded): errors.append("Creator export preset does not exclude development material: %s" % excluded)
+    var release_builder := FileAccess.get_file_as_string("res://tools/release/build_creator_release.py")
+    if not release_builder.contains("mark_generated_outputs_ignored") or not release_builder.contains(".gdignore"):
+        errors.append("Creator release builder does not isolate generated artifacts from Godot source scanning.")
 
     var external_root := ProjectSettings.globalize_path("user://phase17-runtime-source-contract-%d" % Time.get_ticks_usec())
     var external_runtime := external_root.path_join("runtime")
