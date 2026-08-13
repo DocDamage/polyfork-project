@@ -46,6 +46,7 @@ func _run() -> void:
         var bundle_text := FileAccess.get_file_as_string("user://support/PlayWorld-Support.json").to_lower()
         for forbidden in [".polyforkapi", "openai_api_key", "project.json\""]:
             if bundle_text.contains(forbidden): errors.append("Support bundle contains private/credential material: %s" % forbidden)
+        errors.append_array(_exercise_damaged_project_recovery(maintenance))
 
     var scene_resource := load("res://src/main/Main.tscn") as PackedScene
     if scene_resource == null: errors.append("Creator Main scene cannot load for stable contracts.")
@@ -71,3 +72,39 @@ func _run() -> void:
         return
     for error in errors: push_error(error)
     quit(1)
+
+func _exercise_damaged_project_recovery(maintenance: Node) -> Array[String]:
+    var errors: Array[String] = []
+    var original_root := str(ProjectSettings.get_setting("playworld/storage/projects_root", "user://projects"))
+    var fixture_root := "user://phase18-recovery-projects-%d" % Time.get_ticks_usec()
+    ProjectSettings.set_setting("playworld/storage/projects_root", fixture_root)
+    var repository = ProjectRepository.new(fixture_root)
+    var created: Dictionary = repository.create_project("Phase 18 Recovery Gate", &"small", "third_person_adventure")
+    var project = created.get("project")
+    if not created.get("ok", false) or project == null:
+        errors.append("Could not create damaged-project recovery fixture: %s" % str(created.get("errors", [])))
+    else:
+        var checkpoint: Dictionary = repository.create_checkpoint(project)
+        if not checkpoint.get("ok", false):
+            errors.append("Could not checkpoint damaged-project recovery fixture: %s" % str(checkpoint.get("errors", [])))
+        else:
+            var manifest := repository.get_manifest_path(str(project.project_id))
+            var corrupt := FileAccess.open(manifest, FileAccess.WRITE)
+            if corrupt == null:
+                errors.append("Could not stage corrupted project metadata for recovery QA.")
+            else:
+                corrupt.store_string("{broken-phase18-project")
+                corrupt.close()
+                if repository.open_project(str(project.project_id)).get("ok", false): errors.append("Corrupted project metadata did not fail before recovery.")
+                var recovered: Dictionary = maintenance.call("recover_project", str(project.project_id))
+                if not recovered.get("ok", false):
+                    errors.append("Damaged project recovery failed: %s" % str(recovered.get("errors", [])))
+                else:
+                    var backup := str(recovered.get("backup_path", ""))
+                    if backup.is_empty() or not FileAccess.file_exists(backup): errors.append("Recovery did not preserve the damaged canonical metadata backup.")
+                    if str(recovered.get("recovered_from", "")).is_empty(): errors.append("Recovery did not report the valid checkpoint source.")
+                    var reopened: Dictionary = repository.open_project(str(project.project_id))
+                    if not reopened.get("ok", false): errors.append("Recovered project cannot be reopened.")
+                    elif str(reopened.get("project").title) != "Phase 18 Recovery Gate": errors.append("Recovered project does not match the checkpoint fixture.")
+    ProjectSettings.set_setting("playworld/storage/projects_root", original_root)
+    return errors
