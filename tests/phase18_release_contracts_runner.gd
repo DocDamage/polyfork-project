@@ -50,15 +50,24 @@ func _run() -> void:
     var scene_resource := load("res://src/main/Main.tscn") as PackedScene
     if scene_resource == null: errors.append("Creator Main scene cannot load for stable contracts.")
     else:
-        var main := scene_resource.instantiate(); root.add_child(main); await process_frame; await process_frame
+        var main := scene_resource.instantiate()
+        root.add_child(main)
+        current_scene = main
+        await process_frame
+        await process_frame
+        await process_frame
         var about := main.get_node_or_null("HomeScreen/SafeArea/Content/Header/HeaderActions/AboutButton")
         var support := main.get_node_or_null("HomeScreen/SafeArea/Content/Header/HeaderActions/SupportButton")
         if about == null: errors.append("Stable About/version surface is missing.")
         if support == null: errors.append("User-facing Support & Recovery surface is missing.")
         var accept_event := InputEventJoypadButton.new(); accept_event.button_index = JOY_BUTTON_A; accept_event.pressed = true
         if not accept_event.is_action("ui_accept"): errors.append("Gamepad A no longer maps to ui_accept.")
+        current_scene = null
         main.queue_free(); await process_frame
 
-    if errors.is_empty(): print("PASS: Phase 18 stable identity, installer, migration, recovery, diagnostics, and security contracts completed."); quit(0); return
+    if errors.is_empty():
+        print("PASS: Phase 18 stable release identity, migration, recovery, installer, and support contracts completed.")
+        quit(0)
+        return
     for error in errors: push_error(error)
     quit(1)
