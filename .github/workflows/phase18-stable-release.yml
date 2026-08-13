@@ -236,7 +236,9 @@ jobs:
           $setup = Join-Path $env:GITHUB_WORKSPACE "artifacts\phase18\installer\$env:STABLE_SETUP_NAME"
           if (-not (Test-Path $setup)) { throw 'Stable installer is missing.' }
           $info = (Get-Item $setup).VersionInfo
-          if ($info.ProductName -ne 'PlayWorld Studio' -or $info.ProductVersion -notlike '0.1.0*') { throw 'Installer version metadata is invalid.' }
+          $productName = ([string]$info.ProductName).Trim()
+          $productVersion = ([string]$info.ProductVersion).Trim()
+          if ($productName -ne 'PlayWorld Studio' -or $productVersion -ne '0.1.0') { throw "Installer version metadata is invalid: ProductName='$productName' ProductVersion='$productVersion'" }
           $digest = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLowerInvariant()
           "$digest  $env:STABLE_SETUP_NAME" | Set-Content "$setup.sha256" -Encoding ASCII
           "PHASE18_SETUP=$setup" | Out-File -FilePath $env:GITHUB_ENV -Append
