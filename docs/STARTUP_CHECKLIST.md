@@ -1,8 +1,8 @@
 # Startup / Continuation Checklist
 
-- [ ] Install the Godot 4.7.x version required by the current handoff/workflow; Phase 15 CI uses Godot 4.7.1.
+- [ ] Install the Godot 4.7.x version required by the current handoff/workflow; Phase 17 release CI uses Godot 4.7.1.
 - [ ] Confirm the repository is `DocDamage/polyfork-project`.
-- [ ] Confirm the authoritative development branch is `master`; never use obsolete default branch `main` as the project source of truth.
+- [ ] Confirm the repository default and authoritative development branch is `master`; never use the historical obsolete `main` branch as the project source of truth.
 - [ ] Read `docs/handoffs/CURRENT_HANDOFF.md` before creating a branch or changing code.
 - [ ] Verify the authoritative `master` SHA recorded in the handoff against GitHub before branching.
 - [ ] Keep `assets/reference/CANONICAL_UI_REFERENCE.png` committed and use it for UI comparisons.
