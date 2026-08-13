@@ -8,5 +8,5 @@
 - Recovery can only restore a damaged project when a valid checkpoint exists. It does not invent missing authored data.
 - Multiplayer remains the bounded direct-connect gameplay foundation from Phase 15; it is not production matchmaking/relay, dedicated-server fleets, rollback networking, voice chat, anti-cheat, or collaborative editor mutation.
 - AI provider behavior remains subject to configured local/cloud provider availability and the existing privacy/consent rules.
-- Historical `.polyforkAPI` credential material remains present in repository history and must be treated as exposed; the release scanner prevents that material from being packaged but cannot prove external credential rotation/revocation.
+- Historical legacy API credential material remains present in repository history and must be treated as exposed; the release scanner prevents that material from being packaged but cannot prove external credential rotation/revocation.
 - GitHub-hosted visual QA can use Microsoft Basic Render Driver through ANGLE; this is CI infrastructure, not the expected end-user GPU path.
