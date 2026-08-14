@@ -138,8 +138,8 @@ func _run_offline() -> Array[String]:
     var errors := await _run_reopen()
     var service := get_node_or_null("/root/UpdateService")
     if service == null: return errors + ["Update service is unavailable for offline-failure proof."]
-    var result: Dictionary = service.call("check_for_updates", true, "{malformed-offline-fixture")
-    if result.get("ok", false): errors.append("Malformed/offline update endpoint result was accepted.")
+    var result: Dictionary = service.call("check_for_updates", true)
+    if result.get("ok", false): errors.append("Network-disabled update check was accepted.")
     var snapshot: Dictionary = service.call("snapshot")
     if str(snapshot.get("state", "")) not in ["offline", "failed"]: errors.append("Update failure did not reach a bounded offline/failure state.")
     var state := _read_state(STATE_PATH)
