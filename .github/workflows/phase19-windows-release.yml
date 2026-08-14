@@ -52,7 +52,7 @@ jobs:
           & $helper --request missing.json --relocated 2>&1 | Tee-Object phase19-updater-negative.log
           $negativeExit = $LASTEXITCODE
           if ($negativeExit -eq 0) { throw 'Updater accepted a missing request.' }
-          exit 0
+          $global:LASTEXITCODE = 0
       - name: Reject malicious updater requests and portable archives
         shell: pwsh
         run: |
@@ -80,6 +80,7 @@ jobs:
             & $env:PHASE19_UPDATER --request $Request --relocated 2>&1 | Tee-Object ("phase19-security-" + $Name + '.log')
             $exitCode = $LASTEXITCODE
             if ($exitCode -eq 0) { throw "Updater accepted malicious input: $Name" }
+            $global:LASTEXITCODE = 0
           }
           $validZip = Join-Path $updateRoot 'valid-placeholder.zip'
           python -c "import zipfile,sys; z=zipfile.ZipFile(sys.argv[1],'w'); z.writestr('placeholder.txt','fixture'); z.close()" $validZip
@@ -318,6 +319,7 @@ jobs:
             $expectedFailure = $LASTEXITCODE
             $env:PLAYWORLD_UPDATER_TEST_MODE=''
             if ($expectedFailure -eq 0) { throw "Fault injection did not fail at $stage." }
+            $global:LASTEXITCODE = 0
             if ((Get-Content (Join-Path $faultRoot 'release_manifest.json') -Raw | ConvertFrom-Json).version -ne '0.1.0') { throw "Fault injection did not preserve/restore 0.1.0 at $stage." }
           }
           "PHASE19_PORTABLE_APPDATA=$appData" | Out-File -FilePath $env:GITHUB_ENV -Append
