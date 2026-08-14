@@ -146,13 +146,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $epoch = [int64](git show -s --format=%ct $env:GITHUB_SHA)
-          python tools/release/build_creator_release.py \
-            --godot "$env:GODOT_EDITOR_EXE" \
-            --template-root "$env:GODOT_TEMPLATE_ROOT" \
-            --updater-helper "$env:PHASE18_BRIDGE_UPDATER" \
-            --output-root artifacts/phase18-bridge/release \
-            --source-commit "$env:GITHUB_SHA" \
-            --source-date-epoch $epoch 2>&1 | Tee-Object phase18-bridge-package.log
+          python tools/release/build_creator_release.py --godot "$env:GODOT_EDITOR_EXE" --template-root "$env:GODOT_TEMPLATE_ROOT" --updater-helper "$env:PHASE18_BRIDGE_UPDATER" --output-root artifacts/phase18-bridge/release --source-commit "$env:GITHUB_SHA" --source-date-epoch $epoch 2>&1 | Tee-Object phase18-bridge-package.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $package = Join-Path $env:GITHUB_WORKSPACE 'artifacts\phase18-bridge\release\PlayWorld-Studio-0.2.0-Windows-x64'
           python tools/release/validate_creator_package.py "$package" 2>&1 | Tee-Object phase18-bridge-package-validation.log
