@@ -10,7 +10,6 @@
 - AI provider behavior remains subject to configured local/cloud provider availability and the existing privacy/consent rules.
 - Historical legacy API credential material remains present in repository history and must be treated as exposed; the release scanner prevents that material from being packaged but cannot prove external credential rotation/revocation.
 - GitHub-hosted visual QA can use Microsoft Basic Render Driver through ANGLE; this is CI infrastructure, not the expected end-user GPU path.
-
 <!-- PHASE19_CORRECTION_STATUS_START -->
 ## Phase 19 candidate limitations
 

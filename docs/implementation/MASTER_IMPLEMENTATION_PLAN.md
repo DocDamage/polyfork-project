@@ -109,7 +109,6 @@ The real Home About action produces a topmost full-size overlay with a typed ide
 ## Next milestone boundary
 
 No Phase 19 scope has been approved. A new phase must begin only after the user defines its objectives, acceptance criteria, exclusions, branch, and handoff from current authoritative `master@49a5b55748244097d952ab9c095dd00ed0ec9f06`.
-
 <!-- PHASE19_CORRECTION_STATUS_START -->
 ## Phase 19 corrective completion status
 

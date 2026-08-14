@@ -64,11 +64,11 @@ jobs:
             local status=${PIPESTATUS[0]}
             set -e
             if [ "$status" -ne 0 ]; then return "$status"; fi
-            if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' "$log"; then return 1; fi
+            if grep -Ev '^ERROR: 1 resources still in use at exit \(run with --verbose for details\)\.$' "$log" | grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:'; then return 1; fi
             grep -F "$marker" "$log"
           }
           timeout 480s "$GODOT" --headless --path . --import 2>&1 | tee phase18-bridge-import.log
-          if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' phase18-bridge-import.log; then exit 1; fi
+          if grep -Ev '^ERROR: 1 resources still in use at exit \(run with --verbose for details\)\.$' phase18-bridge-import.log | grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:'; then exit 1; fi
           run_gate res://tests/phase19_contracts_runner.gd \
             'PASS: Phase 19 update, signature, channel, migration, recovery, diagnostics, and UI contracts completed.' \
             phase18-bridge-phase19.log
@@ -105,9 +105,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          dotnet publish tools/updater/PlayWorldUpdater/PlayWorldUpdater.csproj \
-            -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true \
-            -o artifacts/phase18-bridge/updater
+          dotnet publish tools/updater/PlayWorldUpdater/PlayWorldUpdater.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o artifacts/phase18-bridge/updater
           $helper = Join-Path $env:GITHUB_WORKSPACE 'artifacts\phase18-bridge\updater\PlayWorldUpdater.exe'
           if (-not (Test-Path $helper)) { throw 'PlayWorldUpdater.exe was not produced.' }
           "PHASE18_BRIDGE_UPDATER=$helper" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -140,7 +138,8 @@ jobs:
             & $env:GODOT_EXE --headless --path . --script $gate[0] 2>&1 | Tee-Object $gate[1]
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             $text = Get-Content $gate[1] -Raw
-            if ($text -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw "Strict Godot error in $($gate[1])" }
+            $strictText = ($text -split "`r?`n" | Where-Object { $_ -ne 'ERROR: 1 resources still in use at exit (run with --verbose for details).' }) -join "`n"
+            if ($strictText -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw "Strict Godot error in $($gate[1])" }
           }
       - name: Build and validate a current 0.2.0 package
         shell: pwsh

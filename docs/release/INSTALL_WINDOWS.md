@@ -34,7 +34,6 @@ Running the 0.1.0 installer again repairs/replaces application files while per-u
 To remove authored data as well, back up anything wanted first, then remove the PlayWorld Studio per-user data separately. The Phase 18 uninstaller does not silently perform that destructive action.
 
 See `USER_DATA_AND_UPGRADE.md` and `TROUBLESHOOTING.md`.
-
 <!-- PHASE19_CORRECTION_STATUS_START -->
 ## 0.2.0 update candidate
 

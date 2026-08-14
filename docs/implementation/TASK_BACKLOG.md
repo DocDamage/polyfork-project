@@ -68,7 +68,6 @@ Final signed merge: PR #24 at `master@49a5b55748244097d952ab9c095dd00ed0ec9f06`.
 ## Next work
 
 No Phase 19 tasks are defined or authorized. A new milestone may begin only after an explicit user-approved handoff is created from current authoritative `master`.
-
 <!-- PHASE19_CORRECTION_STATUS_START -->
 ## Active milestone override — Phase 19 corrective completion
 

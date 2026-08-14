@@ -35,7 +35,6 @@ Original external asset folders remain read-only. If a registered source is unav
 ## Failed migration or damaged installation
 
 Migration state/backups remain in the per-user release area. Application package integrity and bundled exporter/template presence can be checked from Support & Recovery diagnostics. Repair/reinstall replaces application files while leaving per-user authored state separate.
-
 <!-- PHASE19_CORRECTION_STATUS_START -->
 ## Phase 19 data-safety extension
 

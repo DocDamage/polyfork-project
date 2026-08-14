@@ -79,7 +79,6 @@ Exact evidence is recorded in `docs/qa/PHASE18_QA.md` and merged PR #24.
 Implementation, tests, runtime evidence, release artifacts, documentation, and handoff status must agree. Phase 18 satisfies this definition through PR #24, workflow `31699466148`, final artifacts and checksums, lifecycle evidence, and manual review recorded in `docs/qa/PHASE18_QA.md`.
 
 No Phase 19 work is authorized until a new user-approved handoff defines the next milestone.
-
 <!-- PHASE19_CORRECTION_STATUS_START -->
 ## Phase 19 release-maintenance gates
 

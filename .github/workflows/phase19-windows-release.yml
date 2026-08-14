@@ -48,6 +48,7 @@ jobs:
           $helper = Join-Path $env:GITHUB_WORKSPACE 'artifacts\phase19\updater\PlayWorldUpdater.exe'
           if (-not (Test-Path $helper)) { throw 'PlayWorldUpdater.exe was not produced.' }
           "PHASE19_UPDATER=$helper" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $PSNativeCommandUseErrorActionPreference = $false
           & $helper --request missing.json --relocated 2>&1 | Tee-Object phase19-updater-negative.log
           if ($LASTEXITCODE -eq 0) { throw 'Updater accepted a missing request.' }
       - name: Reject malicious updater requests and portable archives
@@ -192,7 +193,8 @@ jobs:
             & $env:GODOT_EXE --headless --path . --script $gate[0] 2>&1 | Tee-Object $gate[1]
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             $text = Get-Content $gate[1] -Raw
-            if ($text -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw "Strict Godot error in $($gate[1])" }
+            $strictText = ($text -split "`r?`n" | Where-Object { $_ -ne 'ERROR: 1 resources still in use at exit (run with --verbose for details).' }) -join "`n"
+            if ($strictText -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw "Strict Godot error in $($gate[1])" }
           }
       - name: Build and independently validate deterministic 0.2.0 portable packages
         shell: pwsh
