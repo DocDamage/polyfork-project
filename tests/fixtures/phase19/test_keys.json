@@ -1,0 +1,23 @@
+{
+  "keys": [
+    {
+      "algorithm": "rsa-sha256",
+      "channels": [
+        "stable",
+        "beta",
+        "development"
+      ],
+      "comment": "Public-only test fixture; private key was discarded after fixture generation.",
+      "enabled": true,
+      "key_id": "phase19-contract-fixture",
+      "not_after_unix": 1893456000,
+      "not_before_unix": 1786579200,
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwoGKU/sgJYFqfwdzaS8K\n3dBqrjv4ny8tO4nM/DkzxRltCyhzHHNOlu5EL6ImbzHYIr/4rQbBYNm0Pqxor9XT\nTiHZ7xZXqx8RZEX2v7sGYw2YDh71QApycvpKhHYGaEgD53aqN3dJk+HgEYileIlf\nJH0k9O/OUblAWkA13cvdL8BBFPTxu36V+HkkdhH1259YUILl/0AkJQEHteobB8iI\nDlMlghjPHHiVnlZS6AOMVLI5M/PyAFydwEEQ3gTrNl4sgLY62LcXdRAUXHh1kEmg\nm+rI+0ULVEtrIQl0uiG5ywGMv8aTJu70/m0WQVIINGmMRqzJrWDnyWqpg6kNzlXX\nowIDAQAB\n-----END PUBLIC KEY-----\n",
+      "revoked": false
+    }
+  ],
+  "policy": {
+    "fixture_only": true
+  },
+  "schema_version": 1
+}

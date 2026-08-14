@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource path="res://src/app/screens/settings/settings_screen.gd" type="Script" id="1"]
+[ext_resource path="res://src/app/screens/settings/UpdateCenter.tscn" type="PackedScene" id="2"]
 
 [node name="SettingsScreen" type="Control"]
 layout_mode = 3
@@ -57,12 +58,12 @@ theme_override_constants/separation = 2
 [node name="Title" type="Label" parent="SafeArea/Content/Header/TitleStack"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "Scale & Accessibility"
+text = "Settings, Updates & Recovery"
 
 [node name="Subtitle" type="Label" parent="SafeArea/Content/Header/TitleStack"]
 layout_mode = 2
 theme_type_variation = &"SecondaryLabel"
-text = "Performance and interface preferences are user-only and never rewrite authored worlds."
+text = "User-only preferences and application maintenance never rewrite authored worlds."
 
 [node name="BackButton" type="Button" parent="SafeArea/Content/Header"]
 unique_name_in_owner = true
@@ -79,7 +80,12 @@ horizontal_scroll_mode = 0
 [node name="Stack" type="VBoxContainer" parent="SafeArea/Content/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 20
+
+[node name="ScaleTitle" type="Label" parent="SafeArea/Content/Scroll/Stack"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "Scale & Accessibility"
 
 [node name="SettingsCard" type="PanelContainer" parent="SafeArea/Content/Scroll/Stack"]
 layout_mode = 2
@@ -169,8 +175,12 @@ theme_type_variation = &"CaptionLabel"
 text = "Quality policy may change presentation cadence and rendering cost. Stable IDs, authored entities, terrain data, gameplay state, Visual Scripting graphs, and export dependencies remain unchanged."
 autowrap_mode = 2
 
+[node name="UpdateCenter" parent="SafeArea/Content/Scroll/Stack" instance=ExtResource("2")]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="StatusLabel" type="Label" parent="SafeArea/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"AccentCaption"
-text = "Preferences are stored locally for this user."
+text = "Preferences and update state are stored locally for this user."

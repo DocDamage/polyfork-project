@@ -1,13 +1,17 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "product_name": "PlayWorld Studio",
   "company_name": "PlayWorld Studio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "channel": "stable",
   "package_prefix": "PlayWorld-Studio",
   "platform": "Windows",
   "architecture": "x86_64",
   "godot_version": "4.7.1",
-  "base_commit": "91b8b9c39fddda4b80ad5c6101d563245ef3e2d0",
-  "upgrade_from": ["0.1.0-rc.1"]
+  "base_commit": "ebeb35e28f53738c63d35429eba1ea40b5c8cdb1",
+  "upgrade_from": ["0.1.0", "0.1.0-rc.1"],
+  "application_data_schema_version": 1,
+  "project_schema_version": 1,
+  "update_manifest_schema_version": 1,
+  "updater_request_schema_version": 1
 }

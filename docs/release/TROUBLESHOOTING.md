@@ -39,3 +39,8 @@ That is intentional. Phase 18 uninstall removes application files/shortcuts whil
 ## Known infrastructure warning
 
 GitHub-hosted Windows visual QA may fall back through ANGLE/Microsoft Basic Render Driver. That hosted-runner condition is not used to suppress unrelated PlayWorld Studio errors.
+<!-- PHASE19_CORRECTION_STATUS_START -->
+## Update and recovery troubleshooting
+
+When an update is interrupted, do not delete the user-data directory. Open Settings → Updates and use Repair or Rollback when available. Safe mode disables optional networking/cloud/multiplayer for the session. Generate a local support bundle only after reviewing its bounded contents. Hash, signature, path, or privacy failures are hard stops and should be preserved for incident review.
+<!-- PHASE19_CORRECTION_STATUS_END -->

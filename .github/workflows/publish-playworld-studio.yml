@@ -1,0 +1,203 @@
+name: Publish PlayWorld Studio Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Exact approved 40-character source commit
+        required: true
+        type: string
+      artifact_run_id:
+        description: Approved Phase 19 Windows workflow run ID
+        required: true
+        type: string
+      channel:
+        description: Release channel
+        required: true
+        default: stable
+        type: choice
+        options: [stable, beta]
+      release_tag:
+        description: Exact release tag, for example v0.2.0
+        required: true
+        type: string
+      publish:
+        description: Publish after draft upload/re-download verification
+        required: true
+        default: false
+        type: boolean
+      authorization_phrase:
+        description: Type PUBLISH PLAYWORLD STUDIO 0.2.0 to authorize draft creation/publication
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+
+concurrency:
+  group: playworld-production-release
+  cancel-in-progress: false
+
+jobs:
+  authorized-publication:
+    runs-on: ubuntu-24.04
+    environment: playworld-production-release
+    timeout-minutes: 60
+    steps:
+      - name: Enforce explicit authority before any release or tag operation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test '${{ inputs.authorization_phrase }}' = 'PUBLISH PLAYWORLD STUDIO 0.2.0'
+          [[ '${{ inputs.source_commit }}' =~ ^[0-9a-f]{40}$ ]]
+          if [ '${{ inputs.channel }}' = 'stable' ]; then
+            test '${{ inputs.release_tag }}' = 'v0.2.0'
+          else
+            [[ '${{ inputs.release_tag }}' =~ ^v0\.2\.0-beta\.[1-9][0-9]*$ ]]
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_commit }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check cryptography
+      - name: Verify exact approved source and no existing tag/release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = '${{ inputs.source_commit }}'
+          test "$(python -c 'import json; print(json.load(open("config/release/product.json"))["version"])')" = '0.2.0'
+          if git rev-parse '${{ inputs.release_tag }}' >/dev/null 2>&1; then echo 'Release tag already exists.' >&2; exit 1; fi
+          if gh release view '${{ inputs.release_tag }}' >/dev/null 2>&1; then echo 'Release already exists.' >&2; exit 1; fi
+      - name: Download exact approved workflow artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_SHA=$(gh api "repos/${{ github.repository }}/actions/runs/${{ inputs.artifact_run_id }}" --jq '.head_sha')
+          RUN_RESULT=$(gh api "repos/${{ github.repository }}/actions/runs/${{ inputs.artifact_run_id }}" --jq '.conclusion')
+          RUN_NAME=$(gh api "repos/${{ github.repository }}/actions/runs/${{ inputs.artifact_run_id }}" --jq '.name')
+          test "$RUN_SHA" = '${{ inputs.source_commit }}'
+          test "$RUN_RESULT" = 'success'
+          test "$RUN_NAME" = 'Phase 19 Windows Update Lifecycle'
+          mkdir -p approved-artifacts
+          gh run download '${{ inputs.artifact_run_id }}' --repo '${{ github.repository }}' --name phase19-windows-update-release-evidence --dir approved-artifacts
+          find approved-artifacts -maxdepth 5 -type f -print
+          PORTABLE=$(find approved-artifacts -name 'PlayWorld-Studio-0.2.0-Windows-x64.zip' -type f -print -quit)
+          INSTALLER=$(find approved-artifacts -name 'PlayWorld-Studio-0.2.0-Windows-x64-Setup.exe' -type f -print -quit)
+          test -n "$PORTABLE" && test -n "$INSTALLER"
+          echo "PORTABLE=$PORTABLE" >> "$GITHUB_ENV"
+          echo "INSTALLER=$INSTALLER" >> "$GITHUB_ENV"
+      - name: Validate approved artifacts locally before release creation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/release/validate_update_artifact.py "$PORTABLE"
+          python tools/release/validate_update_artifact.py "$INSTALLER"
+          python tools/release/scan_phase19_security.py approved-artifacts
+          echo "PORTABLE_SHA=$(sha256sum "$PORTABLE" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+          echo "INSTALLER_SHA=$(sha256sum "$INSTALLER" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+      - name: Load protected signing key and require matching enabled repository trust record
+        env:
+          UPDATE_SIGNING_PRIVATE_KEY_PEM: ${{ secrets.UPDATE_SIGNING_PRIVATE_KEY_PEM }}
+          UPDATE_SIGNING_KEY_ID: ${{ secrets.UPDATE_SIGNING_KEY_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$UPDATE_SIGNING_PRIVATE_KEY_PEM" && test -n "$UPDATE_SIGNING_KEY_ID"
+          umask 077
+          printf '%s\n' "$UPDATE_SIGNING_PRIVATE_KEY_PEM" > "$RUNNER_TEMP/update-signing-private.pem"
+          python - <<'PY'
+          import json, os, sys
+          r=json.load(open('config/release/update_keys.json'))
+          matches=[k for k in r['keys'] if k['key_id']==os.environ['UPDATE_SIGNING_KEY_ID'] and k['enabled'] and not k['revoked'] and '${{ inputs.channel }}' in k['channels']]
+          if len(matches)!=1 or 'BEGIN PUBLIC KEY' not in matches[0]['public_key_pem']:
+              raise SystemExit('Enabled repository trust record for the protected signing key is missing.')
+          PY
+          echo "UPDATE_SIGNING_KEY_ID=$UPDATE_SIGNING_KEY_ID" >> "$GITHUB_ENV"
+      - name: Build and locally verify exact signed update manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL='https://github.com/${{ github.repository }}/releases/download/${{ inputs.release_tag }}'
+          python tools/release/build_update_manifest.py \
+            --channel '${{ inputs.channel }}' --key-id "$UPDATE_SIGNING_KEY_ID" --private-key "$RUNNER_TEMP/update-signing-private.pem" \
+            --source-commit '${{ inputs.source_commit }}' --release-notes docs/release/RELEASE_NOTES_0_2_0.md \
+            --portable "$PORTABLE" --portable-url "$BASE_URL/$(basename "$PORTABLE")" \
+            --installer "$INSTALLER" --installer-url "$BASE_URL/$(basename "$INSTALLER")" \
+            --output "update-${{ inputs.channel }}.json"
+          python tools/release/verify_update_manifest.py "update-${{ inputs.channel }}.json" --registry config/release/update_keys.json --channel '${{ inputs.channel }}' --current-version 0.1.0
+      - name: Create draft release and upload exact approved inventory
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title='PlayWorld Studio 0.2.0'
+          flags=(--draft)
+          if [ '${{ inputs.channel }}' = 'beta' ]; then
+            title='PlayWorld Studio 0.2.0 Beta'
+            flags+=(--prerelease)
+          fi
+          gh release create '${{ inputs.release_tag }}' --repo '${{ github.repository }}' --target '${{ inputs.source_commit }}' --title "$title" --notes-file docs/release/RELEASE_NOTES_0_2_0.md "${flags[@]}"
+          gh release upload '${{ inputs.release_tag }}' "$PORTABLE" "$INSTALLER" "update-${{ inputs.channel }}.json" --repo '${{ github.repository }}' --clobber
+      - name: Download uploaded assets again and revalidate exact hashes/inventory/signature
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir uploaded
+          gh release download '${{ inputs.release_tag }}' --repo '${{ github.repository }}' --dir uploaded
+          test "$(sha256sum "uploaded/$(basename "$PORTABLE")" | cut -d' ' -f1)" = "$PORTABLE_SHA"
+          test "$(sha256sum "uploaded/$(basename "$INSTALLER")" | cut -d' ' -f1)" = "$INSTALLER_SHA"
+          python tools/release/validate_update_artifact.py "uploaded/$(basename "$PORTABLE")" --expected-sha256 "$PORTABLE_SHA"
+          python tools/release/validate_update_artifact.py "uploaded/$(basename "$INSTALLER")" --expected-sha256 "$INSTALLER_SHA"
+          python tools/release/verify_update_manifest.py "uploaded/update-${{ inputs.channel }}.json" --registry config/release/update_keys.json --channel '${{ inputs.channel }}' --current-version 0.1.0
+      - name: Publish only when the explicit publish input is true
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release edit '${{ inputs.release_tag }}' --repo '${{ github.repository }}' --draft=false
+      - name: Remove a failed draft release without touching a published release
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view '${{ inputs.release_tag }}' --repo '${{ github.repository }}' --json isDraft --jq '.isDraft' 2>/dev/null | grep -qx true; then
+            gh release delete '${{ inputs.release_tag }}' --repo '${{ github.repository }}' --yes --cleanup-tag
+            echo 'Removed failed draft release and its temporary tag.'
+          else
+            echo 'No failed draft release exists; no cleanup action was taken.'
+          fi
+      - name: Remove temporary signing material
+        if: ${{ always() }}
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/update-signing-private.pem"
+      - name: Record publication outcome
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "source_commit=${{ inputs.source_commit }}" | tee publication-record.txt
+          echo "artifact_run_id=${{ inputs.artifact_run_id }}" | tee -a publication-record.txt
+          echo "portable_sha256=$PORTABLE_SHA" | tee -a publication-record.txt
+          echo "installer_sha256=$INSTALLER_SHA" | tee -a publication-record.txt
+          echo "manifest_key_id=$UPDATE_SIGNING_KEY_ID" | tee -a publication-record.txt
+          echo "published=${{ inputs.publish }}" | tee -a publication-record.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: playworld-publication-record
+          path: publication-record.txt
+          retention-days: 90

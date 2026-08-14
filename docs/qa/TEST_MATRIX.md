@@ -41,3 +41,8 @@
 Workflow `31699466148` passed `source-regressions` and `windows-stable-release` on the exact corrective source. Artifact and checksum verification, lifecycle evidence, controller/accessibility results, and manual inspection of all eleven screenshots are recorded in `docs/qa/PHASE18_QA.md` and merged PR #24.
 
 Phase 18 is complete and accepted on signed `master@49a5b55748244097d952ab9c095dd00ed0ec9f06`.
+<!-- PHASE19_CORRECTION_STATUS_START -->
+## Phase 19 matrix extension
+
+Use `docs/qa/PHASE19_QA.md` as the exact-head evidence ledger. Test Stable/Beta isolation, accepted and rejected real signatures, portable and installed lifecycles, interruption at every replacement boundary, sequential migration, abnormal shutdown, safe mode, bounded diagnostics, support privacy, offline authoring/export, physical or simulated controller paths, normal/compact layouts, and publication dry run without creating a tag or release.
+<!-- PHASE19_CORRECTION_STATUS_END -->

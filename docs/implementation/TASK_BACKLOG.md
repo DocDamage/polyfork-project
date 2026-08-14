@@ -68,3 +68,8 @@ Final signed merge: PR #24 at `master@49a5b55748244097d952ab9c095dd00ed0ec9f06`.
 ## Next work
 
 No Phase 19 tasks are defined or authorized. A new milestone may begin only after an explicit user-approved handoff is created from current authoritative `master`.
+<!-- PHASE19_CORRECTION_STATUS_START -->
+## Active milestone override — Phase 19 corrective completion
+
+The only active milestone is Phase 19 completion and evidence closeout. Required work covers P19-T01 through P19-T16 in `PHASE19_UPDATE_RELEASE_INFRASTRUCTURE_PLAN.md`. Do not schedule Phase 20 work, create a Phase 20 branch, tag `v0.2.0`, or publish a release from this backlog state.
+<!-- PHASE19_CORRECTION_STATUS_END -->

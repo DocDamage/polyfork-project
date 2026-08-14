@@ -1,0 +1,98 @@
+name: Phase 19 Contracts and Security
+
+on:
+  push:
+    branches:
+      - dev/phase19-completion-correction
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase19-contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLAYWORLD_DISABLE_UPDATE_NETWORK: '1'
+
+jobs:
+  source-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install release-tool dependencies
+        run: python -m pip install --disable-pip-version-check cryptography pyyaml
+      - name: Compile, reconcile, and statically validate Phase 19 release infrastructure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/release/reconcile_phase19_docs.py
+          git diff --exit-code
+          python tools/release/validate_phase19_candidate.py
+      - name: Install Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 8 --retry-all-errors --retry-delay 3 --output godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+          ./Godot_v4.7.1-stable_linux.x86_64 --version
+      - name: Import project and run focused Phase 19 contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT=./Godot_v4.7.1-stable_linux.x86_64
+          run_gate() {
+            local script="$1" marker="$2" log="$3"
+            set +e
+            timeout --signal=TERM --kill-after=10s 480s "$GODOT" --headless --path . --script "$script" 2>&1 | tee "$log"
+            local status=${PIPESTATUS[0]}
+            set -e
+            if [ "$status" -ne 0 ]; then return "$status"; fi
+            if grep -Ev '^ERROR: 1 resources still in use at exit \(run with --verbose for details\)\.$' "$log" | grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:'; then return 1; fi
+            grep -F "$marker" "$log"
+          }
+          timeout 480s "$GODOT" --headless --path . --import 2>&1 | tee phase19-import.log
+          if grep -Ev '^ERROR: 1 resources still in use at exit \(run with --verbose for details\)\.$' phase19-import.log | grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:'; then exit 1; fi
+          run_gate res://tests/phase19_contracts_runner.gd 'PASS: Phase 19 update, signature, channel, migration, recovery, diagnostics, and UI contracts completed.' phase19-contracts.log
+          run_gate res://tests/test_runner.gd 'PASS: PlayWorld Studio test harness completed.' inherited-smoke.log
+          PHASE16_SUITE=product run_gate res://tests/phase16_suite_runner.gd 'PASS: Phase 16 product contract suite completed.' phase16-product.log
+          PHASE16_SUITE=integration run_gate res://tests/phase16_suite_runner.gd 'PASS: Phase 16 integration contract suite completed.' phase16-integration.log
+      - name: Run inherited Phase 4 through Phase 15 contract suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT=./Godot_v4.7.1-stable_linux.x86_64
+          run_phase() {
+            local phase="$1" runner="tests/phase${1}_suite_runner.gd" env_name="PHASE${1}_SUITE"
+            if [ ! -f "$runner" ]; then return 0; fi
+            mapfile -t suites < <(sed -n 's/^[[:space:]]*"\([^"]*\)"[[:space:]]*:.*/\1/p' "$runner" | sort -u)
+            if [ "${#suites[@]}" -eq 0 ]; then return 1; fi
+            for suite in "${suites[@]}"; do
+              local log="phase${phase}-${suite}.log"
+              set +e
+              env "${env_name}=${suite}" timeout --signal=TERM --kill-after=10s 300s "$GODOT" --headless --path . --script "res://${runner}" 2>&1 | tee "$log"
+              local status=${PIPESTATUS[0]}; set -e
+              if [ "$status" -ne 0 ]; then return "$status"; fi
+              if grep -Eq 'SCRIPT ERROR:|(^|[[:space:]])ERROR:' "$log"; then return 1; fi
+              grep -F "PASS: Phase ${phase} ${suite} contract suite completed." "$log"
+            done
+          }
+          for phase in 4 5 6 7 8 9 10 11 12 13 14 15; do run_phase "$phase"; done
+      - name: Upload Phase 19 source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase19-source-evidence
+          path: '*.log'
+          if-no-files-found: error
+          retention-days: 21

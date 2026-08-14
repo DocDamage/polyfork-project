@@ -5,92 +5,55 @@ PlayWorld Studio is a Windows-first Godot 4.7.x creator application for building
 ## Current authoritative state
 
 - Repository authority: protected `master`
-- Historical `main`: obsolete starter code; do not develop from it
+- Historical `main`: obsolete starter code; never develop from it
+- Authoritative integrated commit: `ebeb35e28f53738c63d35429eba1ea40b5c8cdb1`
 - Accepted milestones: Phases 0 through 18
-- Accepted product: PlayWorld Studio `0.1.0` stable for Windows x86_64
-- Phase 18 completion merge: PR #24, followed by documentation closeout PR #26
-- Final Phase 18 workflow: `31699466148`
-- Current development boundary: no active milestone is authorized by this documentation closeout
+- Accepted public product: PlayWorld Studio `0.1.0` stable for Windows x86_64
+- Premature integration: PR #27 merged only the initial Phase 19 semantic-version and update-manifest foundations
+- Active corrective branch: `dev/phase19-completion-correction`
+- Active milestone: Phase 19 corrective completion for the `0.2.0` update and release infrastructure
+- Phase 20: unauthorized
 
-Phase 18 proved deterministic portable packaging, a real Windows installer lifecycle, user-data separation, project/preference preservation, a real `0.1.0-rc.1 -> 0.1.0` upgrade, creator-to-game Windows export, packaged controller/accessibility acceptance, recovery/support behavior, security scans, and manually inspected final screenshots.
+The `0.2.0` source identity in the corrective branch is a release candidate identity for testing. It is not proof that Phase 19 is accepted and does not authorize a public release or tag.
 
-The exact current repository state and next authorization boundary are recorded in `docs/handoffs/CURRENT_HANDOFF.md`.
+## Phase 19 corrective scope
 
-## Product direction
+The corrective milestone adds and verifies:
 
-PlayWorld Studio is designed around:
+- nonblocking, offline-safe update checks;
+- Stable, Beta, and explicitly enabled Development channels;
+- strict RSA/SHA-256 signed update manifests and key policy;
+- verified download, staging, progress, cancellation, and helper handoff;
+- distinct portable and installed Windows update lifecycles;
+- durable update journals, application-only backup, repair, interruption recovery, and binary rollback;
+- sequential project/preference migration with backups and journals;
+- abnormal-shutdown recovery, safe mode, and non-destructive preference reset;
+- bounded local diagnostics and privacy-scanned support bundles;
+- production Update Center UI with keyboard, mouse, and controller paths;
+- manual-authority publication workflow that validates uploaded artifacts before publication;
+- real accepted `0.1.0 → 0.2.0` portable and installed upgrade gates;
+- deterministic portable packaging, installer validation, security scans, and visual evidence.
 
-- runtime creation as the primary authoring experience;
-- smart defaults with advanced controls available on demand;
-- keyboard/mouse and controller support;
-- local project storage and an external read-only Asset Library;
-- fast Build/Play iteration;
-- Visual Scripting, gameplay templates, procedural tools, Environment authoring, optional AI-assisted creation, and optional multiplayer foundations;
-- Windows standalone-game export;
-- a dark, playful Nintendo/Apple-inspired interface.
+## Release boundary
 
-## Implemented milestone summary
+Do not create `v0.2.0`, publish a GitHub Release, merge the corrective PR, or begin Phase 20 merely because the corrective source exists. Phase 19 completes only after the exact final PR head passes the full Linux/source and Windows lifecycle workflows, artifacts and hashes are recorded, screenshots are manually reviewed, and the owner explicitly authorizes merge.
 
-- Phase 0 — Repository and contracts
-- Phase 1 — Application shell and canonical UI
-- Phase 2 — World project/save foundation
-- Phase 3 — Runtime placement editor
-- Phase 4 — Universal Asset Library
-- Phase 5 — Terrain and streaming
-- Phase 6 — Components, archetypes, prefabs, and sockets
-- Phase 7 — Instant Play and templates
-- Phase 8 — Visual Scripting
-- Phase 9 — Foliage, procedural systems, and splines
-- Phase 10 — Gameplay framework breadth
-- Phase 11 — Environment
-- Phase 12 — AI Creation
-- Phase 13 — Export pipeline
-- Phase 14 — Scale and polish
-- Phase 15 — Multiplayer foundations and collaboration roadmap
-- Phase 16 — Inherited product completeness and integration closure
-- Phase 17 — Release candidate and distribution
-- Phase 18 — Stable release and Windows productization
+## Start here
 
-## Stable product artifacts proven by Phase 18
-
-- `PlayWorld-Studio-0.1.0-Windows-x64.zip`
-- `PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe`
-- release manifest and SHA-256 sidecars
-- bundled Godot exporter/templates/runtime source closure needed by the packaged creator to export standalone Windows games
-- installer repair/reinstall/uninstall lifecycle
-- support bundle and recovery UX
-
-Phase 18 intentionally does not claim production auto-update infrastructure, signed distribution, or non-Windows support.
-
-## Repository layout
-
-- `src/` — application, authoring, runtime, export, networking, scale, and release systems
-- `tests/` — contract, regression, runtime, scale, visual, release, and export verification
-- `.github/workflows/` — repository-owned CI and release evidence workflows
-- `tools/release/` — deterministic creator packaging, validation, security scanning, and installer tooling
-- `docs/architecture/` — system architecture and integration guidance
-- `docs/implementation/` — milestone plans and backlog
-- `docs/qa/` — quality gates, test matrix, and phase evidence
-- `docs/release/` — install, upgrade, troubleshooting, requirements, release notes, and limitations
-- `docs/handoffs/` — authoritative continuation state
+- `docs/handoffs/CURRENT_HANDOFF.md`
+- `docs/implementation/PHASE19_UPDATE_RELEASE_INFRASTRUCTURE_PLAN.md`
+- `docs/qa/PHASE19_QA.md`
+- `docs/release/UPDATE_CHANNELS.md`
+- `docs/release/MIGRATION_ROLLBACK_RECOVERY.md`
+- `docs/release/SECURITY_PRIVACY.md`
+- `docs/release/PUBLICATION_AND_INCIDENTS.md`
+- `docs/implementation/PLAYWORLD_STUDIO_1_0_IMPLEMENTATION_PLAN.md`
 
 ## Development rules
 
-- Start from current `master`, never obsolete `main`.
-- Develop on a dedicated branch and merge through a pull request.
-- Do not weaken contract, security, packaging, controller, accessibility, export, or visual gates to obtain a green workflow.
-- Preserve user projects, preferences, Asset Library state, and recovery data outside installation directories.
-- Keep the milestone pull request unmerged until explicit authorization.
-
-## Current limitations
-
-- Productized creator release is Windows x86_64 only.
-- Portable ZIP determinism is proven; byte-for-byte installer reproducibility is not claimed.
-- Installer code signing is not yet claimed.
-- Production application auto-update is not implemented in the accepted `master` baseline.
-- External Asset Library folders remain external and read-only.
-- Recovery requires a valid checkpoint.
-- Multiplayer remains bounded direct-connect gameplay rather than production matchmaking/relay or collaborative editor mutation.
-- Cloud AI behavior depends on user-configured provider availability and explicit cloud consent.
-
-See `docs/release/KNOWN_LIMITATIONS.md` and `docs/handoffs/CURRENT_HANDOFF.md` for the authoritative details.
+- Start from current protected `master`, never obsolete `main`.
+- Use one dedicated milestone branch and one milestone PR.
+- Preserve projects, preferences, Asset Library state, checkpoints, recovery data, and support data outside installation directories.
+- Never weaken security, migration, packaging, controller, accessibility, export, or visual gates to obtain a green workflow.
+- Never commit a private signing key or credential.
+- Keep the corrective PR open and unmerged until explicit authorization.

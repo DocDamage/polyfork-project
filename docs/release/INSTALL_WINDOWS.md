@@ -34,3 +34,8 @@ Running the 0.1.0 installer again repairs/replaces application files while per-u
 To remove authored data as well, back up anything wanted first, then remove the PlayWorld Studio per-user data separately. The Phase 18 uninstaller does not silently perform that destructive action.
 
 See `USER_DATA_AND_UPGRADE.md` and `TROUBLESHOOTING.md`.
+<!-- PHASE19_CORRECTION_STATUS_START -->
+## 0.2.0 update candidate
+
+Phase 19 distinguishes portable replacement from installed-mode installer handoff. Both preserve persistent per-user data outside the application directory. The accepted `0.1.0` application does not contain this updater; the real `0.1.0 → 0.2.0` bootstrap uses the verified replacement ZIP or installer path and is proven in the Phase 19 Windows workflow.
+<!-- PHASE19_CORRECTION_STATUS_END -->

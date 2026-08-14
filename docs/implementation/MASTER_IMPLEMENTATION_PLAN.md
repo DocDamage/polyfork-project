@@ -109,3 +109,8 @@ The real Home About action produces a topmost full-size overlay with a typed ide
 ## Next milestone boundary
 
 No Phase 19 scope has been approved. A new phase must begin only after the user defines its objectives, acceptance criteria, exclusions, branch, and handoff from current authoritative `master@49a5b55748244097d952ab9c095dd00ed0ec9f06`.
+<!-- PHASE19_CORRECTION_STATUS_START -->
+## Phase 19 corrective completion status
+
+PR #27 was integrated before the full Phase 19 milestone existed. Corrective work proceeds from signed `master@ebeb35e28f53738c63d35429eba1ea40b5c8cdb1` on `dev/phase19-completion-correction`. Phase 19 remains incomplete until the exact final corrective PR head passes the full source, Windows update, real `0.1.0 → 0.2.0`, security, controller/accessibility, publication-dry-run, and manually reviewed visual gates. Phase 20 remains unauthorized.
+<!-- PHASE19_CORRECTION_STATUS_END -->
