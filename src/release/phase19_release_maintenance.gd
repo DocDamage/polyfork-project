@@ -34,7 +34,18 @@ func diagnostic_report() -> Dictionary:
     var update_service := get_node_or_null("/root/UpdateService")
     base["update"] = update_service.call("snapshot") if update_service != null and update_service.has_method("snapshot") else {"state": "unavailable"}
     var migration_service := get_node_or_null("/root/DataMigration")
-    base["migration"] = migration_service.call("snapshot") if migration_service != null and migration_service.has_method("snapshot") else startup_result.duplicate(true)
+    var migration_snapshot: Dictionary = migration_service.call("snapshot") if migration_service != null and migration_service.has_method("snapshot") else {"state": startup_result.duplicate(true)}
+    var migration_state: Dictionary = migration_snapshot.get("state", {})
+    var completed_steps: Variant = migration_state.get("completed_steps", [])
+    var backups: Variant = migration_state.get("backups", [])
+    base["migration"] = {
+        "target_application_version": str(migration_snapshot.get("target_application_version", ProductIdentityV2.version())),
+        "application_version": str(migration_state.get("application_version", migration_state.get("target_version", ProductIdentityV2.version()))),
+        "completed_steps": completed_steps.duplicate() if completed_steps is Array else [],
+        "backup_count": backups.size() if backups is Array else 0,
+        "journal_status": str(migration_snapshot.get("journal_status", "none")),
+        "journal_step": str(migration_snapshot.get("journal_step", "")),
+    }
     var session_service := get_node_or_null("/root/SessionRecovery")
     base["session_recovery"] = session_service.call("recovery_snapshot") if session_service != null and session_service.has_method("recovery_snapshot") else {"available": false}
     base["privacy"] = {
