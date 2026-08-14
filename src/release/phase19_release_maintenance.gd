@@ -51,7 +51,7 @@ func diagnostic_report() -> Dictionary:
     base["privacy"] = {
         "authored_project_content_included": false,
         "credentials_included": false,
-        "absolute_user_paths_included": false,
+        "user_paths_redacted": true,
         "local_only_until_user_shares": true,
     }
     return _sanitize_value(base)
@@ -61,7 +61,7 @@ func create_support_bundle() -> Dictionary:
     var text := JSON.stringify(report, "  ", true)
     if _contains_secret_material(text):
         return {"ok": false, "errors": ["Support bundle was blocked because credential-like material was detected."]}
-    for forbidden in ["project.json\"", "BEGIN PRIVATE KEY", "OPENAI_API_KEY", ".polyforkAPI"]:
+    for forbidden in ["project.json", "absolute_user_path", "BEGIN PRIVATE KEY", "OPENAI_API_KEY", ".polyforkAPI"]:
         if text.contains(forbidden):
             return {"ok": false, "errors": ["Support bundle contains prohibited private material."]}
     var result := ReleasePaths.atomic_write_json(SUPPORT_PATH_V2, report)
