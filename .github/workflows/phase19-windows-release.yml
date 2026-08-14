@@ -267,7 +267,7 @@ jobs:
           function Write-Request([string]$Operation,[string]$AppRoot,[string]$Artifact,[string]$Backup,[string]$Journal,[string]$Hash,[long]$Size,[string]$Version,[string]$Failure='') {
             $request = [ordered]@{ schema_version=1; operation=$Operation; application_root=$AppRoot; artifact_path=$Artifact; backup_root=$Backup; journal_path=$Journal; restart_executable=''; expected_sha256=$Hash; expected_size=$Size; expected_version=$Version; expected_product='PlayWorld Studio'; parent_process_id=2147483000; install_mode='portable'; created_at_unix=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds() }
             if ($Failure) { $request.simulate_failure_stage=$Failure }
-            $path = Join-Path $env:RUNNER_TEMP ("phase19-request-" + [guid]::NewGuid().ToString('N') + '.json')
+            $path = Join-Path (Split-Path $Journal -Parent) ("phase19-request-" + [guid]::NewGuid().ToString('N') + '.json')
             $request | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding UTF8
             return $path
           }
@@ -276,6 +276,10 @@ jobs:
           $oldRoot = (Get-ChildItem $oldExtract -Directory | Select-Object -First 1).FullName
           $working = Join-Path $env:RUNNER_TEMP 'phase19-portable-working'
           Copy-Item $oldRoot $working -Recurse -Force
+          $updateRoot = Join-Path $env:RUNNER_TEMP 'phase19-portable-update-data'
+          New-Item -ItemType Directory -Force -Path $updateRoot | Out-Null
+          $stagedZip = Join-Path $updateRoot (Split-Path $env:PHASE19_STAGED_ZIP -Leaf)
+          Copy-Item $env:PHASE19_STAGED_ZIP $stagedZip -Force
           $unownedPortable = Join-Path $working 'My Portable Notes.txt'
           'This file is not owned by PlayWorld Studio and must survive update, repair, and rollback.' | Set-Content $unownedPortable -Encoding UTF8
           $appData = Join-Path $env:RUNNER_TEMP 'phase19-portable-appdata'
@@ -283,9 +287,9 @@ jobs:
           $env:APPDATA = $appData
           & (Join-Path $working 'PlayWorld Studio.exe') --headless -- --phase18-release-smoke=first 2>&1 | Tee-Object phase19-real-portable-010-first.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $backup = Join-Path $env:RUNNER_TEMP 'phase19-portable-backup'
-          $journal = Join-Path $env:RUNNER_TEMP 'phase19-portable-journal.json'
-          $request = Write-Request 'apply-portable' $working $env:PHASE19_STAGED_ZIP $backup $journal $env:PHASE19_ZIP_SHA256 (Get-Item $env:PHASE19_STAGED_ZIP).Length '0.2.0'
+          $backup = Join-Path $updateRoot 'backup'
+          $journal = Join-Path $updateRoot 'journal.json'
+          $request = Write-Request 'apply-portable' $working $stagedZip $backup $journal $env:PHASE19_ZIP_SHA256 (Get-Item $stagedZip).Length '0.2.0'
           & $env:PHASE19_UPDATER --request $request --relocated 2>&1 | Tee-Object phase19-portable-update.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if ((Get-Content (Join-Path $working 'release_manifest.json') -Raw | ConvertFrom-Json).version -ne '0.2.0') { throw 'Portable updater did not install 0.2.0.' }
@@ -301,9 +305,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if ((Get-Content (Join-Path $working 'release_manifest.json') -Raw | ConvertFrom-Json).version -ne '0.1.0') { throw 'Portable binary rollback did not restore 0.1.0.' }
           if (-not (Test-Path $unownedPortable)) { throw 'Portable rollback removed an unrelated file from the application directory.' }
-          $repairBackup = Join-Path $env:RUNNER_TEMP 'phase19-portable-repair-backup'
-          $repairJournal = Join-Path $env:RUNNER_TEMP 'phase19-portable-repair-journal.json'
-          $repair = Write-Request 'repair' $working $env:PHASE19_STAGED_ZIP $repairBackup $repairJournal $env:PHASE19_ZIP_SHA256 (Get-Item $env:PHASE19_STAGED_ZIP).Length '0.2.0'
+          $repairBackup = Join-Path $updateRoot 'repair-backup'
+          $repairJournal = Join-Path $updateRoot 'repair-journal.json'
+          $repair = Write-Request 'repair' $working $stagedZip $repairBackup $repairJournal $env:PHASE19_ZIP_SHA256 (Get-Item $stagedZip).Length '0.2.0'
           & $env:PHASE19_UPDATER --request $repair --relocated 2>&1 | Tee-Object phase19-portable-repair.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path $unownedPortable)) { throw 'Portable repair removed an unrelated file from the application directory.' }
@@ -311,9 +315,9 @@ jobs:
             $faultRoot = Join-Path $env:RUNNER_TEMP ("phase19-fault-" + $stage)
             if (Test-Path $faultRoot) { Remove-Item $faultRoot -Recurse -Force }
             Copy-Item $oldRoot $faultRoot -Recurse -Force
-            $faultBackup = Join-Path $env:RUNNER_TEMP ("phase19-fault-backup-" + $stage)
-            $faultJournal = Join-Path $env:RUNNER_TEMP ("phase19-fault-journal-" + $stage + '.json')
-            $faultRequest = Write-Request 'apply-portable' $faultRoot $env:PHASE19_STAGED_ZIP $faultBackup $faultJournal $env:PHASE19_ZIP_SHA256 (Get-Item $env:PHASE19_STAGED_ZIP).Length '0.2.0' $stage
+            $faultBackup = Join-Path $updateRoot ("fault-backup-" + $stage)
+            $faultJournal = Join-Path $updateRoot ("fault-journal-" + $stage + '.json')
+            $faultRequest = Write-Request 'apply-portable' $faultRoot $stagedZip $faultBackup $faultJournal $env:PHASE19_ZIP_SHA256 (Get-Item $stagedZip).Length '0.2.0' $stage
             $env:PLAYWORLD_UPDATER_TEST_MODE='1'
             & $env:PHASE19_UPDATER --request $faultRequest --relocated 2>&1 | Tee-Object ("phase19-fault-" + $stage + '.log')
             $expectedFailure = $LASTEXITCODE
@@ -331,11 +335,15 @@ jobs:
           function Write-Request([string]$Operation,[string]$AppRoot,[string]$Artifact,[string]$Backup,[string]$Journal,[string]$Hash,[long]$Size,[string]$Version,[string]$Failure='') {
             $request = [ordered]@{ schema_version=1; operation=$Operation; application_root=$AppRoot; artifact_path=$Artifact; backup_root=$Backup; journal_path=$Journal; restart_executable=''; expected_sha256=$Hash; expected_size=$Size; expected_version=$Version; expected_product='PlayWorld Studio'; parent_process_id=2147483000; install_mode='installed'; created_at_unix=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds() }
             if ($Failure) { $request.simulate_failure_stage=$Failure }
-            $path = Join-Path $env:RUNNER_TEMP ("phase19-installed-request-" + [guid]::NewGuid().ToString('N') + '.json')
+            $path = Join-Path (Split-Path $Journal -Parent) ("phase19-installed-request-" + [guid]::NewGuid().ToString('N') + '.json')
             $request | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding UTF8
             return $path
           }
           $installRoot = Join-Path $env:RUNNER_TEMP 'PlayWorld-Studio-installed-upgrade'
+          $updateRoot = Join-Path $env:RUNNER_TEMP 'phase19-installed-update-data'
+          New-Item -ItemType Directory -Force -Path $updateRoot | Out-Null
+          $stagedSetup = Join-Path $updateRoot (Split-Path $env:PHASE19_STAGED_SETUP -Leaf)
+          Copy-Item $env:PHASE19_STAGED_SETUP $stagedSetup -Force
           $appData = Join-Path $env:RUNNER_TEMP 'phase19-installed-appdata'
           New-Item -ItemType Directory -Force -Path $appData | Out-Null
           $env:APPDATA = $appData
@@ -346,24 +354,24 @@ jobs:
           'This unrelated file must survive installed update, repair, and rollback.' | Set-Content $unownedInstalled -Encoding UTF8
           & $oldExe --headless -- --phase18-release-smoke=first 2>&1 | Tee-Object phase19-real-installed-010-first.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $backup = Join-Path $env:RUNNER_TEMP 'phase19-installed-backup'
-          $journal = Join-Path $env:RUNNER_TEMP 'phase19-installed-journal.json'
-          $request = Write-Request 'apply-installer' $installRoot $env:PHASE19_STAGED_SETUP $backup $journal $env:PHASE19_SETUP_SHA256 (Get-Item $env:PHASE19_STAGED_SETUP).Length '0.2.0'
+          $backup = Join-Path $updateRoot 'backup'
+          $journal = Join-Path $updateRoot 'journal.json'
+          $request = Write-Request 'apply-installer' $installRoot $stagedSetup $backup $journal $env:PHASE19_SETUP_SHA256 (Get-Item $stagedSetup).Length '0.2.0'
           & $env:PHASE19_UPDATER --request $request --relocated 2>&1 | Tee-Object phase19-installed-update.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $newExe = Join-Path $installRoot 'PlayWorld Studio.exe'
           if (-not (Test-Path $unownedInstalled)) { throw 'Installed update removed an unrelated file from the application directory.' }
           & $newExe --headless -- --phase19-release-smoke=upgrade 2>&1 | Tee-Object phase19-installed-upgrade.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $repairBackup = Join-Path $env:RUNNER_TEMP 'phase19-installed-repair-backup'
-          $repairJournal = Join-Path $env:RUNNER_TEMP 'phase19-installed-repair-journal.json'
-          $repair = Write-Request 'repair' $installRoot $env:PHASE19_STAGED_SETUP $repairBackup $repairJournal $env:PHASE19_SETUP_SHA256 (Get-Item $env:PHASE19_STAGED_SETUP).Length '0.2.0'
+          $repairBackup = Join-Path $updateRoot 'repair-backup'
+          $repairJournal = Join-Path $updateRoot 'repair-journal.json'
+          $repair = Write-Request 'repair' $installRoot $stagedSetup $repairBackup $repairJournal $env:PHASE19_SETUP_SHA256 (Get-Item $stagedSetup).Length '0.2.0'
           & $env:PHASE19_UPDATER --request $repair --relocated 2>&1 | Tee-Object phase19-installed-repair.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path $unownedInstalled)) { throw 'Installed repair removed an unrelated file from the application directory.' }
-          $faultBackup = Join-Path $env:RUNNER_TEMP 'phase19-installed-fault-backup'
-          $faultJournal = Join-Path $env:RUNNER_TEMP 'phase19-installed-fault-journal.json'
-          $fault = Write-Request 'apply-installer' $installRoot $env:PHASE19_STAGED_SETUP $faultBackup $faultJournal $env:PHASE19_SETUP_SHA256 (Get-Item $env:PHASE19_STAGED_SETUP).Length '0.2.0' 'installed-handoff'
+          $faultBackup = Join-Path $updateRoot 'fault-backup'
+          $faultJournal = Join-Path $updateRoot 'fault-journal.json'
+          $fault = Write-Request 'apply-installer' $installRoot $stagedSetup $faultBackup $faultJournal $env:PHASE19_SETUP_SHA256 (Get-Item $stagedSetup).Length '0.2.0' 'installed-handoff'
           $env:PLAYWORLD_UPDATER_TEST_MODE='1'
           & $env:PHASE19_UPDATER --request $fault --relocated 2>&1 | Tee-Object phase19-installed-interruption.log
           $faultExit = $LASTEXITCODE
