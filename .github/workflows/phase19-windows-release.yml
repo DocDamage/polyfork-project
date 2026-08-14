@@ -50,7 +50,9 @@ jobs:
           "PHASE19_UPDATER=$helper" | Out-File -FilePath $env:GITHUB_ENV -Append
           $PSNativeCommandUseErrorActionPreference = $false
           & $helper --request missing.json --relocated 2>&1 | Tee-Object phase19-updater-negative.log
-          if ($LASTEXITCODE -eq 0) { throw 'Updater accepted a missing request.' }
+          $negativeExit = $LASTEXITCODE
+          if ($negativeExit -eq 0) { throw 'Updater accepted a missing request.' }
+          exit 0
       - name: Reject malicious updater requests and portable archives
         shell: pwsh
         run: |
