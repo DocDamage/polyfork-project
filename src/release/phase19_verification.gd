@@ -109,8 +109,20 @@ func _run_upgrade() -> Array[String]:
     var saved: Dictionary = repository.save_project(project)
     if not saved.get("ok", false): errors.append("Upgraded project could not be saved.")
     var project_directory := repository.get_project_directory(str(project.project_id))
-    var checkpoint_root := project_directory.path_join("checkpoints")
-    if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(checkpoint_root)): errors.append("Project checkpoint/recovery data was not preserved through upgrade.")
+    var project_backup_preserved := false
+    for value in migration_result.get("backups", []):
+        if not value is Dictionary: continue
+        var record: Dictionary = value
+        var source := str(record.get("source", "")).replace("\\", "/")
+        var backup := str(record.get("backup", ""))
+        if source.ends_with("/%s/project.json" % str(project.project_id)) and FileAccess.file_exists(backup):
+            project_backup_preserved = true
+            break
+    if not project_backup_preserved: errors.append("The exact 0.1.0 project migration backup was not preserved through upgrade.")
+    var checkpoint: Dictionary = repository.create_checkpoint(project)
+    if not checkpoint.get("ok", false): errors.append("Upgraded project checkpoint/recovery data could not be established.")
+    var checkpoint_root := repository.get_checkpoint_directory(str(project.project_id))
+    if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(checkpoint_root)): errors.append("Upgraded project checkpoint/recovery directory is missing.")
     var library = workspace.call("get_asset_library")
     errors.append_array(_export_and_launch(project, project_directory, library))
     var maintenance := get_node_or_null("/root/ReleaseMaintenance")
