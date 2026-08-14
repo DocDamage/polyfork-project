@@ -139,9 +139,7 @@ func _run_offline() -> Array[String]:
     var service := get_node_or_null("/root/UpdateService")
     if service == null: return errors + ["Update service is unavailable for offline-failure proof."]
     var result: Dictionary = service.call("check_for_updates", true)
-    if result.get("ok", false): errors.append("Network-disabled update check was accepted.")
-    var snapshot: Dictionary = service.call("snapshot")
-    if str(snapshot.get("state", "")) not in ["offline", "failed"]: errors.append("Update failure did not reach a bounded offline/failure state.")
+    if result.get("ok", false) or not result.get("offline", false): errors.append("Network-disabled update check did not report a bounded offline result.")
     var state := _read_state(STATE_PATH)
     if state.get("ok", false):
         var repository = ProjectRepository.new(str(ProjectSettings.get_setting("playworld/storage/projects_root", "user://projects")))
