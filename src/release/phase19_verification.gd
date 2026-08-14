@@ -138,7 +138,8 @@ func _run_offline() -> Array[String]:
     var errors := await _run_reopen()
     var service := get_node_or_null("/root/UpdateService")
     if service == null: return errors + ["Update service is unavailable for offline-failure proof."]
-    var result: Dictionary = service.call("check_for_updates", true)
+    OS.set_environment("PLAYWORLD_DISABLE_UPDATE_NETWORK", "1")
+    var result: Dictionary = service.call("check_for_updates", true, "")
     if result.get("ok", false) or not result.get("offline", false): errors.append("Network-disabled update check did not report a bounded offline result.")
     var state := _read_state(STATE_PATH)
     if state.get("ok", false):
