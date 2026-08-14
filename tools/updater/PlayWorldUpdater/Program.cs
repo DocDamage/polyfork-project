@@ -291,7 +291,7 @@ internal static class Program
         foreach (var file in Directory.EnumerateFiles(packageRoot, "*", SearchOption.AllDirectories))
         {
             RejectReparsePoint(file);
-            var relative = Path.GetRelativePath(packageRoot, file).Replace('\\', '/');
+            var relative = NormalizeRelativeFile(Path.GetRelativePath(packageRoot, file));
             if (relative is "release_manifest.json" or "SHA256SUMS.txt") continue;
             if (!expected.Contains(relative)) throw new InvalidDataException($"Portable package contains an unexpected file: {relative}");
         }
