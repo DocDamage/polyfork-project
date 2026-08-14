@@ -10,3 +10,9 @@
 - AI provider behavior remains subject to configured local/cloud provider availability and the existing privacy/consent rules.
 - Historical legacy API credential material remains present in repository history and must be treated as exposed; the release scanner prevents that material from being packaged but cannot prove external credential rotation/revocation.
 - GitHub-hosted visual QA can use Microsoft Basic Render Driver through ANGLE; this is CI infrastructure, not the expected end-user GPU path.
+
+<!-- PHASE19_CORRECTION_STATUS_START -->
+## Phase 19 candidate limitations
+
+The initial update lifecycle remains Windows x86_64 only. Authenticode signing is not claimed by this milestone. Production update signing requires externally provisioned protected private keys; placeholder Stable/Beta trust records are intentionally disabled until provisioned. Phase 19 source is not an accepted public release until exact-head evidence and explicit publication authorization exist.
+<!-- PHASE19_CORRECTION_STATUS_END -->

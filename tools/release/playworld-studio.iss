@@ -5,9 +5,9 @@
   #define OutputDir "."
 #endif
 #define AppName "PlayWorld Studio"
-#define AppVersion "0.1.0"
+#define AppVersion "0.2.0"
 #define Publisher "PlayWorld Studio"
-#define SetupBase "PlayWorld-Studio-0.1.0-Windows-x64-Setup"
+#define SetupBase "PlayWorld-Studio-0.2.0-Windows-x64-Setup"
 
 [Setup]
 AppId={{C169D5CE-4EE4-4D59-93CD-F52D59018010}
@@ -24,14 +24,15 @@ SolidCompression=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog
 WizardStyle=modern
 UninstallDisplayName=PlayWorld Studio {#AppVersion}
 Uninstallable=yes
 CloseApplications=yes
 RestartApplications=no
-VersionInfoVersion=0.1.0.0
+VersionInfoVersion=0.2.0.0
 VersionInfoProductName=PlayWorld Studio
-VersionInfoProductVersion=0.1.0
+VersionInfoProductVersion=0.2.0
 VersionInfoCompany=PlayWorld Studio
 VersionInfoDescription=PlayWorld Studio installer
 
@@ -56,5 +57,5 @@ begin
 end;
 
 [Messages]
-FinishedHeadingLabel=PlayWorld Studio 0.1.0 is installed
-FinishedLabel=Your worlds, Asset Library catalog, and settings live in your user-data folder and are not removed by uninstall.
+FinishedHeadingLabel=PlayWorld Studio 0.2.0 is installed
+FinishedLabel=Your worlds, Asset Library catalog, preferences, checkpoints, and recovery data live in your user-data folder and are not removed by update or uninstall.

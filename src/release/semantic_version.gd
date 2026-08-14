@@ -5,12 +5,12 @@ static func parse(value: String) -> Dictionary:
     var source := value.strip_edges()
     if source.is_empty():
         return _failure("Version is empty.")
-    var build_split := source.split("+", false, 2)
+    var build_split := source.split("+", true, 2)
     if build_split.size() > 2:
         return _failure("Version contains more than one build separator.")
     var precedence := str(build_split[0])
     var build := str(build_split[1]) if build_split.size() == 2 else ""
-    var pre_split := precedence.split("-", false, 2)
+    var pre_split := precedence.split("-", true, 2)
     if pre_split.size() > 2:
         return _failure("Version contains more than one prerelease separator.")
     var core := str(pre_split[0])

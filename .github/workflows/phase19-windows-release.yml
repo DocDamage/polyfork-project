@@ -1,0 +1,430 @@
+name: Phase 19 Windows Update Lifecycle
+
+on:
+  push:
+    branches:
+      - dev/phase19-completion-correction
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase19-windows-release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLAYWORLD_DISABLE_UPDATE_NETWORK: '1'
+  PHASE18_ARTIFACT_ID: '9180943528'
+  PHASE18_PORTABLE_SHA256: 'f635811f0c9738ba622b91f0a5c890c24ab491ff63ed4f85cdcb12e8ca7a160a'
+  PHASE18_INSTALLER_SHA256: '9f639274e4bb7df3e492a8ab9720c7c0b6c6ca12c7f644f8dd1cba4c68ba6a02'
+  PHASE19_PACKAGE_NAME: PlayWorld-Studio-0.2.0-Windows-x64
+  PHASE19_SETUP_NAME: PlayWorld-Studio-0.2.0-Windows-x64-Setup.exe
+
+jobs:
+  windows-update-lifecycle:
+    runs-on: windows-2025
+    timeout-minutes: 210
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python release dependencies
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check cryptography
+      - name: Build self-contained external updater helper
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet publish tools/updater/PlayWorldUpdater/PlayWorldUpdater.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o artifacts/phase19/updater
+          $helper = Join-Path $env:GITHUB_WORKSPACE 'artifacts\phase19\updater\PlayWorldUpdater.exe'
+          if (-not (Test-Path $helper)) { throw 'PlayWorldUpdater.exe was not produced.' }
+          "PHASE19_UPDATER=$helper" | Out-File -FilePath $env:GITHUB_ENV -Append
+          & $helper --request missing.json --relocated 2>&1 | Tee-Object phase19-updater-negative.log
+          if ($LASTEXITCODE -eq 0) { throw 'Updater accepted a missing request.' }
+      - name: Reject malicious updater requests and portable archives
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $root = Join-Path $env:RUNNER_TEMP 'phase19-updater-security-negative'
+          $appRoot = Join-Path $root 'application'
+          $updateRoot = Join-Path $root 'update-data'
+          New-Item -ItemType Directory -Force -Path $appRoot,$updateRoot | Out-Null
+          'fixture' | Set-Content (Join-Path $appRoot 'PlayWorld Studio.exe') -Encoding UTF8
+          @{ schema_version=1; product_name='PlayWorld Studio'; version='0.1.0'; platform='Windows'; architecture='x86_64'; included_files=@() } | ConvertTo-Json -Depth 8 | Set-Content (Join-Path $appRoot 'release_manifest.json') -Encoding UTF8
+          function New-Request([string]$Name,[string]$Artifact,[string]$Hash,[long]$Size,[long]$CreatedAt,[string]$ApplicationRoot=$appRoot,[string]$BackupRoot='') {
+            if (-not $BackupRoot) { $BackupRoot = Join-Path $updateRoot ("backup-" + $Name) }
+            $request = [ordered]@{
+              schema_version=1; operation='apply-portable'; application_root=$ApplicationRoot; artifact_path=$Artifact;
+              backup_root=$BackupRoot; journal_path=(Join-Path $updateRoot ("journal-" + $Name + '.json'));
+              restart_executable=''; expected_sha256=$Hash; expected_size=$Size; expected_version='0.2.0';
+              expected_product='PlayWorld Studio'; parent_process_id=2147483000; install_mode='portable'; created_at_unix=$CreatedAt
+            }
+            $requestPath = Join-Path $updateRoot ("request-" + $Name + '.json')
+            $request | ConvertTo-Json -Depth 8 | Set-Content $requestPath -Encoding UTF8
+            return $requestPath
+          }
+          function Assert-Rejected([string]$Request,[string]$Name) {
+            & $env:PHASE19_UPDATER --request $Request --relocated 2>&1 | Tee-Object ("phase19-security-" + $Name + '.log')
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0) { throw "Updater accepted malicious input: $Name" }
+          }
+          $validZip = Join-Path $updateRoot 'valid-placeholder.zip'
+          python -c "import zipfile,sys; z=zipfile.ZipFile(sys.argv[1],'w'); z.writestr('placeholder.txt','fixture'); z.close()" $validZip
+          $validHash = (Get-FileHash $validZip -Algorithm SHA256).Hash.ToLowerInvariant()
+          $validSize = (Get-Item $validZip).Length
+          $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+
+          $unknown = New-Request 'unknown-field' $validZip $validHash $validSize $now
+          $unknownData = Get-Content $unknown -Raw | ConvertFrom-Json -AsHashtable
+          $unknownData['unexpected_field'] = 'reject-me'
+          $unknownData | ConvertTo-Json -Depth 8 | Set-Content $unknown -Encoding UTF8
+          Assert-Rejected $unknown 'unknown-field'
+          $corruptJournal = New-Request 'corrupt-journal' $validZip $validHash $validSize $now
+          $corruptJournalData = Get-Content $corruptJournal -Raw | ConvertFrom-Json -AsHashtable
+          @{ schema_version=1; operation='portable_update'; stage='handoff' } | ConvertTo-Json | Set-Content $corruptJournalData['journal_path'] -Encoding UTF8
+          Assert-Rejected $corruptJournal 'corrupt-journal'
+
+          Assert-Rejected (New-Request 'stale-request' $validZip $validHash $validSize ($now - 21601)) 'stale-request'
+          $outsideArtifact = Join-Path $root 'outside.zip'
+          Copy-Item $validZip $outsideArtifact -Force
+          Assert-Rejected (New-Request 'artifact-outside-root' $outsideArtifact ((Get-FileHash $outsideArtifact -Algorithm SHA256).Hash.ToLowerInvariant()) (Get-Item $outsideArtifact).Length $now) 'artifact-outside-root'
+          Assert-Rejected (New-Request 'size-mismatch' $validZip $validHash ($validSize + 1) $now) 'size-mismatch'
+          Assert-Rejected (New-Request 'hash-mismatch' $validZip ('0' * 64) $validSize $now) 'hash-mismatch'
+          Assert-Rejected (New-Request 'backup-equals-update-root' $validZip $validHash $validSize $now $appRoot $updateRoot) 'backup-equals-update-root'
+          $journalInsideBackup = New-Request 'journal-inside-backup' $validZip $validHash $validSize $now
+          $journalInsideBackupData = Get-Content $journalInsideBackup -Raw | ConvertFrom-Json -AsHashtable
+          $journalInsideBackupData['journal_path'] = Join-Path $journalInsideBackupData['backup_root'] 'journal.json'
+          $journalInsideBackupData | ConvertTo-Json -Depth 8 | Set-Content $journalInsideBackup -Encoding UTF8
+          Assert-Rejected $journalInsideBackup 'journal-inside-backup'
+          $sameRequestAndJournal = New-Request 'request-equals-journal' $validZip $validHash $validSize $now
+          $sameRequestAndJournalData = Get-Content $sameRequestAndJournal -Raw | ConvertFrom-Json -AsHashtable
+          $sameRequestAndJournalData['journal_path'] = $sameRequestAndJournal
+          $sameRequestAndJournalData | ConvertTo-Json -Depth 8 | Set-Content $sameRequestAndJournal -Encoding UTF8
+          Assert-Rejected $sameRequestAndJournal 'request-equals-journal'
+          $artifactBackup = Join-Path $updateRoot 'artifact-backup'
+          New-Item -ItemType Directory -Force -Path $artifactBackup | Out-Null
+          $artifactInBackup = Join-Path $artifactBackup 'artifact.zip'
+          Copy-Item $validZip $artifactInBackup -Force
+          Assert-Rejected (New-Request 'artifact-inside-backup' $artifactInBackup ((Get-FileHash $artifactInBackup -Algorithm SHA256).Hash.ToLowerInvariant()) (Get-Item $artifactInBackup).Length $now $appRoot $artifactBackup) 'artifact-inside-backup'
+          $overlapApp = Join-Path $updateRoot 'overlapping-application'
+          Copy-Item $appRoot $overlapApp -Recurse -Force
+          Assert-Rejected (New-Request 'overlapping-roots' $validZip $validHash $validSize $now $overlapApp) 'overlapping-roots'
+
+          $junctionTarget = Join-Path $root 'junction-target'
+          New-Item -ItemType Directory -Force -Path $junctionTarget | Out-Null
+          $backupJunction = Join-Path $updateRoot 'backup-junction'
+          New-Item -ItemType Junction -Path $backupJunction -Target $junctionTarget | Out-Null
+          Assert-Rejected (New-Request 'backup-junction' $validZip $validHash $validSize $now $appRoot $backupJunction) 'backup-junction'
+          $appTarget = Join-Path $root 'application-target'
+          Copy-Item $appRoot $appTarget -Recurse -Force
+          $appJunction = Join-Path $root 'application-junction'
+          New-Item -ItemType Junction -Path $appJunction -Target $appTarget | Out-Null
+          Assert-Rejected (New-Request 'application-junction' $validZip $validHash $validSize $now $appJunction) 'application-junction'
+
+          $malicious = Join-Path $updateRoot 'malicious'
+          New-Item -ItemType Directory -Force -Path $malicious | Out-Null
+          @'
+          import pathlib, stat, sys, zipfile
+          root = pathlib.Path(sys.argv[1])
+          cases = {
+              'traversal.zip': [('../escape.txt', b'escape', None)],
+              'drive-path.zip': [('C:/escape.txt', b'escape', None)],
+              'duplicates.zip': [('folder/file.txt', b'a', None), ('folder\\file.txt', b'b', None)],
+              'symlink.zip': [('link-to-outside', b'../escape.txt', stat.S_IFLNK | 0o777)],
+          }
+          for name, entries in cases.items():
+              with zipfile.ZipFile(root / name, 'w') as archive:
+                  for item_name, data, mode in entries:
+                      info = zipfile.ZipInfo(item_name)
+                      if mode is not None:
+                          info.create_system = 3
+                          info.external_attr = mode << 16
+                      archive.writestr(info, data)
+          '@ | python - $malicious
+          foreach ($case in @('traversal','drive-path','duplicates','symlink')) {
+            $archive = Join-Path $malicious ($case + '.zip')
+            $hash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+            Assert-Rejected (New-Request $case $archive $hash (Get-Item $archive).Length $now) $case
+          }
+          if (Test-Path (Join-Path $root 'escape.txt')) { throw 'Malicious archive escaped the bounded extraction root.' }
+          if ((Get-ChildItem $updateRoot -Directory -Filter 'extract-*' -ErrorAction SilentlyContinue).Count -ne 0) { throw 'Rejected portable archives left abandoned extraction directories.' }
+          'PASS: PlayWorldUpdater rejected malformed requests, overlapping roots, unsafe backup boundaries, reparse points, traversal, absolute paths, duplicates, symlinks, and integrity mismatches.' | Tee-Object phase19-updater-security.log
+      - name: Install Godot 4.7.1 and Windows export templates
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Invoke-WebRequest -Uri 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_win64.exe.zip' -OutFile godot.zip
+          Expand-Archive godot.zip -DestinationPath godot
+          Invoke-WebRequest -Uri 'https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_export_templates.tpz' -OutFile templates.tpz
+          Copy-Item templates.tpz templates.zip
+          Expand-Archive templates.zip -DestinationPath template-package
+          $templateTarget = Join-Path $env:APPDATA 'Godot\export_templates\4.7.1.stable'
+          New-Item -ItemType Directory -Force -Path $templateTarget | Out-Null
+          Copy-Item 'template-package\templates\*' $templateTarget -Recurse -Force
+          $console = (Get-ChildItem godot -Filter '*_console.exe' | Select-Object -First 1).FullName
+          $editor = (Get-ChildItem godot -Filter '*.exe' | Where-Object { $_.Name -notlike '*_console.exe' } | Select-Object -First 1).FullName
+          if (-not $console -or -not $editor) { throw 'Godot executables not found.' }
+          "GODOT_EXE=$console" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "GODOT_EDITOR_EXE=$editor" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "GODOT_TEMPLATE_ROOT=$templateTarget" | Out-File -FilePath $env:GITHUB_ENV -Append
+          & $console --version
+      - name: Run focused Phase 19 and inherited Windows contracts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $gates = @(
+            @('res://tests/phase19_contracts_runner.gd','phase19-windows-contracts.log'),
+            @('res://tests/phase16_windows_export_runner.gd','phase16-windows-export.log'),
+            @('res://tests/phase14_windows_export_runner.gd','phase14-windows-export.log'),
+            @('res://tests/phase15_windows_export_runner.gd','phase15-windows-export.log')
+          )
+          foreach ($gate in $gates) {
+            & $env:GODOT_EXE --headless --path . --script $gate[0] 2>&1 | Tee-Object $gate[1]
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $text = Get-Content $gate[1] -Raw
+            if ($text -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw "Strict Godot error in $($gate[1])" }
+          }
+      - name: Build and independently validate deterministic 0.2.0 portable packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $epoch = [int64](git show -s --format=%ct $env:GITHUB_SHA)
+          python tools/release/build_creator_release.py --godot "$env:GODOT_EDITOR_EXE" --template-root "$env:GODOT_TEMPLATE_ROOT" --updater-helper "$env:PHASE19_UPDATER" --output-root artifacts/phase19/release --source-commit "$env:GITHUB_SHA" --source-date-epoch $epoch 2>&1 | Tee-Object phase19-build.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/release/build_creator_release.py --godot "$env:GODOT_EDITOR_EXE" --template-root "$env:GODOT_TEMPLATE_ROOT" --updater-helper "$env:PHASE19_UPDATER" --output-root artifacts/phase19/rebuild --source-commit "$env:GITHUB_SHA" --source-date-epoch $epoch 2>&1 | Tee-Object phase19-rebuild.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $package = Join-Path $env:GITHUB_WORKSPACE "artifacts\phase19\release\$env:PHASE19_PACKAGE_NAME"
+          $rebuild = Join-Path $env:GITHUB_WORKSPACE "artifacts\phase19\rebuild\$env:PHASE19_PACKAGE_NAME"
+          python tools/release/validate_creator_package.py "$package" 2>&1 | Tee-Object phase19-package-validation.log
+          python tools/release/validate_creator_package.py "$rebuild" 2>&1 | Tee-Object phase19-rebuild-validation.log
+          $zip1 = Join-Path $env:GITHUB_WORKSPACE "artifacts\phase19\release\$env:PHASE19_PACKAGE_NAME.zip"
+          $zip2 = Join-Path $env:GITHUB_WORKSPACE "artifacts\phase19\rebuild\$env:PHASE19_PACKAGE_NAME.zip"
+          $hash1 = (Get-FileHash $zip1 -Algorithm SHA256).Hash.ToLowerInvariant()
+          $hash2 = (Get-FileHash $zip2 -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash1 -ne $hash2) { throw '0.2.0 portable ZIP is not deterministic for identical inputs.' }
+          $zipSize = (Get-Item $zip1).Length
+          python tools/release/validate_update_artifact.py "$zip1" --expected-sha256 $hash1 --expected-size $zipSize
+          "PHASE19_PACKAGE=$package" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PHASE19_ZIP=$zip1" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $stagedZip = Join-Path $env:RUNNER_TEMP ($env:PHASE19_PACKAGE_NAME + '.zip')
+          Copy-Item $zip1 $stagedZip -Force
+          "PHASE19_STAGED_ZIP=$stagedZip" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PHASE19_ZIP_SHA256=$hash1" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PHASE19_CREATOR=$(Join-Path $package 'PlayWorld Studio.exe')" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Build and verify 0.2.0 installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          choco install innosetup --no-progress -y
+          python tools/release/build_windows_installer.py --package-dir "$env:PHASE19_PACKAGE" --output-dir artifacts/phase19/installer 2>&1 | Tee-Object phase19-installer-build.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $setup = Join-Path $env:GITHUB_WORKSPACE "artifacts\phase19\installer\$env:PHASE19_SETUP_NAME"
+          if (-not (Test-Path $setup)) { throw '0.2.0 installer is missing.' }
+          $info = (Get-Item $setup).VersionInfo
+          if (([string]$info.ProductName).Trim() -ne 'PlayWorld Studio' -or ([string]$info.ProductVersion).Trim() -ne '0.2.0') { throw 'Installer product/version metadata is invalid.' }
+          $hash = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $env:PHASE19_SETUP_NAME" | Set-Content "$setup.sha256" -Encoding ASCII
+          "PHASE19_SETUP=$setup" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $stagedSetup = Join-Path $env:RUNNER_TEMP $env:PHASE19_SETUP_NAME
+          Copy-Item $setup $stagedSetup -Force
+          "PHASE19_STAGED_SETUP=$stagedSetup" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PHASE19_SETUP_SHA256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Download and verify exact accepted PlayWorld Studio 0.1.0 artifacts
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json'; 'X-GitHub-Api-Version' = '2022-11-28' }
+          Invoke-WebRequest -Headers $headers -Uri "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$env:PHASE18_ARTIFACT_ID/zip" -OutFile phase18-artifact.zip
+          Expand-Archive phase18-artifact.zip -DestinationPath phase18-artifact
+          $portable = Get-ChildItem phase18-artifact -Recurse -Filter 'PlayWorld-Studio-0.1.0-Windows-x64.zip' | Select-Object -First 1
+          $setup = Get-ChildItem phase18-artifact -Recurse -Filter 'PlayWorld-Studio-0.1.0-Windows-x64-Setup.exe' | Select-Object -First 1
+          if (-not $portable -or -not $setup) { throw 'Exact accepted 0.1.0 portable/installer artifacts are missing.' }
+          if ((Get-FileHash $portable.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:PHASE18_PORTABLE_SHA256) { throw 'Accepted 0.1.0 portable SHA-256 mismatch.' }
+          if ((Get-FileHash $setup.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:PHASE18_INSTALLER_SHA256) { throw 'Accepted 0.1.0 installer SHA-256 mismatch.' }
+          "PHASE18_ZIP=$($portable.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PHASE18_SETUP=$($setup.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Prove real portable 0.1.0 to 0.2.0 update, repair, failure recovery, rollback, offline use, and export
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Write-Request([string]$Operation,[string]$AppRoot,[string]$Artifact,[string]$Backup,[string]$Journal,[string]$Hash,[long]$Size,[string]$Version,[string]$Failure='') {
+            $request = [ordered]@{ schema_version=1; operation=$Operation; application_root=$AppRoot; artifact_path=$Artifact; backup_root=$Backup; journal_path=$Journal; restart_executable=''; expected_sha256=$Hash; expected_size=$Size; expected_version=$Version; expected_product='PlayWorld Studio'; parent_process_id=2147483000; install_mode='portable'; created_at_unix=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds() }
+            if ($Failure) { $request.simulate_failure_stage=$Failure }
+            $path = Join-Path $env:RUNNER_TEMP ("phase19-request-" + [guid]::NewGuid().ToString('N') + '.json')
+            $request | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding UTF8
+            return $path
+          }
+          $oldExtract = Join-Path $env:RUNNER_TEMP 'phase19-old-portable-source'
+          Expand-Archive $env:PHASE18_ZIP -DestinationPath $oldExtract
+          $oldRoot = (Get-ChildItem $oldExtract -Directory | Select-Object -First 1).FullName
+          $working = Join-Path $env:RUNNER_TEMP 'phase19-portable-working'
+          Copy-Item $oldRoot $working -Recurse -Force
+          $unownedPortable = Join-Path $working 'My Portable Notes.txt'
+          'This file is not owned by PlayWorld Studio and must survive update, repair, and rollback.' | Set-Content $unownedPortable -Encoding UTF8
+          $appData = Join-Path $env:RUNNER_TEMP 'phase19-portable-appdata'
+          New-Item -ItemType Directory -Force -Path $appData | Out-Null
+          $env:APPDATA = $appData
+          & (Join-Path $working 'PlayWorld Studio.exe') --headless -- --phase18-release-smoke=first 2>&1 | Tee-Object phase19-real-portable-010-first.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $backup = Join-Path $env:RUNNER_TEMP 'phase19-portable-backup'
+          $journal = Join-Path $env:RUNNER_TEMP 'phase19-portable-journal.json'
+          $request = Write-Request 'apply-portable' $working $env:PHASE19_STAGED_ZIP $backup $journal $env:PHASE19_ZIP_SHA256 (Get-Item $env:PHASE19_STAGED_ZIP).Length '0.2.0'
+          & $env:PHASE19_UPDATER --request $request --relocated 2>&1 | Tee-Object phase19-portable-update.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ((Get-Content (Join-Path $working 'release_manifest.json') -Raw | ConvertFrom-Json).version -ne '0.2.0') { throw 'Portable updater did not install 0.2.0.' }
+          if (-not (Test-Path $unownedPortable)) { throw 'Portable update removed an unrelated file from the application directory.' }
+          & (Join-Path $working 'PlayWorld Studio.exe') --headless -- --phase19-release-smoke=upgrade 2>&1 | Tee-Object phase19-portable-upgrade.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & (Join-Path $working 'PlayWorld Studio.exe') --headless -- --phase19-release-smoke=reopen 2>&1 | Tee-Object phase19-portable-reopen.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & (Join-Path $working 'PlayWorld Studio.exe') --headless -- --phase19-release-smoke=offline 2>&1 | Tee-Object phase19-portable-offline.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $rollback = Write-Request 'rollback' $working '' $backup $journal '' 0 '0.1.0'
+          & $env:PHASE19_UPDATER --request $rollback --relocated 2>&1 | Tee-Object phase19-portable-rollback.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ((Get-Content (Join-Path $working 'release_manifest.json') -Raw | ConvertFrom-Json).version -ne '0.1.0') { throw 'Portable binary rollback did not restore 0.1.0.' }
+          if (-not (Test-Path $unownedPortable)) { throw 'Portable rollback removed an unrelated file from the application directory.' }
+          $repairBackup = Join-Path $env:RUNNER_TEMP 'phase19-portable-repair-backup'
+          $repairJournal = Join-Path $env:RUNNER_TEMP 'phase19-portable-repair-journal.json'
+          $repair = Write-Request 'repair' $working $env:PHASE19_STAGED_ZIP $repairBackup $repairJournal $env:PHASE19_ZIP_SHA256 (Get-Item $env:PHASE19_STAGED_ZIP).Length '0.2.0'
+          & $env:PHASE19_UPDATER --request $repair --relocated 2>&1 | Tee-Object phase19-portable-repair.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path $unownedPortable)) { throw 'Portable repair removed an unrelated file from the application directory.' }
+          foreach ($stage in @('after-verification','after-backup','during-replacement','after-replacement')) {
+            $faultRoot = Join-Path $env:RUNNER_TEMP ("phase19-fault-" + $stage)
+            if (Test-Path $faultRoot) { Remove-Item $faultRoot -Recurse -Force }
+            Copy-Item $oldRoot $faultRoot -Recurse -Force
+            $faultBackup = Join-Path $env:RUNNER_TEMP ("phase19-fault-backup-" + $stage)
+            $faultJournal = Join-Path $env:RUNNER_TEMP ("phase19-fault-journal-" + $stage + '.json')
+            $faultRequest = Write-Request 'apply-portable' $faultRoot $env:PHASE19_STAGED_ZIP $faultBackup $faultJournal $env:PHASE19_ZIP_SHA256 (Get-Item $env:PHASE19_STAGED_ZIP).Length '0.2.0' $stage
+            $env:PLAYWORLD_UPDATER_TEST_MODE='1'
+            & $env:PHASE19_UPDATER --request $faultRequest --relocated 2>&1 | Tee-Object ("phase19-fault-" + $stage + '.log')
+            $expectedFailure = $LASTEXITCODE
+            $env:PLAYWORLD_UPDATER_TEST_MODE=''
+            if ($expectedFailure -eq 0) { throw "Fault injection did not fail at $stage." }
+            if ((Get-Content (Join-Path $faultRoot 'release_manifest.json') -Raw | ConvertFrom-Json).version -ne '0.1.0') { throw "Fault injection did not preserve/restore 0.1.0 at $stage." }
+          }
+          "PHASE19_PORTABLE_APPDATA=$appData" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PHASE19_UPDATED_PORTABLE=$working" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Prove real installed 0.1.0 to 0.2.0 update, repair, failure recovery, rollback, uninstall, and reinstall
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Write-Request([string]$Operation,[string]$AppRoot,[string]$Artifact,[string]$Backup,[string]$Journal,[string]$Hash,[long]$Size,[string]$Version,[string]$Failure='') {
+            $request = [ordered]@{ schema_version=1; operation=$Operation; application_root=$AppRoot; artifact_path=$Artifact; backup_root=$Backup; journal_path=$Journal; restart_executable=''; expected_sha256=$Hash; expected_size=$Size; expected_version=$Version; expected_product='PlayWorld Studio'; parent_process_id=2147483000; install_mode='installed'; created_at_unix=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds() }
+            if ($Failure) { $request.simulate_failure_stage=$Failure }
+            $path = Join-Path $env:RUNNER_TEMP ("phase19-installed-request-" + [guid]::NewGuid().ToString('N') + '.json')
+            $request | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding UTF8
+            return $path
+          }
+          $installRoot = Join-Path $env:RUNNER_TEMP 'PlayWorld-Studio-installed-upgrade'
+          $appData = Join-Path $env:RUNNER_TEMP 'phase19-installed-appdata'
+          New-Item -ItemType Directory -Force -Path $appData | Out-Null
+          $env:APPDATA = $appData
+          & $env:PHASE18_SETUP /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="$installRoot"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $oldExe = Join-Path $installRoot 'PlayWorld Studio.exe'
+          $unownedInstalled = Join-Path $installRoot 'Customer Readme.txt'
+          'This unrelated file must survive installed update, repair, and rollback.' | Set-Content $unownedInstalled -Encoding UTF8
+          & $oldExe --headless -- --phase18-release-smoke=first 2>&1 | Tee-Object phase19-real-installed-010-first.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $backup = Join-Path $env:RUNNER_TEMP 'phase19-installed-backup'
+          $journal = Join-Path $env:RUNNER_TEMP 'phase19-installed-journal.json'
+          $request = Write-Request 'apply-installer' $installRoot $env:PHASE19_STAGED_SETUP $backup $journal $env:PHASE19_SETUP_SHA256 (Get-Item $env:PHASE19_STAGED_SETUP).Length '0.2.0'
+          & $env:PHASE19_UPDATER --request $request --relocated 2>&1 | Tee-Object phase19-installed-update.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $newExe = Join-Path $installRoot 'PlayWorld Studio.exe'
+          if (-not (Test-Path $unownedInstalled)) { throw 'Installed update removed an unrelated file from the application directory.' }
+          & $newExe --headless -- --phase19-release-smoke=upgrade 2>&1 | Tee-Object phase19-installed-upgrade.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $repairBackup = Join-Path $env:RUNNER_TEMP 'phase19-installed-repair-backup'
+          $repairJournal = Join-Path $env:RUNNER_TEMP 'phase19-installed-repair-journal.json'
+          $repair = Write-Request 'repair' $installRoot $env:PHASE19_STAGED_SETUP $repairBackup $repairJournal $env:PHASE19_SETUP_SHA256 (Get-Item $env:PHASE19_STAGED_SETUP).Length '0.2.0'
+          & $env:PHASE19_UPDATER --request $repair --relocated 2>&1 | Tee-Object phase19-installed-repair.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path $unownedInstalled)) { throw 'Installed repair removed an unrelated file from the application directory.' }
+          $faultBackup = Join-Path $env:RUNNER_TEMP 'phase19-installed-fault-backup'
+          $faultJournal = Join-Path $env:RUNNER_TEMP 'phase19-installed-fault-journal.json'
+          $fault = Write-Request 'apply-installer' $installRoot $env:PHASE19_STAGED_SETUP $faultBackup $faultJournal $env:PHASE19_SETUP_SHA256 (Get-Item $env:PHASE19_STAGED_SETUP).Length '0.2.0' 'installed-handoff'
+          $env:PLAYWORLD_UPDATER_TEST_MODE='1'
+          & $env:PHASE19_UPDATER --request $fault --relocated 2>&1 | Tee-Object phase19-installed-interruption.log
+          $faultExit = $LASTEXITCODE
+          $env:PLAYWORLD_UPDATER_TEST_MODE=''
+          if ($faultExit -eq 0) { throw 'Installed handoff fault injection did not fail.' }
+          if ((Get-Content (Join-Path $installRoot 'release_manifest.json') -Raw | ConvertFrom-Json).version -ne '0.2.0') { throw 'Installed handoff interruption did not restore current verified binaries.' }
+          $rollback = Write-Request 'rollback' $installRoot '' $backup $journal '' 0 '0.1.0'
+          & $env:PHASE19_UPDATER --request $rollback --relocated 2>&1 | Tee-Object phase19-installed-rollback.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ((Get-Content (Join-Path $installRoot 'release_manifest.json') -Raw | ConvertFrom-Json).version -ne '0.1.0') { throw 'Installed binary rollback did not restore 0.1.0.' }
+          if (-not (Test-Path $unownedInstalled)) { throw 'Installed rollback removed an unrelated file from the application directory.' }
+          & $env:PHASE19_SETUP /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="$installRoot"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $newExe = Join-Path $installRoot 'PlayWorld Studio.exe'
+          & $newExe --headless -- --phase19-release-smoke=upgrade 2>&1 | Tee-Object phase19-installed-reapply.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $statePath = Join-Path $appData 'Godot\app_userdata\PlayWorld Studio\phase18-release-state.json'
+          if (-not (Test-Path $statePath)) { throw 'User project state is missing before uninstall.' }
+          $uninstaller = Get-ChildItem $installRoot -Filter 'unins*.exe' | Select-Object -First 1
+          if (-not $uninstaller) { throw 'Uninstaller is missing.' }
+          & $uninstaller.FullName /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path $statePath)) { throw 'Uninstall removed user project state.' }
+          & $env:PHASE19_SETUP /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="$installRoot"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & (Join-Path $installRoot 'PlayWorld Studio.exe') --headless -- --phase19-release-smoke=reopen 2>&1 | Tee-Object phase19-installed-reinstall.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Capture packaged Phase 19 visual/controller/accessibility evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:APPDATA = $env:PHASE19_PORTABLE_APPDATA
+          $creator = Join-Path $env:PHASE19_UPDATED_PORTABLE 'PlayWorld Studio.exe'
+          & $creator --rendering-method gl_compatibility --audio-driver Dummy --disable-vsync -- --phase19-release-smoke=visual 2>&1 | Tee-Object phase19-visual.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $text = Get-Content phase19-visual.log -Raw
+          if ($text -notmatch 'PASS: Phase 19 update, recovery, diagnostics, support, normal, and compact visual evidence captured.') { throw 'Phase 19 visual completion marker is missing.' }
+          if ($text -match 'SCRIPT ERROR:|(^|\s)ERROR:') { throw 'Phase 19 visual capture emitted strict errors.' }
+          $visualRoot = Join-Path $env:APPDATA 'Godot\app_userdata\PlayWorld Studio\phase19-visual'
+          $screens = Get-ChildItem $visualRoot -Filter '*.png'
+          if ($screens.Count -lt 16) { throw "Phase 19 visual inventory is incomplete: $($screens.Count) screenshots." }
+          "PHASE19_VISUAL_ROOT=$visualRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Scan source, package, installer metadata, logs, diagnostics, and support bundle
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $support = Join-Path $env:PHASE19_PORTABLE_APPDATA 'Godot\app_userdata\PlayWorld Studio\support'
+          if (-not (Test-Path $support)) { throw 'Expected local support bundle directory is missing.' }
+          $logs = @(Get-ChildItem -Path . -Filter '*.log' -File | ForEach-Object { $_.FullName })
+          & python tools/release/scan_phase19_security.py src config tools "$env:PHASE19_PACKAGE" "$support" @logs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $manifest = Get-Content (Join-Path $env:PHASE19_PACKAGE 'release_manifest.json') -Raw | ConvertFrom-Json
+          if ($manifest.version -ne '0.2.0' -or $manifest.user_data_policy -ne 'outside_install_directory') { throw 'Final package manifest reconciliation failed.' }
+          Get-FileHash $env:PHASE19_ZIP -Algorithm SHA256 | Format-List | Out-File phase19-final-hashes.log
+          Get-FileHash $env:PHASE19_SETUP -Algorithm SHA256 | Format-List | Out-File phase19-final-hashes.log -Append
+      - name: Upload complete Phase 19 Windows evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase19-windows-update-release-evidence
+          path: |
+            artifacts/phase19/release/*.zip
+            artifacts/phase19/release/*.sha256
+            artifacts/phase19/installer/*.exe
+            artifacts/phase19/installer/*.sha256
+            artifacts/phase19/updater/PlayWorldUpdater.exe
+            *.log
+            ${{ env.PHASE19_VISUAL_ROOT }}
+          if-no-files-found: warn
+          retention-days: 30

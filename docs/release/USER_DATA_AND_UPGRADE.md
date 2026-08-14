@@ -35,3 +35,9 @@ Original external asset folders remain read-only. If a registered source is unav
 ## Failed migration or damaged installation
 
 Migration state/backups remain in the per-user release area. Application package integrity and bundled exporter/template presence can be checked from Support & Recovery diagnostics. Repair/reinstall replaces application files while leaving per-user authored state separate.
+
+<!-- PHASE19_CORRECTION_STATUS_START -->
+## Phase 19 data-safety extension
+
+Update, repair, reinstall, rollback, and uninstall operate on application binaries and preserve projects, preferences, Asset Library state, checkpoints, recovery data, and support data. Sequential migrations create backups and journals. Unsupported future schemas are refused. See `MIGRATION_ROLLBACK_RECOVERY.md`.
+<!-- PHASE19_CORRECTION_STATUS_END -->

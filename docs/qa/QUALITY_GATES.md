@@ -79,3 +79,9 @@ Exact evidence is recorded in `docs/qa/PHASE18_QA.md` and merged PR #24.
 Implementation, tests, runtime evidence, release artifacts, documentation, and handoff status must agree. Phase 18 satisfies this definition through PR #24, workflow `31699466148`, final artifacts and checksums, lifecycle evidence, and manual review recorded in `docs/qa/PHASE18_QA.md`.
 
 No Phase 19 work is authorized until a new user-approved handoff defines the next milestone.
+
+<!-- PHASE19_CORRECTION_STATUS_START -->
+## Phase 19 release-maintenance gates
+
+Phase 19 adds strict signed-manifest, channel, staging, migration, session-recovery, updater-helper, deterministic package, installer, real portable/installed `0.1.0 → 0.2.0`, interruption, repair, rollback, offline/export, controller/accessibility, visual, privacy, security, and publication-dry-run gates. Inherited checks do not replace these focused gates. Screenshot existence alone is not visual acceptance.
+<!-- PHASE19_CORRECTION_STATUS_END -->

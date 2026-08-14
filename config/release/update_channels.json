@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "channels": {
+    "stable": {
+      "enabled": true,
+      "manifest_url": "https://github.com/DocDamage/polyfork-project/releases/latest/download/update-stable.json",
+      "allowed_hosts": ["github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com"]
+    },
+    "beta": {
+      "enabled": true,
+      "manifest_url": "https://github.com/DocDamage/polyfork-project/releases/download/beta/update-beta.json",
+      "allowed_hosts": ["github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com"]
+    },
+    "development": {
+      "enabled": true,
+      "manifest_url": "https://raw.githubusercontent.com/DocDamage/polyfork-project/master/config/release/update-development.json",
+      "allowed_hosts": ["raw.githubusercontent.com", "github.com", "objects.githubusercontent.com"]
+    }
+  }
+}

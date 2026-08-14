@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "stable_requires_distinct_key": true,
+    "private_keys_must_not_be_committed": true,
+    "rotation_supported": true
+  },
+  "keys": [
+    {
+      "key_id": "playworld-stable-2026-unprovisioned",
+      "algorithm": "rsa-sha256",
+      "enabled": false,
+      "revoked": false,
+      "channels": ["stable"],
+      "not_before_unix": 0,
+      "not_after_unix": 0,
+      "public_key_pem": "",
+      "comment": "Provision a production public key before publishing a stable manifest. The matching private key belongs only in the protected release environment."
+    },
+    {
+      "key_id": "playworld-beta-2026-unprovisioned",
+      "algorithm": "rsa-sha256",
+      "enabled": false,
+      "revoked": false,
+      "channels": ["beta"],
+      "not_before_unix": 0,
+      "not_after_unix": 0,
+      "public_key_pem": "",
+      "comment": "Provision a separate beta public key before publishing beta manifests."
+    },
+    {
+      "key_id": "phase19-development-fixture",
+      "algorithm": "rsa-sha256",
+      "enabled": true,
+      "revoked": false,
+      "channels": ["development"],
+      "not_before_unix": 1786579200,
+      "not_after_unix": 1893456000,
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4S03Cha3AV6smjcjr+xV\nhI5LPKjd2qDZiTq0OoAhL0PrM3Y+CNLpEIcu92qNTJVrrU240NmLkvS/vycf283Y\nYiwDFmpLIIr6QWoub7LrW/1w0/bsLUj+E5xytAEyo6l7VCujtLN5woHvDSNVB9Yk\nMiM6Zrd2ZEPB5NdSmvsfYlYuUgfTevn6sn3+OPzw1+WEL+iG14oxnzdkaazsOk3d\nXR6F0zeZSYx9EkpEGGMKaqd8ZY4OJSaVNP+5feO2fbt2LtU0AoYFLav2zE8ZHx4k\n6FiesGk72dGRNKRU9MeX773o8RjTxtwZskJaMGP1lCd1OPiU3P4Kc+ETh+nXVl/+\n9wIDAQAB\n-----END PUBLIC KEY-----\n",
+      "comment": "Public-only key for deterministic Phase 19 signature acceptance/rejection fixtures. Its private counterpart is not stored in the repository."
+    }
+  ]
+}
